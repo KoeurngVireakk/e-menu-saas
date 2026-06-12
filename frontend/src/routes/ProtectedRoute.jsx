@@ -1,0 +1,12 @@
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
+export default function ProtectedRoute() {
+  const { authenticated, loading } = useAuth();
+
+  if (loading) {
+    return <div className="min-h-screen bg-slate-50 p-6 text-slate-700">Loading...</div>;
+  }
+
+  return authenticated ? <Outlet /> : <Navigate to="/login" replace />;
+}

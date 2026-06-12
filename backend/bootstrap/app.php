@@ -1,9 +1,15 @@
 <?php
 
 use Illuminate\Foundation\Application;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,4 +25,70 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+
+        $exceptions->render(function (ValidationException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $exception->errors(),
+            ], 422);
+        });
+
+        $exceptions->render(function (AuthenticationException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated',
+            ], 401);
+        });
+
+        $exceptions->render(function (AuthorizationException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage() ?: 'Forbidden',
+            ], 403);
+        });
+
+        $exceptions->render(function (ModelNotFoundException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Resource not found',
+            ], 404);
+        });
+
+        $exceptions->render(function (\Throwable $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            $status = $exception instanceof HttpExceptionInterface
+                ? $exception->getStatusCode()
+                : 500;
+
+            $message = $exception->getMessage() ?: Response::$statusTexts[$status] ?? 'Server error';
+
+            if ($status >= 500 && ! config('app.debug')) {
+                $message = 'Server error';
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+            ], $status);
+        });
     })->create();
