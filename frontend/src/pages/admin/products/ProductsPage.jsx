@@ -28,6 +28,8 @@ export default function ProductsPage() {
   const [shopId, setShopId] = useState("");
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     api.get("/shops").then((response) => {
@@ -38,9 +40,21 @@ export default function ProductsPage() {
 
   const load = () => {
     if (!shopId) return;
-    api.get(`/shops/${shopId}/products`).then((response) => setProducts(response.data.data.products));
-    api.get(`/shops/${shopId}/categories`).then((response) => setCategories(response.data.data.categories));
-    api.get(`/shops/${shopId}/branches`).then((response) => setBranches(response.data.data.branches));
+    setLoading(true);
+    setLoadError("");
+
+    Promise.all([
+      api.get(`/shops/${shopId}/products`),
+      api.get(`/shops/${shopId}/categories`),
+      api.get(`/shops/${shopId}/branches`),
+    ])
+      .then(([productsResponse, categoriesResponse, branchesResponse]) => {
+        setProducts(productsResponse.data.data.products);
+        setCategories(categoriesResponse.data.data.categories);
+        setBranches(branchesResponse.data.data.branches);
+      })
+      .catch((error) => setLoadError(error.response?.data?.message || "Unable to load products."))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -157,6 +171,9 @@ export default function ProductsPage() {
             { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
           ]}
           rows={products}
+          loading={loading}
+          error={loadError}
+          emptyMessage="No products yet."
           renderActions={(product) => (
             <div className="flex gap-2">
               <button onClick={() => edit(product)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button>

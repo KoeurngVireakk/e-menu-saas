@@ -14,7 +14,7 @@ class DiningTableController extends Controller
 {
     public function index(Request $request, Branch $branch)
     {
-        $this->authorizeShop($request, $branch->shop);
+        $this->authorizeBranchAccess($request, $branch);
 
         return $this->success('Tables loaded', [
             'tables' => $branch->diningTables()->latest()->get(),
@@ -23,7 +23,7 @@ class DiningTableController extends Controller
 
     public function store(Request $request, Branch $branch)
     {
-        $this->authorizeShop($request, $branch->shop);
+        $this->authorizeBranchAccess($request, $branch);
 
         $validated = $this->validateTable($request, $branch);
         $validated['shop_id'] = $branch->shop_id;
@@ -38,14 +38,14 @@ class DiningTableController extends Controller
 
     public function show(Request $request, DiningTable $table)
     {
-        $this->authorizeShop($request, $table->shop);
+        $this->authorizeShopAccess($request, $table->shop, $table->branch_id);
 
         return $this->success('Table loaded', ['table' => $table->load('branch')]);
     }
 
     public function update(Request $request, DiningTable $table)
     {
-        $this->authorizeShop($request, $table->shop);
+        $this->authorizeShopAccess($request, $table->shop, $table->branch_id);
 
         $validated = $this->validateTable($request, $table->branch, $table->id);
         $validated['qr_url'] = $this->menuUrl($table->branch, $validated['table_code']);
@@ -56,7 +56,7 @@ class DiningTableController extends Controller
 
     public function destroy(Request $request, DiningTable $table)
     {
-        $this->authorizeShop($request, $table->shop);
+        $this->authorizeShopAccess($request, $table->shop, $table->branch_id);
         $table->delete();
 
         return $this->success('Table deleted successfully');
@@ -64,7 +64,7 @@ class DiningTableController extends Controller
 
     public function qr(Request $request, DiningTable $table)
     {
-        $this->authorizeShop($request, $table->shop);
+        $this->authorizeShopAccess($request, $table->shop, $table->branch_id);
 
         $encoded = urlencode($table->qr_url);
         $qrImageUrl = "https://api.qrserver.com/v1/create-qr-code/?size=320x320&data={$encoded}";
@@ -101,6 +101,6 @@ class DiningTableController extends Controller
 
     private function authorizeShop(Request $request, Shop $shop): void
     {
-        abort_unless($shop->owner_id === $request->user()->id || $request->user()->role === 'super_admin', 403);
+        $this->authorizeShopAccess($request, $shop);
     }
 }

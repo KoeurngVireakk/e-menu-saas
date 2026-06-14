@@ -14,12 +14,17 @@ export default function MenuPage() {
   const [query, setQuery] = useState("");
   const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem("emenu_cart") || "[]"));
   const [selected, setSelected] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    api.get(`/public/shops/${shopSlug}/menu?${searchParams.toString()}`).then((response) => {
-      setMenu(response.data.data);
-      setActive(response.data.data.categories[0]?.id || "");
-    });
+    setError("");
+    api
+      .get(`/public/shops/${shopSlug}/menu?${searchParams.toString()}`)
+      .then((response) => {
+        setMenu(response.data.data);
+        setActive(response.data.data.categories[0]?.id || "");
+      })
+      .catch((requestError) => setError(requestError.response?.data?.message || "Menu is not available right now."));
   }, [shopSlug, searchParams]);
 
   useEffect(() => {
@@ -40,7 +45,8 @@ export default function MenuPage() {
     Swal.fire({ title: "Added", text: product.name, icon: "success", timer: 900, showConfirmButton: false });
   };
 
-  if (!menu) return <div className="p-6">Loading menu...</div>;
+  if (error) return <div className="p-6 text-rose-700">{error}</div>;
+  if (!menu) return <div className="p-6 text-slate-600">Loading menu...</div>;
 
   return (
     <div className="mx-auto min-h-screen max-w-3xl bg-slate-50 pb-44">
@@ -61,6 +67,7 @@ export default function MenuPage() {
       </div>
       <div className="mt-4 grid gap-3 px-4">
         {products.map((product) => <ProductCard key={product.id} product={product} onAdd={add} onView={setSelected} />)}
+        {!products.length ? <div className="rounded-md bg-white p-6 text-sm text-slate-500">No products found.</div> : null}
       </div>
       {selected ? (
         <div className="fixed inset-0 z-30 grid place-items-end bg-slate-950/50 p-4 sm:place-items-center">

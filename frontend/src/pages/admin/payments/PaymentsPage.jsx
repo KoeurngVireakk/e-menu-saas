@@ -6,8 +6,19 @@ import StatusBadge from "../../../components/StatusBadge";
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
-  const load = () => api.get("/payments").then((response) => setPayments(response.data.data.payments));
+  const load = () => {
+    setLoading(true);
+    setLoadError("");
+
+    return api
+      .get("/payments")
+      .then((response) => setPayments(response.data.data.payments))
+      .catch((error) => setLoadError(error.response?.data?.message || "Unable to load payments."))
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
     load();
@@ -39,6 +50,9 @@ export default function PaymentsPage() {
         { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
       ]}
       rows={payments}
+      loading={loading}
+      error={loadError}
+      emptyMessage="No payments yet."
       renderActions={(payment) => (
         <div className="flex flex-wrap gap-2">
           {payment.proof_image_path ? <a href={`${import.meta.env.VITE_STORAGE_URL || "http://127.0.0.1:8000/storage"}/${payment.proof_image_path}`} target="_blank" rel="noreferrer" className="rounded-md border border-slate-300 px-3 py-1 text-sm">Proof</a> : null}

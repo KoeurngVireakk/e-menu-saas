@@ -8,9 +8,14 @@ export default function PaymentPage() {
   const { orderNumber } = useParams();
   const [order, setOrder] = useState(null);
   const [form, setForm] = useState({ payment_method: "cash", transaction_reference: "", proof_image: null });
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    api.get(`/public/orders/${orderNumber}`).then((response) => setOrder(response.data.data.order));
+    api
+      .get(`/public/orders/${orderNumber}`)
+      .then((response) => setOrder(response.data.data.order))
+      .catch((requestError) => setError(requestError.response?.data?.message || "Payment page could not be loaded."));
   }, [orderNumber]);
 
   const submit = async (event) => {
@@ -21,15 +26,19 @@ export default function PaymentPage() {
     if (form.proof_image) data.append("proof_image", form.proof_image);
 
     try {
+      setSaving(true);
       await api.post(`/public/orders/${orderNumber}/payment`, data, { headers: { "Content-Type": "multipart/form-data" } });
       Swal.fire("Payment submitted", "Staff will review your payment.", "success");
       api.get(`/public/orders/${orderNumber}`).then((response) => setOrder(response.data.data.order));
     } catch (error) {
       Swal.fire("Payment failed", error.response?.data?.message || "Please review payment details.", "error");
+    } finally {
+      setSaving(false);
     }
   };
 
-  if (!order) return <div className="p-6">Loading payment...</div>;
+  if (error) return <div className="p-6 text-rose-700">{error}</div>;
+  if (!order) return <div className="p-6 text-slate-600">Loading payment...</div>;
 
   return (
     <div className="mx-auto min-h-screen max-w-xl bg-white p-6">
@@ -52,7 +61,9 @@ export default function PaymentPage() {
             <input className="rounded-md border border-slate-300 px-3 py-2" type="file" accept="image/*" onChange={(event) => setForm({ ...form, proof_image: event.target.files?.[0] || null })} />
           </>
         ) : null}
-        <button className="rounded-md bg-orange-600 px-4 py-2 font-semibold text-white">Submit payment</button>
+        <button disabled={saving} className="rounded-md bg-orange-600 px-4 py-2 font-semibold text-white disabled:opacity-60">
+          {saving ? "Submitting..." : "Submit payment"}
+        </button>
       </form>
     </div>
   );

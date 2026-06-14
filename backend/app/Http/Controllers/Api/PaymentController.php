@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
-use App\Models\Shop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -14,11 +13,24 @@ class PaymentController extends Controller
     {
         $shopIds = $this->accessibleShopIds($request);
 
+        if (empty($shopIds)) {
+            return $this->success('Payments loaded', ['payments' => []]);
+        }
+
         $payments = Payment::with(['order.items', 'shop', 'branch', 'confirmer'])
             ->whereIn('shop_id', $shopIds)
-            ->when($request->query('status'), fn ($query, $status) => $query->where('status', $status))
-            ->latest()
-            ->get();
+            ->when($request->query('status'), fn ($query, $status) => $query->where('status', $status));
+
+        $payments->where(function ($query) use ($request, $shopIds) {
+            foreach ($shopIds as $shopId) {
+                $query->orWhere(function ($shopQuery) use ($request, $shopId) {
+                    $shopQuery->where('shop_id', $shopId);
+                    $this->scopeBranchAccess($request, $shopQuery, $shopId);
+                });
+            }
+        });
+
+        $payments = $payments->latest()->get();
 
         return $this->success('Payments loaded', ['payments' => $payments]);
     }
@@ -74,17 +86,8 @@ class PaymentController extends Controller
         return $this->success('Payment rejected', ['payment' => $payment->fresh()->load('order')]);
     }
 
-    private function accessibleShopIds(Request $request): array
-    {
-        if ($request->user()->role === 'super_admin') {
-            return Shop::pluck('id')->all();
-        }
-
-        return $request->user()->shops()->pluck('id')->all();
-    }
-
     private function authorizePayment(Request $request, Payment $payment): void
     {
-        abort_unless(in_array($payment->shop_id, $this->accessibleShopIds($request), true), 403);
+        abort_unless($request->user()->canAccessShop($payment->shop_id, $payment->branch_id), 403);
     }
 }

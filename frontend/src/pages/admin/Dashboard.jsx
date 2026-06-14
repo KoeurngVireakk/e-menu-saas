@@ -6,14 +6,22 @@ export default function Dashboard() {
   const [shops, setShops] = useState([]);
   const [orders, setOrders] = useState([]);
   const [summary, setSummary] = useState({ new_count: 0, pending_count: 0, today_revenue: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    api.get("/shops").then((response) => setShops(response.data.data.shops));
-    api.get("/orders").then((response) => {
-      setOrders(response.data.data.orders.slice(0, 6));
-      setSummary(response.data.data.summary);
-    });
+    Promise.all([api.get("/shops"), api.get("/orders")])
+      .then(([shopsResponse, ordersResponse]) => {
+        setShops(shopsResponse.data.data.shops);
+        setOrders(ordersResponse.data.data.orders.slice(0, 6));
+        setSummary(ordersResponse.data.data.summary);
+      })
+      .catch((requestError) => setError(requestError.response?.data?.message || "Dashboard could not be loaded."))
+      .finally(() => setLoading(false));
   }, []);
+
+  if (loading) return <div className="rounded-md border border-slate-200 bg-white p-6 text-sm text-slate-500">Loading dashboard...</div>;
+  if (error) return <div className="rounded-md border border-rose-200 bg-white p-6 text-sm text-rose-700">{error}</div>;
 
   return (
     <div className="grid gap-6">
@@ -26,6 +34,7 @@ export default function Dashboard() {
         <div className="rounded-md border border-slate-200 bg-white p-4">
           <h2 className="text-lg font-semibold text-slate-950">Shops</h2>
           <div className="mt-4 grid gap-3">
+            {!shops.length ? <p className="text-sm text-slate-500">No shops available.</p> : null}
             {shops.map((shop) => (
               <div key={shop.id} className="rounded-md border border-slate-200 p-3">
                 <div className="flex items-center justify-between gap-3">
@@ -42,6 +51,7 @@ export default function Dashboard() {
         <div className="rounded-md border border-slate-200 bg-white p-4">
           <h2 className="text-lg font-semibold text-slate-950">Recent orders</h2>
           <div className="mt-4 grid gap-3">
+            {!orders.length ? <p className="text-sm text-slate-500">No recent orders.</p> : null}
             {orders.map((order) => (
               <div key={order.id} className="flex items-center justify-between rounded-md border border-slate-200 p-3">
                 <div>

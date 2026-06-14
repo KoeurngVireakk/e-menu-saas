@@ -31,6 +31,12 @@ class PublicOrderController extends Controller
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.note' => ['nullable', 'string'],
             'items.*.selected_options' => ['nullable', 'array'],
+            'items.*.selected_options.*.product_option_id' => ['required_with:items.*.selected_options', 'integer'],
+            'items.*.selected_options.*.product_option_value_id' => ['nullable', 'integer'],
+            'items.*.selected_options.*.product_option_value_ids' => ['nullable', 'array'],
+            'items.*.selected_options.*.product_option_value_ids.*' => ['integer'],
+            'items.*.selected_options.*.value_ids' => ['nullable', 'array'],
+            'items.*.selected_options.*.value_ids.*' => ['integer'],
         ]);
 
         $shop = Shop::whereKey($validated['shop_id'])->where('status', 'active')->firstOrFail();
@@ -52,16 +58,19 @@ class PublicOrderController extends Controller
             $subtotal = 0;
             $items = [];
 
-            foreach ($validated['items'] as $item) {
+            foreach ($validated['items'] as $index => $item) {
                 $product = Product::whereKey($item['product_id'])
                     ->where('shop_id', $shop->id)
                     ->where(fn ($query) => $query->whereNull('branch_id')->orWhere('branch_id', $branch->id))
                     ->where('status', 'active')
                     ->where('is_available', true)
+                    ->with('options.values')
                     ->firstOrFail();
 
-                $unitPrice = $product->discount_price ?? $product->price;
-                $total = $unitPrice * $item['quantity'];
+                [$selectedOptions, $optionTotal] = $this->selectedOptions($product, $item['selected_options'] ?? [], $index);
+                $unitPrice = (float) ($product->discount_price ?? $product->price);
+                $lineUnitPrice = $unitPrice + $optionTotal;
+                $total = $lineUnitPrice * $item['quantity'];
                 $subtotal += $total;
 
                 $items[] = [
@@ -72,7 +81,7 @@ class PublicOrderController extends Controller
                     'discount_price' => $product->discount_price,
                     'total_price' => $total,
                     'note' => $item['note'] ?? null,
-                    'selected_options_json' => $item['selected_options'] ?? null,
+                    'selected_options_json' => $selectedOptions,
                 ];
             }
 
@@ -154,5 +163,95 @@ class PublicOrderController extends Controller
         } while (Order::where('order_number', $number)->exists());
 
         return $number;
+    }
+
+    private function selectedOptions(Product $product, array $selected, int $itemIndex): array
+    {
+        $options = $product->options;
+        $selectedByOption = collect($selected)->keyBy('product_option_id');
+        $sanitized = [];
+        $optionTotal = 0;
+
+        foreach ($selectedByOption->keys() as $optionId) {
+            if (! $options->contains('id', (int) $optionId)) {
+                throw ValidationException::withMessages([
+                    "items.{$itemIndex}.selected_options" => ['One or more selected options do not belong to this product.'],
+                ]);
+            }
+        }
+
+        foreach ($options as $option) {
+            $selection = $selectedByOption->get($option->id);
+
+            if (! $selection) {
+                if ($option->is_required) {
+                    throw ValidationException::withMessages([
+                        "items.{$itemIndex}.selected_options" => ["The {$option->name} option is required."],
+                    ]);
+                }
+
+                continue;
+            }
+
+            $valueIds = $this->selectedValueIds($selection);
+
+            if ($option->type === 'single' && count($valueIds) !== 1) {
+                throw ValidationException::withMessages([
+                    "items.{$itemIndex}.selected_options" => ["The {$option->name} option requires exactly one value."],
+                ]);
+            }
+
+            if ($option->type === 'multiple' && $option->is_required && count($valueIds) < 1) {
+                throw ValidationException::withMessages([
+                    "items.{$itemIndex}.selected_options" => ["The {$option->name} option requires at least one value."],
+                ]);
+            }
+
+            $values = $option->values->whereIn('id', $valueIds)->values();
+
+            if ($values->count() !== count(array_unique($valueIds))) {
+                throw ValidationException::withMessages([
+                    "items.{$itemIndex}.selected_options" => ["One or more {$option->name} values are invalid."],
+                ]);
+            }
+
+            $sanitizedValues = $values->map(function ($value) use (&$optionTotal) {
+                $extraPrice = (float) $value->extra_price;
+                $optionTotal += $extraPrice;
+
+                return [
+                    'product_option_value_id' => $value->id,
+                    'name' => $value->name,
+                    'extra_price' => $extraPrice,
+                ];
+            })->all();
+
+            $sanitized[] = [
+                'product_option_id' => $option->id,
+                'name' => $option->name,
+                'type' => $option->type,
+                'values' => $sanitizedValues,
+            ];
+        }
+
+        return [$sanitized, $optionTotal];
+    }
+
+    private function selectedValueIds(array $selection): array
+    {
+        $ids = $selection['product_option_value_ids']
+            ?? $selection['value_ids']
+            ?? $selection['values']
+            ?? [];
+
+        if (isset($selection['product_option_value_id'])) {
+            $ids = [$selection['product_option_value_id']];
+        }
+
+        if (! is_array($ids)) {
+            $ids = [$ids];
+        }
+
+        return array_values(array_unique(array_map('intval', $ids)));
     }
 }

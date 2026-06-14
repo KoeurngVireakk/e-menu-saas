@@ -16,6 +16,8 @@ export default function TablesPage() {
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
   const [qr, setQr] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     api.get("/shops").then((response) => {
@@ -33,7 +35,18 @@ export default function TablesPage() {
   }, [shopId]);
 
   const load = () => {
-    if (branchId) api.get(`/branches/${branchId}/tables`).then((response) => setTables(response.data.data.tables));
+    if (!branchId) {
+      setTables([]);
+      return;
+    }
+
+    setLoading(true);
+    setLoadError("");
+    api
+      .get(`/branches/${branchId}/tables`)
+      .then((response) => setTables(response.data.data.tables))
+      .catch((error) => setLoadError(error.response?.data?.message || "Unable to load tables."))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -104,6 +117,9 @@ export default function TablesPage() {
             { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
           ]}
           rows={tables}
+          loading={loading}
+          error={loadError}
+          emptyMessage="No tables yet."
           renderActions={(table) => (
             <div className="flex flex-wrap gap-2">
               <button onClick={() => { setEditing(table); setForm({ ...initial, ...table }); }} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button>
