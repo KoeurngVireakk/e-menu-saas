@@ -18,12 +18,12 @@ export default function MenuPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setError("");
     api
       .get(`/public/shops/${shopSlug}/menu?${searchParams.toString()}`)
       .then((response) => {
         setMenu(response.data.data);
         setActive(response.data.data.categories[0]?.id || "");
+        setError("");
       })
       .catch((requestError) => setError(requestError.response?.data?.message || "Menu is not available right now."));
   }, [shopSlug, searchParams]);

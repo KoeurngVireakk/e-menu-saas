@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Branch;
 use App\Models\Shop;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -55,11 +56,11 @@ abstract class Controller
 
     protected function scopeBranchAccess(
         Request $request,
-        $query,
+        Builder|Relation $query,
         int $shopId,
         string $column = 'branch_id',
         bool $includeGlobal = false
-    ) {
+    ): Builder|Relation {
         $branchIds = $request->user()->accessibleBranchIdsForShop($shopId);
 
         if ($branchIds === null) {
