@@ -115,7 +115,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Iced Latte',
             'slug' => 'iced-latte',
             'description' => 'Espresso, milk, and ice.',
-            'price' => 8000,
+            'price' => 10000,
             'discount_price' => null,
             'is_featured' => true,
             'is_available' => true,
