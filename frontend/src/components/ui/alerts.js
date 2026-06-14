@@ -24,6 +24,11 @@ export async function alertError(error, fallback = "Something went wrong.") {
   return Swal.fire("Error", error?.response?.data?.message || error?.message || fallback, "error");
 }
 
+export async function alertWarning(title, message) {
+  const Swal = await getSwal();
+  return Swal.fire(title, message, "warning");
+}
+
 export async function promptText(title, inputLabel, confirmButtonText = "Confirm") {
   const Swal = await getSwal();
   return Swal.fire({ title, input: "text", inputLabel, icon: "warning", showCancelButton: true, confirmButtonText });

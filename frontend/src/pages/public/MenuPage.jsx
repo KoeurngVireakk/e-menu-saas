@@ -3,15 +3,20 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
 import CartDrawer from "../../components/CartDrawer";
+import OfflineBanner from "../../components/OfflineBanner";
 import ProductCard from "../../components/ProductCard";
 import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal, SectionTitle, toastError, toastSuccess } from "../../components/ui";
+import useOnlineStatus from "../../hooks/useOnlineStatus";
 import { cartItemKey, itemTotal, money, productBasePrice, readCart, writeCart } from "../../utils/cart";
+import { menuCacheKey, readMenuCache, writeMenuCache } from "../../utils/menuCache";
 
 const storageUrl = import.meta.env.VITE_STORAGE_URL || "http://127.0.0.1:8000/storage";
 
 export default function MenuPage() {
   const { shopSlug } = useParams();
   const [searchParams] = useSearchParams();
+  const search = searchParams.toString();
+  const online = useOnlineStatus();
   const navigate = useNavigate();
   const [menu, setMenu] = useState(null);
   const [active, setActive] = useState("");
@@ -19,17 +24,37 @@ export default function MenuPage() {
   const [cart, setCart] = useState(readCart);
   const [selected, setSelected] = useState(null);
   const [error, setError] = useState("");
+  const [offlineCached, setOfflineCached] = useState(false);
 
   useEffect(() => {
+    const cacheKey = menuCacheKey(shopSlug, search);
+
     api
-      .get(`/public/shops/${shopSlug}/menu?${searchParams.toString()}`)
+      .get(`/public/shops/${shopSlug}/menu?${search}`)
       .then((response) => {
-        setMenu(response.data.data);
-        setActive(response.data.data.categories[0]?.id || "");
+        const data = response.data.data;
+        setMenu(data);
+        setActive(data.categories[0]?.id || "");
+        writeMenuCache(cacheKey, data);
+        setOfflineCached(!online);
         setError("");
       })
-      .catch((requestError) => setError(requestError.response?.data?.message || "Menu is not available right now."));
-  }, [shopSlug, searchParams]);
+      .catch((requestError) => {
+        const cached = readMenuCache(cacheKey);
+
+        if (!online && cached) {
+          setMenu(cached.data);
+          setActive(cached.data.categories[0]?.id || "");
+          setOfflineCached(true);
+          setError("");
+          return;
+        }
+
+        setError(!online
+          ? "You are offline and this menu has not been saved on this device yet."
+          : requestError.response?.data?.message || "Menu is not available right now.");
+      });
+  }, [shopSlug, search, online]);
 
   useEffect(() => {
     writeCart(cart);
@@ -68,8 +93,27 @@ export default function MenuPage() {
     toastSuccess(`${cartItem.name} added`);
   };
 
-  if (error) return <div className="mx-auto min-h-screen max-w-3xl bg-slate-50 p-4"><ErrorState message={error} onRetry={() => window.location.reload()} /></div>;
-  if (!menu) return <div className="mx-auto min-h-screen max-w-3xl bg-slate-50 p-4"><LoadingState message="Loading menu..." /></div>;
+  if (error) {
+    return (
+      <div className="mx-auto min-h-screen max-w-3xl bg-slate-50">
+        {!online ? <OfflineBanner /> : null}
+        <div className="p-4">
+          <ErrorState message={error} onRetry={() => window.location.reload()} />
+        </div>
+      </div>
+    );
+  }
+
+  if (!menu) {
+    return (
+      <div className="mx-auto min-h-screen max-w-3xl bg-slate-50">
+        {!online ? <OfflineBanner /> : null}
+        <div className="p-4">
+          <LoadingState message="Loading menu..." />
+        </div>
+      </div>
+    );
+  }
 
   const coverUrl = menu.shop.cover_path ? `${storageUrl}/${menu.shop.cover_path}` : null;
   const logoUrl = menu.shop.logo_path ? `${storageUrl}/${menu.shop.logo_path}` : null;
@@ -77,6 +121,7 @@ export default function MenuPage() {
 
   return (
     <div className="mx-auto min-h-screen max-w-3xl bg-slate-50 pb-64">
+      {!online ? <OfflineBanner cached={offlineCached} /> : null}
       <section className="relative overflow-hidden rounded-b-[2rem] bg-slate-950 text-white shadow-sm" style={{ backgroundColor: menu.shop.primary_color || "#0f172a" }}>
         {coverUrl ? <img className="absolute inset-0 h-full w-full object-cover opacity-35" src={coverUrl} alt={menu.shop.name} /> : null}
         <div className="relative px-4 pb-7 pt-10">

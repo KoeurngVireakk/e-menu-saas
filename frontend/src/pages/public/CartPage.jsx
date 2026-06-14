@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
-import { Button, Card, EmptyState, Input, Select, Textarea, alertError, toastSuccess } from "../../components/ui";
+import OfflineBanner from "../../components/OfflineBanner";
+import { Button, Card, EmptyState, Input, Select, Textarea, alertError, alertWarning, toastSuccess } from "../../components/ui";
+import useOnlineStatus from "../../hooks/useOnlineStatus";
 import { cartTotal, clearCart, itemTotal, money, optionSummary, readCart, unitPrice, writeCart } from "../../utils/cart";
 
 export default function CartPage() {
@@ -11,6 +13,7 @@ export default function CartPage() {
   const [cart, setCart] = useState(readCart);
   const [form, setForm] = useState({ customer_name: "", customer_phone: "", note: "", order_type: searchParams.get("table") ? "dine_in" : "takeaway" });
   const [saving, setSaving] = useState(false);
+  const online = useOnlineStatus();
   const total = cartTotal(cart);
 
   useEffect(() => {
@@ -31,6 +34,12 @@ export default function CartPage() {
 
   const submit = async (event) => {
     event.preventDefault();
+
+    if (!online) {
+      await alertWarning("You are offline", "Connect to the internet before submitting your order.");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -59,6 +68,7 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto min-h-screen max-w-2xl bg-slate-50 p-4 pb-28">
+      {!online ? <OfflineBanner /> : null}
       <div className="mb-5">
         <p className="text-xs font-bold uppercase tracking-wide text-orange-600">Checkout</p>
         <h1 className="mt-1 text-3xl font-black text-slate-950">Cart</h1>
@@ -99,7 +109,7 @@ export default function CartPage() {
         <div className="sticky bottom-4 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-3 shadow-lg">
           <span className="font-semibold">Total</span>
           <span className="font-bold text-orange-700">{money(total)} KHR</span>
-          <Button type="submit" disabled={!cart.length || saving || !searchParams.get("shop") || !searchParams.get("branch")}>
+          <Button type="submit" disabled={!cart.length || saving || !online || !searchParams.get("shop") || !searchParams.get("branch")}>
             {saving ? "Submitting..." : "Submit order"}
           </Button>
         </div>

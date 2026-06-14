@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../api/axios";
+import OfflineBanner from "../../components/OfflineBanner";
 import StatusBadge from "../../components/StatusBadge";
-import { Button, Card, ErrorState, Input, LoadingState, Select, alertError, toastSuccess } from "../../components/ui";
+import { Button, Card, ErrorState, Input, LoadingState, Select, alertError, alertWarning, toastSuccess } from "../../components/ui";
+import useOnlineStatus from "../../hooks/useOnlineStatus";
 
 export default function PaymentPage() {
   const { orderNumber } = useParams();
@@ -10,6 +12,7 @@ export default function PaymentPage() {
   const [form, setForm] = useState({ payment_method: "cash", transaction_reference: "", proof_image: null });
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const online = useOnlineStatus();
 
   useEffect(() => {
     api
@@ -20,6 +23,12 @@ export default function PaymentPage() {
 
   const submit = async (event) => {
     event.preventDefault();
+
+    if (!online) {
+      await alertWarning("You are offline", "Connect to the internet before submitting payment.");
+      return;
+    }
+
     const data = new FormData();
     data.append("payment_method", form.payment_method);
     if (form.transaction_reference) data.append("transaction_reference", form.transaction_reference);
@@ -37,11 +46,12 @@ export default function PaymentPage() {
     }
   };
 
-  if (error) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4"><ErrorState message={error} /></div>;
-  if (!order) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4"><LoadingState message="Loading payment..." /></div>;
+  if (error) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4">{!online ? <OfflineBanner /> : null}<ErrorState message={error} /></div>;
+  if (!order) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4">{!online ? <OfflineBanner /> : null}<LoadingState message="Loading payment..." /></div>;
 
   return (
     <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4">
+      {!online ? <OfflineBanner /> : null}
       <p className="text-xs font-bold uppercase tracking-wide text-orange-600">Payment</p>
       <h1 className="mt-1 text-3xl font-black text-slate-950">Complete payment</h1>
       <p className="mt-1 text-slate-500">{order.order_number}</p>
@@ -64,7 +74,7 @@ export default function PaymentPage() {
             <Input label="Proof image" type="file" accept="image/*" onChange={(event) => setForm({ ...form, proof_image: event.target.files?.[0] || null })} />
           </>
         ) : null}
-        <Button type="submit" disabled={saving} size="lg">
+        <Button type="submit" disabled={saving || !online} size="lg">
           {saving ? "Submitting..." : "Submit payment"}
         </Button>
       </form>
