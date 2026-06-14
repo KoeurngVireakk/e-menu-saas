@@ -1,5 +1,3 @@
-import "datatables.net-dt/css/dataTables.dataTables.css";
-import DataTablePlugin from "datatables.net-dt";
 import { useEffect, useRef } from "react";
 import { EmptyState, ErrorState, LoadingState } from "./ui";
 
@@ -8,6 +6,8 @@ export default function DataTable({ columns, rows = [], renderActions, loading =
   const instanceRef = useRef(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     if (instanceRef.current) {
       instanceRef.current.destroy();
       instanceRef.current = null;
@@ -17,13 +17,24 @@ export default function DataTable({ columns, rows = [], renderActions, loading =
       return undefined;
     }
 
-    instanceRef.current = new DataTablePlugin(tableRef.current, {
-      destroy: true,
-      responsive: true,
-      pageLength: 10,
+    Promise.all([
+      import("datatables.net-dt"),
+      import("datatables.net-dt/css/dataTables.dataTables.css"),
+    ]).then(([dataTablesModule]) => {
+      if (cancelled || !tableRef.current) {
+        return;
+      }
+
+      const DataTablePlugin = dataTablesModule.default;
+      instanceRef.current = new DataTablePlugin(tableRef.current, {
+        destroy: true,
+        responsive: true,
+        pageLength: 10,
+      });
     });
 
     return () => {
+      cancelled = true;
       if (instanceRef.current) {
         instanceRef.current.destroy();
         instanceRef.current = null;

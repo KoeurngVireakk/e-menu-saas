@@ -11,4 +11,4 @@ export { default as Select } from "./Select";
 export { default as StatCard } from "./StatCard";
 export { default as Tabs } from "./Tabs";
 export { default as Textarea } from "./Textarea";
-export { alertError, confirmAction, toastError, toastSuccess } from "./alerts";
+export { alertError, confirmAction, promptText, toastError, toastSuccess } from "./alerts";

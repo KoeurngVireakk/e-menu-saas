@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import Swal from "sweetalert2";
 import api from "../../../api/axios";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
-import { confirmAction, toastSuccess } from "../../../components/ui";
+import { confirmAction, promptText, toastSuccess } from "../../../components/ui";
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState([]);
@@ -34,7 +33,7 @@ export default function PaymentsPage() {
   };
 
   const reject = async (payment) => {
-    const result = await Swal.fire({ title: "Reject payment?", input: "text", inputLabel: "Reason", icon: "warning", showCancelButton: true, confirmButtonText: "Reject" });
+    const result = await promptText("Reject payment?", "Reason", "Reject");
     if (!result.isConfirmed) return;
     await api.put(`/payments/${payment.id}/reject`, { reason: result.value });
     toastSuccess("Payment was rejected.");
