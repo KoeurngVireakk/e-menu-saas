@@ -56,4 +56,9 @@ class Shop extends Model
     {
         return $this->hasMany(Order::class);
     }
+
+    public function staffAssignments(): HasMany
+    {
+        return $this->hasMany(ShopStaff::class);
+    }
 }

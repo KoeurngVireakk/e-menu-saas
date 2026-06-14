@@ -21,8 +21,19 @@ export default function ShopsPage() {
   const [shops, setShops] = useState([]);
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
-  const load = () => api.get("/shops").then((response) => setShops(response.data.data.shops));
+  const load = () => {
+    setLoading(true);
+    setLoadError("");
+
+    return api
+      .get("/shops")
+      .then((response) => setShops(response.data.data.shops))
+      .catch((error) => setLoadError(error.response?.data?.message || "Unable to load shops."))
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
     load();
@@ -114,6 +125,9 @@ export default function ShopsPage() {
             { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
           ]}
           rows={shops}
+          loading={loading}
+          error={loadError}
+          emptyMessage="No shops yet."
           renderActions={(shop) => (
             <div className="flex gap-2">
               <button onClick={() => edit(shop)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button>

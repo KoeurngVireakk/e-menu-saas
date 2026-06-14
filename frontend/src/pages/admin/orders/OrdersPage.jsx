@@ -10,11 +10,22 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [summary, setSummary] = useState({ new_count: 0, pending_count: 0, today_revenue: 0 });
   const [selected, setSelected] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
-  const load = () => api.get("/orders").then((response) => {
-    setOrders(response.data.data.orders);
-    setSummary(response.data.data.summary);
-  });
+  const load = () => {
+    setLoading(true);
+    setLoadError("");
+
+    return api
+      .get("/orders")
+      .then((response) => {
+        setOrders(response.data.data.orders);
+        setSummary(response.data.data.summary);
+      })
+      .catch((error) => setLoadError(error.response?.data?.message || "Unable to load orders."))
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
     load();
@@ -71,6 +82,9 @@ export default function OrdersPage() {
           { key: "order_status", label: "Status", render: (row) => <StatusBadge value={row.order_status} /> },
         ]}
         rows={orders}
+        loading={loading}
+        error={loadError}
+        emptyMessage="No orders yet."
         renderActions={(order) => (
           <div className="flex flex-wrap gap-2">
             <button onClick={() => setSelected(order)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">View</button>

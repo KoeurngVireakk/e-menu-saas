@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
-use App\Models\Shop;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -14,14 +13,34 @@ class OrderController extends Controller
     {
         $shopIds = $this->accessibleShopIds($request);
 
+        if (empty($shopIds)) {
+            return $this->success('Orders loaded', [
+                'orders' => [],
+                'summary' => [
+                    'new_count' => 0,
+                    'pending_count' => 0,
+                    'today_revenue' => 0,
+                ],
+            ]);
+        }
+
         $orders = Order::with(['items', 'shop', 'branch', 'diningTable', 'payment'])
             ->whereIn('shop_id', $shopIds)
             ->when($request->query('shop_id'), fn ($query, $shopId) => $query->where('shop_id', $shopId))
             ->when($request->query('branch_id'), fn ($query, $branchId) => $query->where('branch_id', $branchId))
             ->when($request->query('status'), fn ($query, $status) => $query->where('order_status', $status))
-            ->when($request->query('date'), fn ($query, $date) => $query->whereDate('created_at', $date))
-            ->latest()
-            ->get();
+            ->when($request->query('date'), fn ($query, $date) => $query->whereDate('created_at', $date));
+
+        $orders->where(function ($query) use ($request, $shopIds) {
+            foreach ($shopIds as $shopId) {
+                $query->orWhere(function ($shopQuery) use ($request, $shopId) {
+                    $shopQuery->where('shop_id', $shopId);
+                    $this->scopeBranchAccess($request, $shopQuery, $shopId);
+                });
+            }
+        });
+
+        $orders = $orders->latest()->get();
 
         return $this->success('Orders loaded', [
             'orders' => $orders,
@@ -58,17 +77,8 @@ class OrderController extends Controller
         return $this->success('Order status updated', ['order' => $order->fresh()->load(['items', 'payment'])]);
     }
 
-    private function accessibleShopIds(Request $request): array
-    {
-        if ($request->user()->role === 'super_admin') {
-            return Shop::pluck('id')->all();
-        }
-
-        return $request->user()->shops()->pluck('id')->all();
-    }
-
     private function authorizeOrder(Request $request, Order $order): void
     {
-        abort_unless(in_array($order->shop_id, $this->accessibleShopIds($request), true), 403);
+        abort_unless($request->user()->canAccessShop($order->shop_id, $order->branch_id), 403);
     }
 }

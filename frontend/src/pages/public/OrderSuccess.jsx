@@ -6,12 +6,17 @@ import StatusBadge from "../../components/StatusBadge";
 export default function OrderSuccess() {
   const { orderNumber } = useParams();
   const [order, setOrder] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    api.get(`/public/orders/${orderNumber}`).then((response) => setOrder(response.data.data.order));
+    api
+      .get(`/public/orders/${orderNumber}`)
+      .then((response) => setOrder(response.data.data.order))
+      .catch((requestError) => setError(requestError.response?.data?.message || "Order could not be loaded."));
   }, [orderNumber]);
 
-  if (!order) return <div className="p-6">Loading order...</div>;
+  if (error) return <div className="p-6 text-rose-700">{error}</div>;
+  if (!order) return <div className="p-6 text-slate-600">Loading order...</div>;
 
   return (
     <div className="mx-auto min-h-screen max-w-xl bg-white p-6 text-center">

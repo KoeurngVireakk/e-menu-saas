@@ -13,6 +13,8 @@ export default function BranchesPage() {
   const [branches, setBranches] = useState([]);
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     api.get("/shops").then((response) => {
@@ -22,7 +24,18 @@ export default function BranchesPage() {
   }, []);
 
   const load = () => {
-    if (shopId) api.get(`/shops/${shopId}/branches`).then((response) => setBranches(response.data.data.branches));
+    if (!shopId) {
+      setBranches([]);
+      return;
+    }
+
+    setLoading(true);
+    setLoadError("");
+    api
+      .get(`/shops/${shopId}/branches`)
+      .then((response) => setBranches(response.data.data.branches))
+      .catch((error) => setLoadError(error.response?.data?.message || "Unable to load branches."))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -89,6 +102,9 @@ export default function BranchesPage() {
           { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
         ]}
         rows={branches}
+        loading={loading}
+        error={loadError}
+        emptyMessage="No branches yet."
         renderActions={(branch) => (
           <div className="flex gap-2">
             <button onClick={() => edit(branch)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button>

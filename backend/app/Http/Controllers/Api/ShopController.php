@@ -13,12 +13,14 @@ class ShopController extends Controller
     public function index(Request $request)
     {
         return $this->success('Shops loaded', [
-            'shops' => $request->user()->shops()->latest()->get(),
+            'shops' => Shop::whereIn('id', $this->accessibleShopIds($request))->latest()->get(),
         ]);
     }
 
     public function store(Request $request)
     {
+        abort_unless($request->user()->canManageShops(), 403);
+
         $validated = $this->validateShop($request);
         $validated['owner_id'] = $request->user()->id;
         $validated['slug'] = $this->uniqueSlug($validated['name']);
@@ -45,7 +47,7 @@ class ShopController extends Controller
 
     public function update(Request $request, Shop $shop)
     {
-        $this->authorizeShop($request, $shop);
+        $this->authorizeShopManagement($request, $shop);
 
         $validated = $this->validateShop($request, $shop);
         if (($validated['name'] ?? $shop->name) !== $shop->name) {
@@ -60,7 +62,7 @@ class ShopController extends Controller
 
     public function destroy(Request $request, Shop $shop)
     {
-        $this->authorizeShop($request, $shop);
+        $this->authorizeShopManagement($request, $shop);
         $shop->delete();
 
         return $this->success('Shop deleted successfully');
@@ -112,6 +114,14 @@ class ShopController extends Controller
 
     private function authorizeShop(Request $request, Shop $shop): void
     {
-        abort_unless($shop->owner_id === $request->user()->id || $request->user()->role === 'super_admin', 403);
+        $this->authorizeShopAccess($request, $shop);
+    }
+
+    private function authorizeShopManagement(Request $request, Shop $shop): void
+    {
+        abort_unless(
+            $request->user()?->isSuperAdmin() || (int) $shop->owner_id === (int) $request->user()?->id,
+            403
+        );
     }
 }

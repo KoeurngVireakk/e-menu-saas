@@ -1,17 +1,31 @@
 import "datatables.net-dt/css/dataTables.dataTables.css";
-import $ from "jquery";
 import DataTablePlugin from "datatables.net-dt";
 import { useEffect, useRef } from "react";
 
-DataTablePlugin(window, $);
-
-export default function DataTable({ columns, rows, renderActions }) {
+export default function DataTable({ columns, rows = [], renderActions, loading = false, error = "", emptyMessage = "No records found." }) {
   const tableRef = useRef(null);
 
   useEffect(() => {
-    const instance = $(tableRef.current).DataTable({ destroy: true });
+    if (loading || error || rows.length === 0 || !tableRef.current) {
+      return undefined;
+    }
+
+    const instance = new DataTablePlugin(tableRef.current, { destroy: true });
+
     return () => instance.destroy();
-  }, [rows]);
+  }, [loading, error, rows]);
+
+  if (loading) {
+    return <StatePanel message="Loading data..." />;
+  }
+
+  if (error) {
+    return <StatePanel tone="error" message={error} />;
+  }
+
+  if (rows.length === 0) {
+    return <StatePanel message={emptyMessage} />;
+  }
 
   return (
     <div className="overflow-x-auto rounded-md border border-slate-200 bg-white p-3 text-left">
@@ -35,6 +49,14 @@ export default function DataTable({ columns, rows, renderActions }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function StatePanel({ message, tone = "muted" }) {
+  return (
+    <div className={`rounded-md border bg-white p-6 text-sm ${tone === "error" ? "border-rose-200 text-rose-700" : "border-slate-200 text-slate-500"}`}>
+      {message}
     </div>
   );
 }

@@ -66,7 +66,7 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         return $this->success('Authenticated user loaded', [
-            'user' => $request->user()->load('shops'),
+            'user' => $request->user()->load(['shops', 'staffAssignments.shop', 'staffAssignments.branch']),
         ]);
     }
 

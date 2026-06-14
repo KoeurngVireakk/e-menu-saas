@@ -13,9 +13,10 @@ class BranchController extends Controller
     public function index(Request $request, Shop $shop)
     {
         $this->authorizeShop($request, $shop);
+        $query = $this->scopeBranchAccess($request, $shop->branches()->latest(), $shop->id, 'id');
 
         return $this->success('Branches loaded', [
-            'branches' => $shop->branches()->latest()->get(),
+            'branches' => $query->get(),
         ]);
     }
 
@@ -30,14 +31,14 @@ class BranchController extends Controller
 
     public function show(Request $request, Branch $branch)
     {
-        $this->authorizeShop($request, $branch->shop);
+        $this->authorizeBranchAccess($request, $branch);
 
         return $this->success('Branch loaded', ['branch' => $branch->load('shop')]);
     }
 
     public function update(Request $request, Branch $branch)
     {
-        $this->authorizeShop($request, $branch->shop);
+        $this->authorizeBranchAccess($request, $branch);
         $branch->update($this->validateBranch($request));
 
         return $this->success('Branch updated successfully', ['branch' => $branch->fresh()]);
@@ -45,7 +46,7 @@ class BranchController extends Controller
 
     public function destroy(Request $request, Branch $branch)
     {
-        $this->authorizeShop($request, $branch->shop);
+        $this->authorizeBranchAccess($request, $branch);
         $branch->delete();
 
         return $this->success('Branch deleted successfully');
@@ -66,6 +67,6 @@ class BranchController extends Controller
 
     private function authorizeShop(Request $request, Shop $shop): void
     {
-        abort_unless($shop->owner_id === $request->user()->id || $request->user()->role === 'super_admin', 403);
+        $this->authorizeShopAccess($request, $shop);
     }
 }

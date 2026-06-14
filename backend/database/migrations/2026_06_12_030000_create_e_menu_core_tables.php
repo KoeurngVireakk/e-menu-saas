@@ -44,6 +44,17 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::create('shop_staff', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('shop_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('branch_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('role');
+            $table->string('status')->default('active');
+            $table->timestamps();
+            $table->index(['shop_id', 'branch_id', 'user_id']);
+        });
+
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('shop_id')->constrained()->cascadeOnDelete();
@@ -176,6 +187,7 @@ return new class extends Migration
         Schema::dropIfExists('product_options');
         Schema::dropIfExists('products');
         Schema::dropIfExists('categories');
+        Schema::dropIfExists('shop_staff');
         Schema::dropIfExists('branches');
         Schema::dropIfExists('shops');
 

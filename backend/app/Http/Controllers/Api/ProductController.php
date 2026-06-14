@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Shop;
 use Illuminate\Http\Request;
@@ -14,9 +15,16 @@ class ProductController extends Controller
     public function index(Request $request, Shop $shop)
     {
         $this->authorizeShop($request, $shop);
+        $query = $this->scopeBranchAccess(
+            $request,
+            $shop->products()->with(['category', 'branch', 'options.values'])->latest(),
+            $shop->id,
+            'branch_id',
+            true
+        );
 
         return $this->success('Products loaded', [
-            'products' => $shop->products()->with(['category', 'branch', 'options.values'])->latest()->get(),
+            'products' => $query->get(),
         ]);
     }
 
@@ -25,6 +33,8 @@ class ProductController extends Controller
         $this->authorizeShop($request, $shop);
 
         $validated = $this->validateProduct($request, $shop);
+        $this->authorizeScopedWrite($request, $shop, $validated['branch_id'] ?? null);
+        $this->validateCategoryBranch($validated);
         $options = $validated['options'] ?? [];
         unset($validated['options']);
 
@@ -40,16 +50,18 @@ class ProductController extends Controller
 
     public function show(Request $request, Product $product)
     {
-        $this->authorizeShop($request, $product->shop);
+        $this->authorizeShopAccess($request, $product->shop, $product->branch_id);
 
         return $this->success('Product loaded', ['product' => $product->load(['category', 'branch', 'options.values'])]);
     }
 
     public function update(Request $request, Product $product)
     {
-        $this->authorizeShop($request, $product->shop);
+        $this->authorizeShopAccess($request, $product->shop, $product->branch_id);
 
         $validated = $this->validateProduct($request, $product->shop);
+        $this->authorizeScopedWrite($request, $product->shop, $validated['branch_id'] ?? null);
+        $this->validateCategoryBranch($validated);
         $options = $validated['options'] ?? null;
         unset($validated['options']);
 
@@ -69,7 +81,7 @@ class ProductController extends Controller
 
     public function destroy(Request $request, Product $product)
     {
-        $this->authorizeShop($request, $product->shop);
+        $this->authorizeShopAccess($request, $product->shop, $product->branch_id);
         $product->delete();
 
         return $this->success('Product deleted successfully');
@@ -137,6 +149,24 @@ class ProductController extends Controller
 
     private function authorizeShop(Request $request, Shop $shop): void
     {
-        abort_unless($shop->owner_id === $request->user()->id || $request->user()->role === 'super_admin', 403);
+        $this->authorizeShopAccess($request, $shop);
+    }
+
+    private function authorizeScopedWrite(Request $request, Shop $shop, ?int $branchId): void
+    {
+        abort_unless(
+            $branchId !== null || $request->user()->accessibleBranchIdsForShop($shop->id) === null,
+            403
+        );
+
+        $this->authorizeShopAccess($request, $shop, $branchId);
+    }
+
+    private function validateCategoryBranch(array $validated): void
+    {
+        $category = Category::findOrFail($validated['category_id']);
+        $branchId = $validated['branch_id'] ?? null;
+
+        abort_unless($category->branch_id === null || (int) $category->branch_id === (int) $branchId, 422, 'The selected category is not available for this branch.');
     }
 }

@@ -14,6 +14,8 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     api.get("/shops").then((response) => {
@@ -24,8 +26,19 @@ export default function CategoriesPage() {
 
   const load = () => {
     if (!shopId) return;
-    api.get(`/shops/${shopId}/categories`).then((response) => setCategories(response.data.data.categories));
-    api.get(`/shops/${shopId}/branches`).then((response) => setBranches(response.data.data.branches));
+    setLoading(true);
+    setLoadError("");
+
+    Promise.all([
+      api.get(`/shops/${shopId}/categories`),
+      api.get(`/shops/${shopId}/branches`),
+    ])
+      .then(([categoriesResponse, branchesResponse]) => {
+        setCategories(categoriesResponse.data.data.categories);
+        setBranches(branchesResponse.data.data.branches);
+      })
+      .catch((error) => setLoadError(error.response?.data?.message || "Unable to load categories."))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
@@ -90,6 +103,9 @@ export default function CategoriesPage() {
           { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
         ]}
         rows={categories}
+        loading={loading}
+        error={loadError}
+        emptyMessage="No categories yet."
         renderActions={(category) => (
           <div className="flex gap-2">
             <button onClick={() => edit(category)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button>

@@ -8,10 +8,13 @@ export default function CartPage() {
   const navigate = useNavigate();
   const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem("emenu_cart") || "[]"));
   const [form, setForm] = useState({ customer_name: "", customer_phone: "", note: "", order_type: searchParams.get("table") ? "dine_in" : "takeaway" });
+  const [saving, setSaving] = useState(false);
   const total = cart.reduce((sum, item) => sum + Number(item.discount_price || item.price) * item.quantity, 0);
 
   const submit = async (event) => {
     event.preventDefault();
+    setSaving(true);
+
     try {
       const response = await api.post("/public/orders", {
         shop_id: searchParams.get("shop"),
@@ -26,6 +29,8 @@ export default function CartPage() {
       navigate(`/order-success/${response.data.data.order.order_number}`);
     } catch (error) {
       Swal.fire("Order failed", error.response?.data?.message || "Please review your cart.", "error");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -33,6 +38,7 @@ export default function CartPage() {
     <div className="mx-auto min-h-screen max-w-2xl bg-white p-4">
       <h1 className="text-2xl font-bold text-slate-950">Cart</h1>
       <div className="mt-4 grid gap-2">
+        {!cart.length ? <div className="rounded-md bg-slate-50 p-4 text-sm text-slate-500">Your cart is empty.</div> : null}
         {cart.map((item) => (
           <div key={item.id} className="flex items-center justify-between rounded-md bg-slate-50 p-3">
             <div>
@@ -55,7 +61,9 @@ export default function CartPage() {
           <span className="font-semibold">Total</span>
           <span className="font-bold text-orange-700">{total.toLocaleString()} KHR</span>
         </div>
-        <button disabled={!cart.length} className="rounded-md bg-orange-600 px-4 py-2 font-semibold text-white disabled:opacity-50">Submit order</button>
+        <button disabled={!cart.length || saving || !searchParams.get("shop") || !searchParams.get("branch")} className="rounded-md bg-orange-600 px-4 py-2 font-semibold text-white disabled:opacity-50">
+          {saving ? "Submitting..." : "Submit order"}
+        </button>
       </form>
     </div>
   );

@@ -14,9 +14,16 @@ class CategoryController extends Controller
     public function index(Request $request, Shop $shop)
     {
         $this->authorizeShop($request, $shop);
+        $query = $this->scopeBranchAccess(
+            $request,
+            $shop->categories()->with('branch')->orderBy('sort_order'),
+            $shop->id,
+            'branch_id',
+            true
+        );
 
         return $this->success('Categories loaded', [
-            'categories' => $shop->categories()->with('branch')->orderBy('sort_order')->get(),
+            'categories' => $query->get(),
         ]);
     }
 
@@ -25,6 +32,7 @@ class CategoryController extends Controller
         $this->authorizeShop($request, $shop);
 
         $validated = $this->validateCategory($request, $shop);
+        $this->authorizeScopedWrite($request, $shop, $validated['branch_id'] ?? null);
         $validated['slug'] = $this->uniqueSlug($shop, $validated['name']);
         $validated['shop_id'] = $shop->id;
         $this->storeImage($request, $validated);
@@ -36,16 +44,17 @@ class CategoryController extends Controller
 
     public function show(Request $request, Category $category)
     {
-        $this->authorizeShop($request, $category->shop);
+        $this->authorizeShopAccess($request, $category->shop, $category->branch_id);
 
         return $this->success('Category loaded', ['category' => $category->load('products')]);
     }
 
     public function update(Request $request, Category $category)
     {
-        $this->authorizeShop($request, $category->shop);
+        $this->authorizeShopAccess($request, $category->shop, $category->branch_id);
 
         $validated = $this->validateCategory($request, $category->shop);
+        $this->authorizeScopedWrite($request, $category->shop, $validated['branch_id'] ?? null);
         if (($validated['name'] ?? $category->name) !== $category->name) {
             $validated['slug'] = $this->uniqueSlug($category->shop, $validated['name'], $category->id);
         }
@@ -57,7 +66,7 @@ class CategoryController extends Controller
 
     public function destroy(Request $request, Category $category)
     {
-        $this->authorizeShop($request, $category->shop);
+        $this->authorizeShopAccess($request, $category->shop, $category->branch_id);
         $category->delete();
 
         return $this->success('Category deleted successfully');
@@ -99,6 +108,16 @@ class CategoryController extends Controller
 
     private function authorizeShop(Request $request, Shop $shop): void
     {
-        abort_unless($shop->owner_id === $request->user()->id || $request->user()->role === 'super_admin', 403);
+        $this->authorizeShopAccess($request, $shop);
+    }
+
+    private function authorizeScopedWrite(Request $request, Shop $shop, ?int $branchId): void
+    {
+        abort_unless(
+            $branchId !== null || $request->user()->accessibleBranchIdsForShop($shop->id) === null,
+            403
+        );
+
+        $this->authorizeShopAccess($request, $shop, $branchId);
     }
 }
