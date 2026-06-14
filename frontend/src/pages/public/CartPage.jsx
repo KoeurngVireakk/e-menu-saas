@@ -87,9 +87,9 @@ export default function CartPage() {
             </div>
             <div className="mt-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <Button type="button" variant="secondary" size="icon" onClick={() => changeQuantity(item.key, item.quantity - 1)}>-</Button>
+                <Button type="button" variant="secondary" size="icon" aria-label={`Decrease quantity for ${item.name}`} onClick={() => changeQuantity(item.key, item.quantity - 1)}>-</Button>
                 <span className="w-8 text-center font-semibold">{item.quantity}</span>
-                <Button type="button" variant="secondary" size="icon" onClick={() => changeQuantity(item.key, item.quantity + 1)}>+</Button>
+                <Button type="button" variant="secondary" size="icon" aria-label={`Increase quantity for ${item.name}`} onClick={() => changeQuantity(item.key, item.quantity + 1)}>+</Button>
               </div>
               <Button type="button" variant="ghost" size="sm" className="text-rose-700 hover:bg-rose-50" onClick={() => remove(item.key)}>Remove</Button>
             </div>
@@ -98,13 +98,13 @@ export default function CartPage() {
       </div>
       <form onSubmit={submit} className="mt-6 grid gap-3">
         <Card className="grid gap-3 p-4">
-          <Input placeholder="Customer name" value={form.customer_name} onChange={(event) => setForm({ ...form, customer_name: event.target.value })} />
-          <Input placeholder="Phone" value={form.customer_phone} onChange={(event) => setForm({ ...form, customer_phone: event.target.value })} />
-          <Select value={form.order_type} onChange={(event) => setForm({ ...form, order_type: event.target.value })}>
-          <option value="dine_in">Dine in</option>
-          <option value="takeaway">Takeaway</option>
+          <Input aria-label="Customer name" placeholder="Customer name" value={form.customer_name} onChange={(event) => setForm({ ...form, customer_name: event.target.value })} />
+          <Input aria-label="Customer phone" placeholder="Phone" value={form.customer_phone} onChange={(event) => setForm({ ...form, customer_phone: event.target.value })} />
+          <Select aria-label="Order type" value={form.order_type} onChange={(event) => setForm({ ...form, order_type: event.target.value })}>
+            <option value="dine_in">Dine in</option>
+            <option value="takeaway">Takeaway</option>
           </Select>
-          <Textarea placeholder="Order note" value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
+          <Textarea aria-label="Order note" placeholder="Order note" value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
         </Card>
         <div className="sticky bottom-4 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-3 shadow-lg">
           <span className="font-semibold">Total</span>

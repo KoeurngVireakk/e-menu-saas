@@ -136,6 +136,7 @@ export default function MenuPage() {
             </div>
           </div>
           <Input
+            aria-label="Search menu"
             className="mt-5 border-white/20 bg-white text-slate-950 placeholder:text-slate-400"
             placeholder="Search menu"
             value={query}
@@ -308,9 +309,9 @@ function ProductOptionsModal({ product, onClose, onAdd }) {
           <div className="mt-5 flex items-center justify-between rounded-2xl bg-slate-50 p-3">
             <span className="font-semibold text-slate-800">Quantity</span>
             <div className="flex items-center gap-2">
-              <Button type="button" variant="secondary" size="icon" onClick={() => setQuantity((value) => Math.max(1, value - 1))}>-</Button>
+              <Button type="button" variant="secondary" size="icon" aria-label="Decrease quantity" onClick={() => setQuantity((value) => Math.max(1, value - 1))}>-</Button>
               <span className="w-8 text-center font-bold">{quantity}</span>
-              <Button type="button" variant="secondary" size="icon" onClick={() => setQuantity((value) => value + 1)}>+</Button>
+              <Button type="button" variant="secondary" size="icon" aria-label="Increase quantity" onClick={() => setQuantity((value) => value + 1)}>+</Button>
             </div>
           </div>
 

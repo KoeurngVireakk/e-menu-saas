@@ -36,9 +36,9 @@ export default function CartDrawer({ cart, onQuantity, onRemove, onCheckout }) {
                 </div>
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <Button type="button" variant="secondary" size="icon" onClick={() => onQuantity(item.key, item.quantity - 1)}>-</Button>
+                    <Button type="button" variant="secondary" size="icon" aria-label={`Decrease quantity for ${item.name}`} onClick={() => onQuantity(item.key, item.quantity - 1)}>-</Button>
                     <span className="w-8 text-center font-bold">{item.quantity}</span>
-                    <Button type="button" variant="secondary" size="icon" onClick={() => onQuantity(item.key, item.quantity + 1)}>+</Button>
+                    <Button type="button" variant="secondary" size="icon" aria-label={`Increase quantity for ${item.name}`} onClick={() => onQuantity(item.key, item.quantity + 1)}>+</Button>
                   </div>
                   <Button type="button" variant="ghost" size="sm" className="text-rose-700 hover:bg-rose-50" onClick={() => onRemove(item.key)}>Remove</Button>
                 </div>

@@ -1,13 +1,33 @@
 import { AnimatePresence, motion } from "framer-motion";
+import { useEffect } from "react";
 import Button from "./Button";
 
 export default function Modal({ open, title, children, footer, onClose, className = "" }) {
+  useEffect(() => {
+    if (!open || !onClose) {
+      return undefined;
+    }
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, onClose]);
+
   return (
     <AnimatePresence>
       {open ? (
         <motion.div className="fixed inset-0 z-40 grid place-items-end bg-slate-950/55 p-3 sm:place-items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <motion.div
             className={`max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white shadow-xl ${className}`}
+            role="dialog"
+            aria-modal="true"
+            aria-label={title || "Dialog"}
+            tabIndex={-1}
             initial={{ opacity: 0, y: 24, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 18, scale: 0.98 }}

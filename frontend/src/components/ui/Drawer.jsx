@@ -6,6 +6,8 @@ export default function Drawer({ open = true, children, className = "" }) {
       {open ? (
         <motion.div
           className={`fixed inset-x-0 bottom-0 z-20 border-t border-slate-200 bg-white shadow-2xl ${className}`}
+          role="complementary"
+          aria-label="Cart summary"
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
