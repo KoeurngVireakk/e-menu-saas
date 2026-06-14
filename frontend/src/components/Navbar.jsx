@@ -1,17 +1,18 @@
 import { useAuth } from "../context/AuthContext";
+import Button from "./ui/Button";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
 
   return (
-    <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
+    <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur md:px-6">
       <div>
-        <p className="text-sm text-slate-500">Admin</p>
-        <h1 className="text-lg font-semibold text-slate-950">{user?.name || "Dashboard"}</h1>
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Admin workspace</p>
+        <h1 className="text-lg font-bold text-slate-950">{user?.name || "Dashboard"}</h1>
       </div>
-      <button onClick={logout} className="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">
+      <Button type="button" variant="dark" size="sm" onClick={logout}>
         Logout
-      </button>
+      </Button>
     </header>
   );
 }

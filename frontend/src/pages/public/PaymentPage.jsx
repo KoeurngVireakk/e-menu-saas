@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import Swal from "sweetalert2";
 import api from "../../api/axios";
 import StatusBadge from "../../components/StatusBadge";
+import { Button, Card, ErrorState, Input, LoadingState, Select, alertError, toastSuccess } from "../../components/ui";
 
 export default function PaymentPage() {
   const { orderNumber } = useParams();
@@ -28,42 +28,45 @@ export default function PaymentPage() {
     try {
       setSaving(true);
       await api.post(`/public/orders/${orderNumber}/payment`, data, { headers: { "Content-Type": "multipart/form-data" } });
-      Swal.fire("Payment submitted", "Staff will review your payment.", "success");
+      toastSuccess("Payment submitted");
       api.get(`/public/orders/${orderNumber}`).then((response) => setOrder(response.data.data.order));
     } catch (error) {
-      Swal.fire("Payment failed", error.response?.data?.message || "Please review payment details.", "error");
+      alertError(error, "Please review payment details.");
     } finally {
       setSaving(false);
     }
   };
 
-  if (error) return <div className="p-6 text-rose-700">{error}</div>;
-  if (!order) return <div className="p-6 text-slate-600">Loading payment...</div>;
+  if (error) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4"><ErrorState message={error} /></div>;
+  if (!order) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4"><LoadingState message="Loading payment..." /></div>;
 
   return (
-    <div className="mx-auto min-h-screen max-w-xl bg-white p-6">
-      <h1 className="text-2xl font-bold text-slate-950">Payment</h1>
+    <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4">
+      <p className="text-xs font-bold uppercase tracking-wide text-orange-600">Payment</p>
+      <h1 className="mt-1 text-3xl font-black text-slate-950">Complete payment</h1>
       <p className="mt-1 text-slate-500">{order.order_number}</p>
-      <div className="mt-4 flex items-center justify-between rounded-md bg-slate-50 p-4">
-        <span className="font-semibold">Amount</span>
-        <span className="font-bold text-orange-700">{Number(order.grand_total).toLocaleString()} {order.shop.currency_code}</span>
-      </div>
-      {order.payment ? <div className="mt-3"><StatusBadge value={order.payment.status} /></div> : null}
+      <Card className="mt-5 p-4">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-slate-600">Amount</span>
+          <span className="text-xl font-black text-orange-700">{Number(order.grand_total).toLocaleString()} {order.shop.currency_code}</span>
+        </div>
+        {order.payment ? <div className="mt-3"><StatusBadge value={order.payment.status} /></div> : null}
+      </Card>
       <form onSubmit={submit} className="mt-6 grid gap-3">
-        <select className="rounded-md border border-slate-300 px-3 py-2" value={form.payment_method} onChange={(event) => setForm({ ...form, payment_method: event.target.value })}>
+        <Select label="Payment method" value={form.payment_method} onChange={(event) => setForm({ ...form, payment_method: event.target.value })}>
           <option value="cash">Cash</option>
           <option value="aba_manual">ABA manual QR</option>
           <option value="khqr_manual">KHQR manual</option>
-        </select>
+        </Select>
         {form.payment_method !== "cash" ? (
           <>
-            <input className="rounded-md border border-slate-300 px-3 py-2" placeholder="Transaction reference" value={form.transaction_reference} onChange={(event) => setForm({ ...form, transaction_reference: event.target.value })} />
-            <input className="rounded-md border border-slate-300 px-3 py-2" type="file" accept="image/*" onChange={(event) => setForm({ ...form, proof_image: event.target.files?.[0] || null })} />
+            <Input label="Transaction reference" placeholder="Reference number" value={form.transaction_reference} onChange={(event) => setForm({ ...form, transaction_reference: event.target.value })} />
+            <Input label="Proof image" type="file" accept="image/*" onChange={(event) => setForm({ ...form, proof_image: event.target.files?.[0] || null })} />
           </>
         ) : null}
-        <button disabled={saving} className="rounded-md bg-orange-600 px-4 py-2 font-semibold text-white disabled:opacity-60">
+        <Button type="submit" disabled={saving} size="lg">
           {saving ? "Submitting..." : "Submit payment"}
-        </button>
+        </Button>
       </form>
     </div>
   );

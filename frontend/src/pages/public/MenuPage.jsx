@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import Swal from "sweetalert2";
+import { motion } from "framer-motion";
 import api from "../../api/axios";
 import CartDrawer from "../../components/CartDrawer";
 import ProductCard from "../../components/ProductCard";
+import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal, SectionTitle, toastError, toastSuccess } from "../../components/ui";
 import { cartItemKey, itemTotal, money, productBasePrice, readCart, writeCart } from "../../utils/cart";
+
+const storageUrl = import.meta.env.VITE_STORAGE_URL || "http://127.0.0.1:8000/storage";
 
 export default function MenuPage() {
   const { shopSlug } = useParams();
@@ -37,6 +40,15 @@ export default function MenuPage() {
     return (category?.products || []).filter((product) => product.name.toLowerCase().includes(query.toLowerCase()));
   }, [menu, active, query]);
 
+  const featuredProducts = useMemo(() => {
+    if (!menu) return [];
+
+    return menu.categories
+      .flatMap((category) => category.products || [])
+      .filter((product) => product.is_featured && product.name.toLowerCase().includes(query.toLowerCase()))
+      .slice(0, 4);
+  }, [menu, query]);
+
   const addConfiguredItem = (cartItem) => {
     setCart((items) => {
       const existing = items.find((item) => item.key === cartItem.key);
@@ -53,33 +65,71 @@ export default function MenuPage() {
 
       return [...items, cartItem];
     });
-    Swal.fire({ title: "Added", text: cartItem.name, icon: "success", timer: 900, showConfirmButton: false });
+    toastSuccess(`${cartItem.name} added`);
   };
 
-  if (error) return <div className="p-6 text-rose-700">{error}</div>;
-  if (!menu) return <div className="p-6 text-slate-600">Loading menu...</div>;
+  if (error) return <div className="mx-auto min-h-screen max-w-3xl bg-slate-50 p-4"><ErrorState message={error} onRetry={() => window.location.reload()} /></div>;
+  if (!menu) return <div className="mx-auto min-h-screen max-w-3xl bg-slate-50 p-4"><LoadingState message="Loading menu..." /></div>;
+
+  const coverUrl = menu.shop.cover_path ? `${storageUrl}/${menu.shop.cover_path}` : null;
+  const logoUrl = menu.shop.logo_path ? `${storageUrl}/${menu.shop.logo_path}` : null;
+  const activeCategory = menu.categories.find((category) => String(category.id) === String(active));
 
   return (
-    <div className="mx-auto min-h-screen max-w-3xl bg-slate-50 pb-52">
-      <div className="h-40 bg-slate-900" style={{ backgroundColor: menu.shop.primary_color || "#111827" }} />
-      <div className="-mt-10 px-4">
-        <div className="rounded-md border border-slate-200 bg-white p-4 shadow-sm">
-          <h1 className="text-2xl font-bold text-slate-950">{menu.shop.name}</h1>
-          <p className="mt-1 text-sm text-slate-500">{menu.branch?.name} {menu.table ? `· ${menu.table.table_name}` : ""}</p>
-          <input className="mt-4 w-full rounded-md border border-slate-300 px-3 py-2" placeholder="Search menu" value={query} onChange={(event) => setQuery(event.target.value)} />
+    <div className="mx-auto min-h-screen max-w-3xl bg-slate-50 pb-64">
+      <section className="relative overflow-hidden rounded-b-[2rem] bg-slate-950 text-white shadow-sm" style={{ backgroundColor: menu.shop.primary_color || "#0f172a" }}>
+        {coverUrl ? <img className="absolute inset-0 h-full w-full object-cover opacity-35" src={coverUrl} alt={menu.shop.name} /> : null}
+        <div className="relative px-4 pb-7 pt-10">
+          <div className="flex items-end gap-4">
+            <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-2xl border border-white/20 bg-white/15 text-xl font-black backdrop-blur">
+              {logoUrl ? <img className="h-full w-full object-cover" src={logoUrl} alt={menu.shop.name} /> : menu.shop.name?.slice(0, 2)}
+            </div>
+            <div className="min-w-0 pb-1">
+              <Badge tone="orange">{menu.branch?.name || "Main branch"}</Badge>
+              <h1 className="mt-3 text-3xl font-black leading-tight tracking-tight">{menu.shop.name}</h1>
+              <p className="mt-1 text-sm text-white/75">{menu.table ? `${menu.table.table_name} · ` : ""}{menu.shop.description || "Fresh menu, ready to order."}</p>
+            </div>
+          </div>
+          <Input
+            className="mt-5 border-white/20 bg-white text-slate-950 placeholder:text-slate-400"
+            placeholder="Search menu"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
         </div>
-      </div>
-      <div className="mt-4 flex gap-2 overflow-x-auto px-4">
+      </section>
+
+      <div className="sticky top-0 z-10 mt-4 flex gap-2 overflow-x-auto bg-slate-50/95 px-4 py-3 backdrop-blur">
         {menu.categories.map((category) => (
-          <button key={category.id} onClick={() => setActive(category.id)} className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ${String(active) === String(category.id) ? "bg-slate-900 text-white" : "bg-white text-slate-700"}`}>
+          <button
+            key={category.id}
+            type="button"
+            onClick={() => setActive(category.id)}
+            className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold shadow-sm transition ${
+              String(active) === String(category.id) ? "bg-slate-950 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
+            }`}
+          >
             {category.name}
           </button>
         ))}
       </div>
-      <div className="mt-4 grid gap-3 px-4">
+
+      {featuredProducts.length ? (
+        <section className="mt-2 px-4">
+          <SectionTitle eyebrow="Featured" title="Popular right now" />
+          <div className="mt-3 grid gap-3">
+            {featuredProducts.map((product) => <ProductCard key={`featured-${product.id}`} product={product} onAdd={setSelected} onView={setSelected} />)}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="mt-6 px-4">
+        <SectionTitle eyebrow="Menu" title={activeCategory?.name || "Products"} />
+      </section>
+      <motion.div className="mt-3 grid gap-3 px-4" layout>
         {products.map((product) => <ProductCard key={product.id} product={product} onAdd={setSelected} onView={setSelected} />)}
-        {!products.length ? <div className="rounded-md bg-white p-6 text-sm text-slate-500">No products found.</div> : null}
-      </div>
+        {!products.length ? <EmptyState title="No products found" message="Try another category or search term." /> : null}
+      </motion.div>
       {selected ? <ProductOptionsModal product={selected} onClose={() => setSelected(null)} onAdd={addConfiguredItem} /> : null}
       <CartDrawer
         cart={cart}
@@ -99,7 +149,7 @@ function ProductOptionsModal({ product, onClose, onAdd }) {
   const [quantity, setQuantity] = useState(1);
   const [selectedValues, setSelectedValues] = useState({});
   const imageUrl = product.image_path
-    ? `${import.meta.env.VITE_STORAGE_URL || "http://127.0.0.1:8000/storage"}/${product.image_path}`
+    ? `${storageUrl}/${product.image_path}`
     : null;
 
   const selectedOptions = useMemo(
@@ -132,7 +182,7 @@ function ProductOptionsModal({ product, onClose, onAdd }) {
   const submit = async () => {
     const missing = (product.options || []).find((option) => option.is_required && !(selectedValues[option.id] || []).length);
     if (missing) {
-      await Swal.fire("Choose an option", `${missing.name} is required.`, "warning");
+      toastError(`${missing.name} is required`);
       return;
     }
 
@@ -164,29 +214,28 @@ function ProductOptionsModal({ product, onClose, onAdd }) {
   };
 
   return (
-    <div className="fixed inset-0 z-30 grid place-items-end bg-slate-950/55 p-3 sm:place-items-center">
-      <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white shadow-xl">
+    <Modal open onClose={onClose} className="rounded-2xl">
+      <div>
         {imageUrl ? (
-          <img className="h-44 w-full object-cover" src={imageUrl} alt={product.name} />
+          <img className="h-52 w-full object-cover" src={imageUrl} alt={product.name} />
         ) : (
-          <div className="grid h-28 place-items-center bg-slate-100 text-sm text-slate-400">No image</div>
+          <div className="grid h-36 place-items-center bg-slate-100 text-sm font-semibold text-slate-400">No image</div>
         )}
         <div className="p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold text-slate-950">{product.name}</h2>
+              <h2 className="text-2xl font-black leading-tight text-slate-950">{product.name}</h2>
               <p className="mt-1 text-sm text-slate-500">{product.description || "No description"}</p>
-              <p className="mt-3 font-bold text-orange-700">{money(basePrice)} KHR</p>
+              <p className="mt-3 text-lg font-black text-orange-700">{money(basePrice)} KHR</p>
             </div>
-            <button type="button" onClick={onClose} className="rounded-md border border-slate-300 px-3 py-1 text-sm font-semibold text-slate-700">Close</button>
           </div>
 
           <div className="mt-5 grid gap-4">
             {(product.options || []).map((option) => (
-              <section key={option.id} className="rounded-md border border-slate-200 p-3">
+              <section key={option.id} className="rounded-2xl border border-slate-200 p-3">
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="font-semibold text-slate-950">{option.name}</h3>
-                  {option.is_required ? <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-700">Required</span> : null}
+                  {option.is_required ? <Badge tone="orange">Required</Badge> : <Badge>Optional</Badge>}
                 </div>
                 <div className="mt-3 grid gap-2">
                   {(option.values || []).map((value) => {
@@ -197,7 +246,7 @@ function ProductOptionsModal({ product, onClose, onAdd }) {
                       : () => setSingle(option.id, value.id);
 
                     return (
-                      <label key={value.id} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 px-3 py-2 text-sm">
+                      <label key={value.id} className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-3 text-sm transition ${checked ? "border-orange-300 bg-orange-50" : "border-slate-200 bg-white"}`}>
                         <span className="flex items-center gap-2">
                           <input type={inputType} name={`option-${option.id}`} checked={checked} onChange={onChange} />
                           <span className="font-medium text-slate-800">{value.name}</span>
@@ -211,27 +260,27 @@ function ProductOptionsModal({ product, onClose, onAdd }) {
             ))}
           </div>
 
-          <div className="mt-5 flex items-center justify-between rounded-md bg-slate-50 p-3">
+          <div className="mt-5 flex items-center justify-between rounded-2xl bg-slate-50 p-3">
             <span className="font-semibold text-slate-800">Quantity</span>
             <div className="flex items-center gap-2">
-              <button type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))} className="h-9 w-9 rounded-md border border-slate-300">-</button>
+              <Button type="button" variant="secondary" size="icon" onClick={() => setQuantity((value) => Math.max(1, value - 1))}>-</Button>
               <span className="w-8 text-center font-bold">{quantity}</span>
-              <button type="button" onClick={() => setQuantity((value) => value + 1)} className="h-9 w-9 rounded-md border border-slate-300">+</button>
+              <Button type="button" variant="secondary" size="icon" onClick={() => setQuantity((value) => value + 1)}>+</Button>
             </div>
           </div>
 
-          <div className="mt-4 flex items-center justify-between">
+          <div className="sticky bottom-0 mt-4 flex items-center justify-between border-t border-slate-100 bg-white pt-4">
             <div>
               <p className="text-xs uppercase tracking-wide text-slate-500">Total</p>
               <p className="text-xl font-bold text-slate-950">{money(liveTotal)} KHR</p>
             </div>
-            <button type="button" onClick={submit} className="rounded-md bg-orange-600 px-4 py-2 font-semibold text-white hover:bg-orange-700">
+            <Button type="button" onClick={submit} size="lg">
               Add to cart
-            </button>
+            </Button>
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }
 

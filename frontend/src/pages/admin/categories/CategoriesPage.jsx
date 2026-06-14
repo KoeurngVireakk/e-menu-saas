@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import Swal from "sweetalert2";
+import { useCallback, useEffect, useState } from "react";
 import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
+import { alertError, toastSuccess } from "../../../components/ui";
 
 const initial = { name: "", branch_id: "", sort_order: 0, status: "active", image: null };
 
@@ -24,7 +24,7 @@ export default function CategoriesPage() {
     });
   }, []);
 
-  const load = () => {
+  const load = useCallback(() => {
     if (!shopId) return;
     setLoading(true);
     setLoadError("");
@@ -39,11 +39,12 @@ export default function CategoriesPage() {
       })
       .catch((error) => setLoadError(error.response?.data?.message || "Unable to load categories."))
       .finally(() => setLoading(false));
-  };
+  }, [shopId]);
 
   useEffect(() => {
-    load();
-  }, [shopId]);
+    const timer = window.setTimeout(load, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -56,16 +57,16 @@ export default function CategoriesPage() {
       if (editing) {
         data.append("_method", "PUT");
         await api.post(`/categories/${editing.id}`, data, { headers: { "Content-Type": "multipart/form-data" } });
-        Swal.fire("Saved", "Category updated successfully.", "success");
+        toastSuccess("Category updated successfully.");
       } else {
         await api.post(`/shops/${shopId}/categories`, data, { headers: { "Content-Type": "multipart/form-data" } });
-        Swal.fire("Created", "Category created successfully.", "success");
+        toastSuccess("Category created successfully.");
       }
       setForm(initial);
       setEditing(null);
       load();
     } catch (error) {
-      Swal.fire("Save failed", error.response?.data?.message || "Please review the category.", "error");
+      alertError(error, "Please review the category.");
     }
   };
 
@@ -76,7 +77,7 @@ export default function CategoriesPage() {
 
   const remove = async (category) => {
     await api.delete(`/categories/${category.id}`);
-    Swal.fire("Deleted", "Category deleted successfully.", "success");
+    toastSuccess("Category deleted successfully.");
     load();
   };
 

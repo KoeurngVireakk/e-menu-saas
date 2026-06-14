@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import Swal from "sweetalert2";
 import { useAuth } from "../../context/AuthContext";
+import { alertError } from "../../components/ui";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ export default function Login() {
       await login(form);
       navigate("/admin");
     } catch (error) {
-      Swal.fire("Login failed", error.response?.data?.message || "Check your email and password.", "error");
+      alertError(error, "Check your email and password.");
     } finally {
       setSaving(false);
     }

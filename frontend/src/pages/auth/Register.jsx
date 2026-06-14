@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import Swal from "sweetalert2";
 import { useAuth } from "../../context/AuthContext";
+import { alertError } from "../../components/ui";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ export default function Register() {
       await register(form);
       navigate("/admin");
     } catch (error) {
-      Swal.fire("Registration failed", error.response?.data?.message || "Please review the form.", "error");
+      alertError(error, "Please review the form.");
     } finally {
       setSaving(false);
     }

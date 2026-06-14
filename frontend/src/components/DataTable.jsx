@@ -1,34 +1,50 @@
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import DataTablePlugin from "datatables.net-dt";
 import { useEffect, useRef } from "react";
+import { EmptyState, ErrorState, LoadingState } from "./ui";
 
 export default function DataTable({ columns, rows = [], renderActions, loading = false, error = "", emptyMessage = "No records found." }) {
   const tableRef = useRef(null);
+  const instanceRef = useRef(null);
 
   useEffect(() => {
+    if (instanceRef.current) {
+      instanceRef.current.destroy();
+      instanceRef.current = null;
+    }
+
     if (loading || error || rows.length === 0 || !tableRef.current) {
       return undefined;
     }
 
-    const instance = new DataTablePlugin(tableRef.current, { destroy: true });
+    instanceRef.current = new DataTablePlugin(tableRef.current, {
+      destroy: true,
+      responsive: true,
+      pageLength: 10,
+    });
 
-    return () => instance.destroy();
-  }, [loading, error, rows]);
+    return () => {
+      if (instanceRef.current) {
+        instanceRef.current.destroy();
+        instanceRef.current = null;
+      }
+    };
+  }, [loading, error, rows.length]);
 
   if (loading) {
-    return <StatePanel message="Loading data..." />;
+    return <LoadingState message="Loading data..." />;
   }
 
   if (error) {
-    return <StatePanel tone="error" message={error} />;
+    return <ErrorState message={error} />;
   }
 
   if (rows.length === 0) {
-    return <StatePanel message={emptyMessage} />;
+    return <EmptyState title={emptyMessage} />;
   }
 
   return (
-    <div className="overflow-x-auto rounded-md border border-slate-200 bg-white p-3 text-left">
+    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white p-3 text-left shadow-sm">
       <table ref={tableRef} className="display w-full text-sm">
         <thead>
           <tr>
@@ -49,14 +65,6 @@ export default function DataTable({ columns, rows = [], renderActions, loading =
           ))}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-function StatePanel({ message, tone = "muted" }) {
-  return (
-    <div className={`rounded-md border bg-white p-6 text-sm ${tone === "error" ? "border-rose-200 text-rose-700" : "border-slate-200 text-slate-500"}`}>
-      {message}
     </div>
   );
 }

@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import Swal from "sweetalert2";
+import { useCallback, useEffect, useState } from "react";
 import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
+import { alertError, toastSuccess } from "../../../components/ui";
 
 const initial = { table_name: "", table_code: "", status: "active" };
 
@@ -34,7 +34,7 @@ export default function TablesPage() {
     });
   }, [shopId]);
 
-  const load = () => {
+  const load = useCallback(() => {
     if (!branchId) {
       setTables([]);
       return;
@@ -47,27 +47,28 @@ export default function TablesPage() {
       .then((response) => setTables(response.data.data.tables))
       .catch((error) => setLoadError(error.response?.data?.message || "Unable to load tables."))
       .finally(() => setLoading(false));
-  };
+  }, [branchId]);
 
   useEffect(() => {
-    load();
-  }, [branchId]);
+    const timer = window.setTimeout(load, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
 
   const submit = async (event) => {
     event.preventDefault();
     try {
       if (editing) {
         await api.put(`/tables/${editing.id}`, form);
-        Swal.fire("Saved", "Table updated successfully.", "success");
+        toastSuccess("Table updated successfully.");
       } else {
         await api.post(`/branches/${branchId}/tables`, form);
-        Swal.fire("Created", "Table created successfully.", "success");
+        toastSuccess("Table created successfully.");
       }
       setForm(initial);
       setEditing(null);
       load();
     } catch (error) {
-      Swal.fire("Save failed", error.response?.data?.message || "Please review the table.", "error");
+      alertError(error, "Please review the table.");
     }
   };
 
@@ -78,7 +79,7 @@ export default function TablesPage() {
 
   const remove = async (table) => {
     await api.delete(`/tables/${table.id}`);
-    Swal.fire("Deleted", "Table deleted successfully.", "success");
+    toastSuccess("Table deleted successfully.");
     load();
   };
 

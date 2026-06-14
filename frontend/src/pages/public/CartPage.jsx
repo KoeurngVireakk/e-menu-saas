@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import Swal from "sweetalert2";
+import { motion } from "framer-motion";
 import api from "../../api/axios";
+import { Button, Card, EmptyState, Input, Select, Textarea, alertError, toastSuccess } from "../../components/ui";
 import { cartTotal, clearCart, itemTotal, money, optionSummary, readCart, unitPrice, writeCart } from "../../utils/cart";
 
 export default function CartPage() {
@@ -47,25 +48,28 @@ export default function CartPage() {
       });
       clearCart();
       setCart([]);
-      await Swal.fire("Order submitted", response.data.data.order.order_number, "success");
+      await toastSuccess(`Order ${response.data.data.order.order_number} submitted`);
       navigate(`/order-success/${response.data.data.order.order_number}`);
     } catch (error) {
-      Swal.fire("Order failed", error.response?.data?.message || "Please review your cart.", "error");
+      alertError(error, "Please review your cart.");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="mx-auto min-h-screen max-w-2xl bg-white p-4">
-      <h1 className="text-2xl font-bold text-slate-950">Cart</h1>
+    <div className="mx-auto min-h-screen max-w-2xl bg-slate-50 p-4 pb-28">
+      <div className="mb-5">
+        <p className="text-xs font-bold uppercase tracking-wide text-orange-600">Checkout</p>
+        <h1 className="mt-1 text-3xl font-black text-slate-950">Cart</h1>
+      </div>
       <div className="mt-4 grid gap-3">
-        {!cart.length ? <div className="rounded-md bg-slate-50 p-4 text-sm text-slate-500">Your cart is empty.</div> : null}
+        {!cart.length ? <EmptyState title="Your cart is empty" message="Return to the menu and choose a product." /> : null}
         {cart.map((item) => (
-          <div key={item.key} className="rounded-md bg-slate-50 p-3">
+          <motion.div key={item.key} className="rounded-2xl bg-white p-3 shadow-sm" layout>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="font-semibold text-slate-950">{item.name}</p>
+                <p className="font-bold text-slate-950">{item.name}</p>
                 {optionSummary(item) ? <p className="mt-1 text-sm text-slate-500">{optionSummary(item)}</p> : null}
                 <p className="mt-1 text-sm text-slate-500">{money(unitPrice(item))} KHR each</p>
               </div>
@@ -73,30 +77,32 @@ export default function CartPage() {
             </div>
             <div className="mt-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <button type="button" onClick={() => changeQuantity(item.key, item.quantity - 1)} className="h-8 w-8 rounded-md border border-slate-300">-</button>
+                <Button type="button" variant="secondary" size="icon" onClick={() => changeQuantity(item.key, item.quantity - 1)}>-</Button>
                 <span className="w-8 text-center font-semibold">{item.quantity}</span>
-                <button type="button" onClick={() => changeQuantity(item.key, item.quantity + 1)} className="h-8 w-8 rounded-md border border-slate-300">+</button>
+                <Button type="button" variant="secondary" size="icon" onClick={() => changeQuantity(item.key, item.quantity + 1)}>+</Button>
               </div>
-              <button type="button" onClick={() => remove(item.key)} className="text-sm font-semibold text-rose-700">Remove</button>
+              <Button type="button" variant="ghost" size="sm" className="text-rose-700 hover:bg-rose-50" onClick={() => remove(item.key)}>Remove</Button>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
       <form onSubmit={submit} className="mt-6 grid gap-3">
-        <input className="rounded-md border border-slate-300 px-3 py-2" placeholder="Customer name" value={form.customer_name} onChange={(event) => setForm({ ...form, customer_name: event.target.value })} />
-        <input className="rounded-md border border-slate-300 px-3 py-2" placeholder="Phone" value={form.customer_phone} onChange={(event) => setForm({ ...form, customer_phone: event.target.value })} />
-        <select className="rounded-md border border-slate-300 px-3 py-2" value={form.order_type} onChange={(event) => setForm({ ...form, order_type: event.target.value })}>
+        <Card className="grid gap-3 p-4">
+          <Input placeholder="Customer name" value={form.customer_name} onChange={(event) => setForm({ ...form, customer_name: event.target.value })} />
+          <Input placeholder="Phone" value={form.customer_phone} onChange={(event) => setForm({ ...form, customer_phone: event.target.value })} />
+          <Select value={form.order_type} onChange={(event) => setForm({ ...form, order_type: event.target.value })}>
           <option value="dine_in">Dine in</option>
           <option value="takeaway">Takeaway</option>
-        </select>
-        <textarea className="rounded-md border border-slate-300 px-3 py-2" placeholder="Order note" value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
-        <div className="flex items-center justify-between rounded-md bg-slate-50 p-3">
+          </Select>
+          <Textarea placeholder="Order note" value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
+        </Card>
+        <div className="sticky bottom-4 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-3 shadow-lg">
           <span className="font-semibold">Total</span>
           <span className="font-bold text-orange-700">{money(total)} KHR</span>
+          <Button type="submit" disabled={!cart.length || saving || !searchParams.get("shop") || !searchParams.get("branch")}>
+            {saving ? "Submitting..." : "Submit order"}
+          </Button>
         </div>
-        <button disabled={!cart.length || saving || !searchParams.get("shop") || !searchParams.get("branch")} className="rounded-md bg-orange-600 px-4 py-2 font-semibold text-white disabled:opacity-50">
-          {saving ? "Submitting..." : "Submit order"}
-        </button>
       </form>
     </div>
   );

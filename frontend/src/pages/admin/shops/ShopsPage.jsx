@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import Swal from "sweetalert2";
+import { useCallback, useEffect, useState } from "react";
 import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
+import { alertError, toastSuccess } from "../../../components/ui";
 
 const initial = {
   name: "",
@@ -24,7 +24,7 @@ export default function ShopsPage() {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     setLoadError("");
 
@@ -33,11 +33,12 @@ export default function ShopsPage() {
       .then((response) => setShops(response.data.data.shops))
       .catch((error) => setLoadError(error.response?.data?.message || "Unable to load shops."))
       .finally(() => setLoading(false));
-  };
+  }, []);
 
   useEffect(() => {
-    load();
-  }, []);
+    const timer = window.setTimeout(load, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -48,16 +49,16 @@ export default function ShopsPage() {
       if (editing) {
         data.append("_method", "PUT");
         await api.post(`/shops/${editing.id}`, data, { headers: { "Content-Type": "multipart/form-data" } });
-        Swal.fire("Saved", "Shop updated successfully.", "success");
+        toastSuccess("Shop updated successfully.");
       } else {
         await api.post("/shops", data, { headers: { "Content-Type": "multipart/form-data" } });
-        Swal.fire("Created", "Shop created successfully.", "success");
+        toastSuccess("Shop created successfully.");
       }
       setForm(initial);
       setEditing(null);
       load();
     } catch (error) {
-      Swal.fire("Save failed", error.response?.data?.message || "Please review the shop profile.", "error");
+      alertError(error, "Please review the shop profile.");
     }
   };
 
@@ -68,7 +69,7 @@ export default function ShopsPage() {
 
   const remove = async (shop) => {
     await api.delete(`/shops/${shop.id}`);
-    Swal.fire("Deleted", "Shop deleted successfully.", "success");
+    toastSuccess("Shop deleted successfully.");
     load();
   };
 

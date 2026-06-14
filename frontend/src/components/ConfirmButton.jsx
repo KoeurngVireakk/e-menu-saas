@@ -1,17 +1,8 @@
-import Swal from "sweetalert2";
+import { confirmAction } from "./ui";
 
 export default function ConfirmButton({ children, title = "Are you sure?", text = "This action cannot be undone.", onConfirm, className = "" }) {
   const handleClick = async () => {
-    const result = await Swal.fire({
-      title,
-      text,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#dc2626",
-      confirmButtonText: "Confirm",
-    });
-
-    if (result.isConfirmed) {
+    if (await confirmAction(title, text)) {
       await onConfirm();
     }
   };

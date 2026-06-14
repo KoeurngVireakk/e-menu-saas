@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import Swal from "sweetalert2";
+import { useCallback, useEffect, useState } from "react";
 import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
+import { alertError, toastSuccess } from "../../../components/ui";
 
 const initial = { name: "", phone: "", address: "", google_map_url: "", opening_time: "", closing_time: "", status: "active" };
 
@@ -23,7 +23,7 @@ export default function BranchesPage() {
     });
   }, []);
 
-  const load = () => {
+  const load = useCallback(() => {
     if (!shopId) {
       setBranches([]);
       return;
@@ -36,27 +36,28 @@ export default function BranchesPage() {
       .then((response) => setBranches(response.data.data.branches))
       .catch((error) => setLoadError(error.response?.data?.message || "Unable to load branches."))
       .finally(() => setLoading(false));
-  };
+  }, [shopId]);
 
   useEffect(() => {
-    load();
-  }, [shopId]);
+    const timer = window.setTimeout(load, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
 
   const submit = async (event) => {
     event.preventDefault();
     try {
       if (editing) {
         await api.put(`/branches/${editing.id}`, form);
-        Swal.fire("Saved", "Branch updated successfully.", "success");
+        toastSuccess("Branch updated successfully.");
       } else {
         await api.post(`/shops/${shopId}/branches`, form);
-        Swal.fire("Created", "Branch created successfully.", "success");
+        toastSuccess("Branch created successfully.");
       }
       setForm(initial);
       setEditing(null);
       load();
     } catch (error) {
-      Swal.fire("Save failed", error.response?.data?.message || "Please review the branch.", "error");
+      alertError(error, "Please review the branch.");
     }
   };
 
@@ -67,7 +68,7 @@ export default function BranchesPage() {
 
   const remove = async (branch) => {
     await api.delete(`/branches/${branch.id}`);
-    Swal.fire("Deleted", "Branch deleted successfully.", "success");
+    toastSuccess("Branch deleted successfully.");
     load();
   };
 

@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import api from "../../../api/axios";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
+import { confirmAction, toastSuccess } from "../../../components/ui";
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     setLoadError("");
 
@@ -18,17 +19,17 @@ export default function PaymentsPage() {
       .then((response) => setPayments(response.data.data.payments))
       .catch((error) => setLoadError(error.response?.data?.message || "Unable to load payments."))
       .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    load();
   }, []);
 
+  useEffect(() => {
+    const timer = window.setTimeout(load, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
+
   const confirm = async (payment) => {
-    const result = await Swal.fire({ title: "Confirm payment?", icon: "question", showCancelButton: true, confirmButtonText: "Confirm" });
-    if (!result.isConfirmed) return;
+    if (!await confirmAction("Confirm payment?", "This payment will be marked as paid.")) return;
     await api.put(`/payments/${payment.id}/confirm`);
-    Swal.fire("Confirmed", "Payment marked as paid.", "success");
+    toastSuccess("Payment marked as paid.");
     load();
   };
 
@@ -36,7 +37,7 @@ export default function PaymentsPage() {
     const result = await Swal.fire({ title: "Reject payment?", input: "text", inputLabel: "Reason", icon: "warning", showCancelButton: true, confirmButtonText: "Reject" });
     if (!result.isConfirmed) return;
     await api.put(`/payments/${payment.id}/reject`, { reason: result.value });
-    Swal.fire("Rejected", "Payment was rejected.", "success");
+    toastSuccess("Payment was rejected.");
     load();
   };
 

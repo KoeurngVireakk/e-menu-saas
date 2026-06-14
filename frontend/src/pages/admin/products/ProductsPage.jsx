@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import Swal from "sweetalert2";
+import { useCallback, useEffect, useState } from "react";
 import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
+import { alertError, toastError, toastSuccess } from "../../../components/ui";
 
 const initial = {
   name: "",
@@ -38,7 +38,7 @@ export default function ProductsPage() {
     });
   }, []);
 
-  const load = () => {
+  const load = useCallback(() => {
     if (!shopId) return;
     setLoading(true);
     setLoadError("");
@@ -55,11 +55,12 @@ export default function ProductsPage() {
       })
       .catch((error) => setLoadError(error.response?.data?.message || "Unable to load products."))
       .finally(() => setLoading(false));
-  };
+  }, [shopId]);
 
   useEffect(() => {
-    load();
-  }, [shopId]);
+    const timer = window.setTimeout(load, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -82,7 +83,7 @@ export default function ProductsPage() {
           });
         });
       } catch {
-        Swal.fire("Invalid options", "Options must be valid JSON.", "error");
+        toastError("Options must be valid JSON.");
         return;
       }
     }
@@ -91,16 +92,16 @@ export default function ProductsPage() {
       if (editing) {
         data.append("_method", "PUT");
         await api.post(`/products/${editing.id}`, data, { headers: { "Content-Type": "multipart/form-data" } });
-        Swal.fire("Saved", "Product updated successfully.", "success");
+        toastSuccess("Product updated successfully.");
       } else {
         await api.post(`/shops/${shopId}/products`, data, { headers: { "Content-Type": "multipart/form-data" } });
-        Swal.fire("Created", "Product created successfully.", "success");
+        toastSuccess("Product created successfully.");
       }
       setForm(initial);
       setEditing(null);
       load();
     } catch (error) {
-      Swal.fire("Save failed", error.response?.data?.message || "Please review the product.", "error");
+      alertError(error, "Please review the product.");
     }
   };
 
@@ -117,7 +118,7 @@ export default function ProductsPage() {
 
   const remove = async (product) => {
     await api.delete(`/products/${product.id}`);
-    Swal.fire("Deleted", "Product deleted successfully.", "success");
+    toastSuccess("Product deleted successfully.");
     load();
   };
 

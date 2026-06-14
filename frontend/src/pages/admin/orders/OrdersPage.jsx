@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import Swal from "sweetalert2";
+import { useCallback, useEffect, useState } from "react";
 import api from "../../../api/axios";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
+import { confirmAction, toastSuccess } from "../../../components/ui";
 
 const statuses = ["accepted", "preparing", "ready", "completed", "cancelled"];
 
@@ -13,7 +13,7 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true);
     setLoadError("");
 
@@ -25,27 +25,22 @@ export default function OrdersPage() {
       })
       .catch((error) => setLoadError(error.response?.data?.message || "Unable to load orders."))
       .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    load();
-    const timer = setInterval(load, 10000);
-    return () => clearInterval(timer);
   }, []);
 
-  const update = async (order, order_status) => {
-    const result = await Swal.fire({
-      title: "Update order status?",
-      text: `${order.order_number} will become ${order_status}.`,
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Update",
-    });
+  useEffect(() => {
+    const initialTimer = window.setTimeout(load, 0);
+    const refreshTimer = window.setInterval(load, 10000);
+    return () => {
+      window.clearTimeout(initialTimer);
+      window.clearInterval(refreshTimer);
+    };
+  }, [load]);
 
-    if (!result.isConfirmed) return;
+  const update = async (order, order_status) => {
+    if (!await confirmAction("Update order status?", `${order.order_number} will become ${order_status}.`)) return;
 
     await api.put(`/orders/${order.id}/status`, { order_status });
-    Swal.fire("Updated", "Order status updated.", "success");
+    toastSuccess("Order status updated.");
     load();
   };
 
