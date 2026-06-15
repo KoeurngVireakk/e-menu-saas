@@ -49,25 +49,25 @@ jobs:
           SESSION_DRIVER: array
           QUEUE_CONNECTION: sync
           MAIL_MAILER: array
-          TELEGRAM_ENABLED: false
-          TELEGRAM_SANDBOX_MODE: true
-          PAYMENT_SANDBOX_MODE: true
-          BAKONG_KHQR_ENABLED: false
+          TELEGRAM_ENABLED: "false"
+          TELEGRAM_SANDBOX_MODE: "true"
+          PAYMENT_SANDBOX_MODE: "true"
+          BAKONG_KHQR_ENABLED: "false"
 
       - name: Run backend tests
         run: php artisan test
         env:
           APP_ENV: testing
           DB_CONNECTION: sqlite
-          DB_DATABASE: :memory:
+          DB_DATABASE: ":memory:"
           CACHE_STORE: array
           SESSION_DRIVER: array
           QUEUE_CONNECTION: sync
           MAIL_MAILER: array
-          TELEGRAM_ENABLED: false
-          TELEGRAM_SANDBOX_MODE: true
-          PAYMENT_SANDBOX_MODE: true
-          BAKONG_KHQR_ENABLED: false
+          TELEGRAM_ENABLED: "false"
+          TELEGRAM_SANDBOX_MODE: "true"
+          PAYMENT_SANDBOX_MODE: "true"
+          BAKONG_KHQR_ENABLED: "false"
 
       - name: List routes
         run: php artisan route:list
