@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DiningTableController;
 use App\Http\Controllers\Api\HealthController;
+use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductController;
@@ -91,7 +92,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
+    Route::get('/orders/{order}/receipt', [OrderController::class, 'receipt']);
+    Route::post('/orders/{order}/invoice', [InvoiceController::class, 'store']);
     Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus']);
+
+    Route::get('/invoices', [InvoiceController::class, 'index']);
+    Route::get('/invoices/{invoice}', [InvoiceController::class, 'show']);
+    Route::put('/invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid']);
+    Route::put('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel']);
 
     Route::get('/payments', [PaymentController::class, 'index']);
     Route::get('/payments/{payment}', [PaymentController::class, 'show']);

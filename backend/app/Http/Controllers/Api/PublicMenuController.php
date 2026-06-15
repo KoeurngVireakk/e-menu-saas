@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductOption;
+use App\Models\ProductOptionValue;
 use App\Models\Shop;
 use Illuminate\Http\Request;
 
@@ -45,7 +48,7 @@ class PublicMenuController extends Controller
             'shop' => $this->localizedShop($shop, $locale),
             'branch' => $branch,
             'table' => $table,
-            'categories' => $categories->map(fn ($category) => $this->localizedCategory($category, $locale))->values(),
+            'categories' => $categories->map(fn (Category $category) => $this->localizedCategory($category, $locale))->values(),
         ]);
     }
 
@@ -80,12 +83,12 @@ class PublicMenuController extends Controller
         return $data;
     }
 
-    private function localizedCategory($category, string $locale): array
+    private function localizedCategory(Category $category, string $locale): array
     {
         $data = $category->toArray();
         $data['name'] = $category->localizedName($locale);
         $data['products'] = $category->products
-            ->map(fn ($product) => $this->localizedProduct($product, $locale))
+            ->map(fn (Product $product) => $this->localizedProduct($product, $locale))
             ->values()
             ->all();
         unset($data['translations']);
@@ -99,7 +102,7 @@ class PublicMenuController extends Controller
         $data['name'] = $product->localizedName($locale);
         $data['description'] = $product->localizedDescription($locale);
         $data['options'] = $product->options
-            ->map(fn ($option) => $this->localizedOption($option, $locale))
+            ->map(fn (ProductOption $option) => $this->localizedOption($option, $locale))
             ->values()
             ->all();
         unset($data['translations']);
@@ -112,12 +115,12 @@ class PublicMenuController extends Controller
         return $data;
     }
 
-    private function localizedOption($option, string $locale): array
+    private function localizedOption(ProductOption $option, string $locale): array
     {
         $data = $option->toArray();
         $data['name'] = $option->localizedName($locale);
         $data['values'] = $option->values
-            ->map(function ($value) use ($locale) {
+            ->map(function (ProductOptionValue $value) use ($locale) {
                 $valueData = $value->toArray();
                 $valueData['name'] = $value->localizedName($locale);
                 unset($valueData['translations']);

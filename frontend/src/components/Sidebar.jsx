@@ -12,6 +12,7 @@ const links = [
   { label: "Table QR", to: "/admin/tables", feature: "tables" },
   { label: "Orders", to: "/admin/orders", feature: "orders" },
   { label: "Payments", to: "/admin/payments", feature: "payments" },
+  { label: "Invoices", to: "/admin/invoices", feature: "invoices" },
   { label: "Staff", to: "/admin/staff", feature: "staff" },
   { label: "Settings", to: "/admin/settings", feature: "settings" },
   { label: "System Health", to: "/admin/system-health", feature: "systemHealth" },

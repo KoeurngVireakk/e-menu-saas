@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Shop;
+use App\Services\BillingCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -16,6 +17,10 @@ use Illuminate\Validation\ValidationException;
 
 class PublicOrderController extends Controller
 {
+    public function __construct(private readonly BillingCalculator $billing)
+    {
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -85,6 +90,8 @@ class PublicOrderController extends Controller
                 ];
             }
 
+            $totals = $this->billing->totals($subtotal, $shop);
+
             $order = Order::create([
                 'order_number' => $this->orderNumber(),
                 'shop_id' => $shop->id,
@@ -93,11 +100,7 @@ class PublicOrderController extends Controller
                 'customer_name' => $validated['customer_name'] ?? null,
                 'customer_phone' => $validated['customer_phone'] ?? null,
                 'order_type' => $validated['order_type'],
-                'subtotal' => $subtotal,
-                'discount_total' => 0,
-                'service_charge' => 0,
-                'tax_total' => 0,
-                'grand_total' => $subtotal,
+                ...$totals,
                 'note' => $validated['note'] ?? null,
             ]);
 
@@ -141,7 +144,7 @@ class PublicOrderController extends Controller
                 'shop_id' => $order->shop_id,
                 'branch_id' => $order->branch_id,
                 'amount' => $order->grand_total,
-                'currency_code' => $order->shop->currency_code,
+                'currency_code' => $order->currency_code,
                 'status' => 'pending',
             ]
         );

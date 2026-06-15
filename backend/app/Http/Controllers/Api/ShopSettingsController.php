@@ -4,15 +4,29 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Shop;
+use App\Services\BillingCalculator;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ShopSettingsController extends Controller
 {
     private const SETTING_KEYS = [
         'order_auto_accept',
+        'base_currency',
+        'display_secondary_currency',
+        'secondary_currency',
+        'exchange_rate',
         'service_charge_percentage',
         'tax_percentage',
+        'default_discount_percentage',
+        'receipt_footer_text',
+        'invoice_prefix',
+        'receipt_prefix',
     ];
+
+    public function __construct(private readonly BillingCalculator $billing)
+    {
+    }
 
     public function show(Request $request, Shop $shop)
     {
@@ -38,11 +52,26 @@ class ShopSettingsController extends Controller
             'cover' => ['nullable', 'image', 'max:4096'],
             'primary_color' => ['nullable', 'string', 'max:20'],
             'secondary_color' => ['nullable', 'string', 'max:20'],
-            'currency_code' => ['required', 'string', 'size:3'],
+            'currency_code' => ['required', Rule::in(['KHR', 'USD'])],
             'order_auto_accept' => ['nullable', 'boolean'],
+            'base_currency' => ['nullable', Rule::in(['KHR', 'USD'])],
+            'display_secondary_currency' => ['nullable', 'boolean'],
+            'secondary_currency' => ['nullable', Rule::in(['KHR', 'USD'])],
+            'exchange_rate' => ['nullable', 'numeric', 'min:0.0001'],
             'service_charge_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'tax_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'default_discount_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'receipt_footer_text' => ['nullable', 'string', 'max:1000'],
+            'invoice_prefix' => ['nullable', 'string', 'max:20'],
+            'receipt_prefix' => ['nullable', 'string', 'max:20'],
         ]);
+
+        $validated['base_currency'] = $validated['base_currency'] ?? $validated['currency_code'];
+        $validated['secondary_currency'] = $validated['secondary_currency'] ?? ($validated['base_currency'] === 'KHR' ? 'USD' : 'KHR');
+        if ($validated['secondary_currency'] === $validated['base_currency']) {
+            $validated['secondary_currency'] = $validated['base_currency'] === 'KHR' ? 'USD' : 'KHR';
+        }
+        $validated['currency_code'] = $validated['base_currency'];
 
         $shopFields = collect($validated)->except(self::SETTING_KEYS)->all();
         $this->storeUploads($request, $shopFields);
@@ -85,8 +114,7 @@ class ShopSettingsController extends Controller
 
         return [
             'order_auto_accept' => filter_var($settings->get('order_auto_accept', false), FILTER_VALIDATE_BOOLEAN),
-            'service_charge_percentage' => (float) $settings->get('service_charge_percentage', 0),
-            'tax_percentage' => (float) $settings->get('tax_percentage', 0),
+            ...$this->billing->settings($shop),
         ];
     }
 
@@ -105,10 +133,10 @@ class ShopSettingsController extends Controller
 
     private function stringSettingValue(string $key, mixed $value): string
     {
-        if ($key === 'order_auto_accept') {
+        if (in_array($key, ['order_auto_accept', 'display_secondary_currency'], true)) {
             return filter_var($value, FILTER_VALIDATE_BOOLEAN) ? '1' : '0';
         }
 
-        return (string) ($value ?? 0);
+        return (string) ($value ?? '');
     }
 }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import api, { getApiErrorMessage } from "../../../api/axios";
-import { Button, Card, ErrorState, Input, LoadingState, Select, alertError, toastSuccess } from "../../../components/ui";
+import { Button, Card, ErrorState, Input, LoadingState, Select, Textarea, alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
 import { canManageTenantSettings } from "../../../utils/permissions";
 
@@ -13,9 +13,17 @@ const initial = {
   primary_color: "#f97316",
   secondary_color: "#111827",
   currency_code: "KHR",
+  base_currency: "KHR",
+  display_secondary_currency: false,
+  secondary_currency: "USD",
+  exchange_rate: 4100,
   order_auto_accept: false,
   service_charge_percentage: 0,
   tax_percentage: 0,
+  default_discount_percentage: 0,
+  receipt_footer_text: "",
+  invoice_prefix: "INV",
+  receipt_prefix: "RCPT",
   logo: null,
   cover: null,
 };
@@ -143,7 +151,10 @@ export default function SettingsPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <Input disabled={!allowManage} label="Primary color" type="color" value={form.primary_color || "#f97316"} onChange={(event) => setForm({ ...form, primary_color: event.target.value })} />
             <Input disabled={!allowManage} label="Secondary color" type="color" value={form.secondary_color || "#111827"} onChange={(event) => setForm({ ...form, secondary_color: event.target.value })} />
-            <Input disabled={!allowManage} label="Currency" value={form.currency_code || "KHR"} onChange={(event) => setForm({ ...form, currency_code: event.target.value.toUpperCase() })} />
+            <Select disabled={!allowManage} label="Base currency" value={form.base_currency || form.currency_code || "KHR"} onChange={(event) => setForm({ ...form, base_currency: event.target.value, currency_code: event.target.value, secondary_currency: event.target.value === "KHR" ? "USD" : "KHR" })}>
+              <option value="KHR">KHR</option>
+              <option value="USD">USD</option>
+            </Select>
           </div>
           {allowManage ? (
             <div className="grid gap-4 sm:grid-cols-2">
@@ -154,15 +165,30 @@ export default function SettingsPage() {
         </Card>
 
         <Card className="grid gap-4 p-4">
-          <h2 className="text-lg font-semibold text-slate-950">Order defaults</h2>
+          <h2 className="text-lg font-semibold text-slate-950">Billing defaults</h2>
           <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
             <input disabled={!allowManage} type="checkbox" checked={Boolean(form.order_auto_accept)} onChange={(event) => setForm({ ...form, order_auto_accept: event.target.checked })} />
             Auto-accept new orders
           </label>
+          <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
+            <input disabled={!allowManage} type="checkbox" checked={Boolean(form.display_secondary_currency)} onChange={(event) => setForm({ ...form, display_secondary_currency: event.target.checked })} />
+            Show secondary currency on receipts
+          </label>
           <div className="grid gap-4 sm:grid-cols-2">
+            <Select disabled={!allowManage} label="Secondary currency" value={form.secondary_currency || "USD"} onChange={(event) => setForm({ ...form, secondary_currency: event.target.value })}>
+              <option value="USD">USD</option>
+              <option value="KHR">KHR</option>
+            </Select>
+            <Input disabled={!allowManage} label="Exchange rate (KHR per USD)" type="number" min="0" step="0.0001" value={form.exchange_rate ?? 4100} onChange={(event) => setForm({ ...form, exchange_rate: event.target.value })} />
+            <Input disabled={!allowManage} label="Default discount %" type="number" min="0" max="100" value={form.default_discount_percentage ?? 0} onChange={(event) => setForm({ ...form, default_discount_percentage: event.target.value })} />
             <Input disabled={!allowManage} label="Service charge %" type="number" min="0" max="100" value={form.service_charge_percentage ?? 0} onChange={(event) => setForm({ ...form, service_charge_percentage: event.target.value })} />
             <Input disabled={!allowManage} label="Tax %" type="number" min="0" max="100" value={form.tax_percentage ?? 0} onChange={(event) => setForm({ ...form, tax_percentage: event.target.value })} />
           </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input disabled={!allowManage} label="Invoice prefix" value={form.invoice_prefix || "INV"} onChange={(event) => setForm({ ...form, invoice_prefix: event.target.value.toUpperCase() })} />
+            <Input disabled={!allowManage} label="Receipt prefix" value={form.receipt_prefix || "RCPT"} onChange={(event) => setForm({ ...form, receipt_prefix: event.target.value.toUpperCase() })} />
+          </div>
+          <Textarea disabled={!allowManage} label="Receipt footer" value={form.receipt_footer_text || ""} onChange={(event) => setForm({ ...form, receipt_footer_text: event.target.value })} />
         </Card>
 
         {allowManage ? <Button type="submit" disabled={saving || !shopId}>{saving ? "Saving..." : "Save settings"}</Button> : null}
@@ -173,9 +199,9 @@ export default function SettingsPage() {
         <div className="mt-4 rounded-md border border-slate-200 p-4" style={{ borderTop: `5px solid ${form.primary_color || "#f97316"}` }}>
           <p className="text-xl font-bold" style={{ color: form.secondary_color || "#111827" }}>{form.name || "Shop name"}</p>
           <p className="mt-1 text-sm text-slate-500">{form.description || "Shop description appears here."}</p>
-          <p className="mt-3 text-sm font-semibold text-slate-700">{form.currency_code || "KHR"}</p>
+          <p className="mt-3 text-sm font-semibold text-slate-700">{form.base_currency || form.currency_code || "KHR"}</p>
           <p className="mt-3 text-xs text-slate-500">
-            Service {Number(form.service_charge_percentage || 0).toLocaleString()}% · Tax {Number(form.tax_percentage || 0).toLocaleString()}%
+            Discount {Number(form.default_discount_percentage || 0).toLocaleString()}% · Service {Number(form.service_charge_percentage || 0).toLocaleString()}% · Tax {Number(form.tax_percentage || 0).toLocaleString()}%
           </p>
         </div>
       </Card>

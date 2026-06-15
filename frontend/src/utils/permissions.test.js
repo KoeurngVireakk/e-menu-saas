@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   canCreate,
   canDelete,
+  canManageInvoices,
   canManagePayments,
   canManageProducts,
   canManageShopSettings,
@@ -40,6 +41,7 @@ describe("permissions", () => {
     const user = { role: "manager" };
 
     expect(canManageProducts(user)).toBe(true);
+    expect(canManageInvoices(user)).toBe(true);
     expect(canManageTranslations(user)).toBe(true);
     expect(canViewStaff(user)).toBe(true);
     expect(canManageStaff(user)).toBe(false);
@@ -52,6 +54,7 @@ describe("permissions", () => {
     const user = { role: "cashier" };
 
     expect(canManagePayments(user)).toBe(true);
+    expect(canManageInvoices(user)).toBe(true);
     expect(canView(user, "orders")).toBe(true);
     expect(canView(user, "products")).toBe(false);
     expect(canView(user, "translations")).toBe(false);
@@ -66,6 +69,8 @@ describe("permissions", () => {
     expect(canView(user, "tables")).toBe(true);
     expect(canCreate(user, "tables")).toBe(false);
     expect(canView(user, "payments")).toBe(false);
+    expect(canView(user, "invoices")).toBe(false);
+    expect(canManageInvoices(user)).toBe(false);
   });
 
   it("denies unknown users", () => {

@@ -2,35 +2,31 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class Order extends Model
+class Invoice extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
-        'order_number',
+        'invoice_number',
+        'order_id',
         'shop_id',
         'branch_id',
-        'dining_table_id',
         'customer_name',
         'customer_phone',
-        'order_type',
+        'currency_code',
         'subtotal',
         'discount_total',
         'service_charge',
         'tax_total',
+        'deposit_amount',
+        'paid_amount',
+        'balance_due',
         'grand_total',
-        'currency_code',
-        'secondary_currency_code',
-        'secondary_currency_total',
-        'payment_status',
-        'order_status',
-        'note',
+        'status',
+        'issued_at',
+        'paid_at',
     ];
 
     protected function casts(): array
@@ -40,9 +36,18 @@ class Order extends Model
             'discount_total' => 'decimal:2',
             'service_charge' => 'decimal:2',
             'tax_total' => 'decimal:2',
+            'deposit_amount' => 'decimal:2',
+            'paid_amount' => 'decimal:2',
+            'balance_due' => 'decimal:2',
             'grand_total' => 'decimal:2',
-            'secondary_currency_total' => 'decimal:2',
+            'issued_at' => 'datetime',
+            'paid_at' => 'datetime',
         ];
+    }
+
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
     }
 
     public function shop(): BelongsTo
@@ -55,23 +60,8 @@ class Order extends Model
         return $this->belongsTo(Branch::class);
     }
 
-    public function diningTable(): BelongsTo
-    {
-        return $this->belongsTo(DiningTable::class);
-    }
-
     public function items(): HasMany
     {
-        return $this->hasMany(OrderItem::class);
-    }
-
-    public function payment(): HasOne
-    {
-        return $this->hasOne(Payment::class);
-    }
-
-    public function invoice(): HasOne
-    {
-        return $this->hasOne(Invoice::class);
+        return $this->hasMany(InvoiceItem::class);
     }
 }

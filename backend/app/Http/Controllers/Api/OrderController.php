@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\BillingCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
+    public function __construct(private readonly BillingCalculator $billing)
+    {
+    }
+
     public function index(Request $request)
     {
         $shopIds = $this->accessibleShopIds($request);
@@ -61,6 +66,33 @@ class OrderController extends Controller
 
         return $this->success('Order loaded', [
             'order' => $order->load(['items', 'shop', 'branch', 'diningTable', 'payment.logs']),
+        ]);
+    }
+
+    public function receipt(Request $request, Order $order)
+    {
+        $this->authorizeOrder($request, $order);
+        abort_unless($request->user()->canManageOrders(), 403);
+
+        $order->load(['items', 'shop.settings', 'branch', 'diningTable', 'payment', 'invoice']);
+        $settings = $this->billing->settings($order->shop);
+
+        return $this->success('Receipt loaded', [
+            'receipt' => [
+                'receipt_number' => $settings['receipt_prefix'].'-'.$order->order_number,
+                'order' => $order,
+                'settings' => $settings,
+                'totals' => [
+                    'subtotal' => $order->subtotal,
+                    'discount_total' => $order->discount_total,
+                    'service_charge' => $order->service_charge,
+                    'tax_total' => $order->tax_total,
+                    'grand_total' => $order->grand_total,
+                    'currency_code' => $order->currency_code,
+                    'secondary_currency_code' => $order->secondary_currency_code,
+                    'secondary_currency_total' => $order->secondary_currency_total,
+                ],
+            ],
         ]);
     }
 

@@ -2,6 +2,13 @@
 
 namespace App\Models\Concerns;
 
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+/**
+ * @mixin Model
+ * @method HasMany translations()
+ */
 trait HasLocalizedFields
 {
     public function translationFor(?string $locale): mixed
@@ -9,7 +16,7 @@ trait HasLocalizedFields
         $locale = $this->normalizeLocale($locale);
 
         if ($this->relationLoaded('translations')) {
-            return $this->translations->firstWhere('locale', $locale);
+            return $this->getRelation('translations')->firstWhere('locale', $locale);
         }
 
         return $this->translations()->where('locale', $locale)->first();

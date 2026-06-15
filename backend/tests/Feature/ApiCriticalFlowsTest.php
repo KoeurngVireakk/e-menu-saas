@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\AuditLog;
 use App\Models\Branch;
 use App\Models\Category;
+use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
@@ -188,7 +189,7 @@ class ApiCriticalFlowsTest extends TestCase
             ->assertJsonPath('data.payment.status', 'pending');
 
         $payment = Payment::where('order_id', $order['id'])->firstOrFail();
-        Storage::disk('public')->assertExists($payment->proof_image_path);
+        $this->assertTrue(Storage::disk('public')->exists((string) $payment->proof_image_path));
 
         $this->putJson("/api/payments/{$payment->id}/confirm")
             ->assertOk()
@@ -617,6 +618,111 @@ class ApiCriticalFlowsTest extends TestCase
         $catalog['product']->translations()->create([
             'locale' => 'km',
             'name' => 'ឡាតេ',
+        ]);
+    }
+
+    public function test_order_totals_use_billing_settings_and_receipt_returns_totals(): void
+    {
+        $catalog = $this->createCatalog();
+        $catalog['shop']->settings()->createMany([
+            ['key' => 'base_currency', 'value' => 'KHR'],
+            ['key' => 'display_secondary_currency', 'value' => '1'],
+            ['key' => 'secondary_currency', 'value' => 'USD'],
+            ['key' => 'exchange_rate', 'value' => '4000'],
+            ['key' => 'default_discount_percentage', 'value' => '10'],
+            ['key' => 'service_charge_percentage', 'value' => '5'],
+            ['key' => 'tax_percentage', 'value' => '10'],
+            ['key' => 'receipt_prefix', 'value' => 'RCPT'],
+        ]);
+
+        $order = $this->submitOrder($catalog)
+            ->assertCreated()
+            ->assertJsonPath('data.order.subtotal', '14500.00')
+            ->assertJsonPath('data.order.discount_total', '1450.00')
+            ->assertJsonPath('data.order.service_charge', '652.50')
+            ->assertJsonPath('data.order.tax_total', '1305.00')
+            ->assertJsonPath('data.order.grand_total', '15007.50')
+            ->assertJsonPath('data.order.currency_code', 'KHR')
+            ->assertJsonPath('data.order.secondary_currency_code', 'USD')
+            ->json('data.order');
+
+        Sanctum::actingAs($catalog['owner']);
+
+        $this->getJson("/api/orders/{$order['id']}/receipt")
+            ->assertOk()
+            ->assertJsonPath('data.receipt.receipt_number', 'RCPT-'.$order['order_number'])
+            ->assertJsonPath('data.receipt.totals.grand_total', '15007.50')
+            ->assertJsonPath('data.receipt.totals.secondary_currency_code', 'USD');
+    }
+
+    public function test_invoice_creation_copies_items_and_uses_unique_number(): void
+    {
+        $catalog = $this->createCatalog();
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+
+        Sanctum::actingAs($catalog['owner']);
+
+        $invoice = $this->postJson("/api/orders/{$order['id']}/invoice")
+            ->assertCreated()
+            ->assertJsonPath('data.invoice.order_id', $order['id'])
+            ->assertJsonCount(1, 'data.invoice.items')
+            ->json('data.invoice');
+
+        $this->assertNotEmpty($invoice['invoice_number']);
+        $this->assertDatabaseHas('invoice_items', [
+            'invoice_id' => $invoice['id'],
+            'product_name' => 'Iced Latte',
+            'quantity' => 1,
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'invoice.created',
+            'entity_type' => 'invoice',
+            'entity_id' => $invoice['id'],
+        ]);
+
+        $this->postJson("/api/orders/{$order['id']}/invoice")
+            ->assertOk()
+            ->assertJsonPath('data.invoice.id', $invoice['id']);
+
+        $this->assertSame(1, Invoice::where('order_id', $order['id'])->count());
+    }
+
+    public function test_cashier_can_mark_invoice_paid_but_waiter_cannot(): void
+    {
+        $catalog = $this->createCatalog();
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $waiter = User::factory()->create(['role' => 'waiter']);
+        foreach ([$cashier, $waiter] as $staffUser) {
+            $catalog['shop']->staffAssignments()->create([
+                'branch_id' => $catalog['branch']->id,
+                'user_id' => $staffUser->id,
+                'role' => $staffUser->role,
+                'status' => 'active',
+            ]);
+        }
+
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        Sanctum::actingAs($catalog['owner']);
+        $invoice = $this->postJson("/api/orders/{$order['id']}/invoice")->assertCreated()->json('data.invoice');
+
+        Sanctum::actingAs($waiter);
+        $this->putJson("/api/invoices/{$invoice['id']}/mark-paid")
+            ->assertForbidden();
+
+        Sanctum::actingAs($cashier);
+        $this->putJson("/api/invoices/{$invoice['id']}/mark-paid")
+            ->assertOk()
+            ->assertJsonPath('data.invoice.status', 'paid')
+            ->assertJsonPath('data.invoice.balance_due', '0.00');
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order['id'],
+            'payment_status' => 'paid',
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'invoice.marked_paid',
+            'entity_type' => 'invoice',
+            'entity_id' => $invoice['id'],
         ]);
     }
 
