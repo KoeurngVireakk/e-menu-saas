@@ -59,7 +59,7 @@ jobs:
           BAKONG_KHQR_ENABLED: "false"
 
       - name: Run backend tests
-        run: php artisan test
+        run: php artisan test --parallel
         env:
           APP_ENV: testing
           DB_CONNECTION: sqlite
