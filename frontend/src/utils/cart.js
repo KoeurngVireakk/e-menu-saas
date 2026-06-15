@@ -44,6 +44,23 @@ export function cartItemKey(productId, selectedOptions = []) {
   return `${productId}:${JSON.stringify(normalized)}`;
 }
 
+export function mergeCartItem(items = [], cartItem) {
+  const existing = items.find((item) => item.key === cartItem.key);
+
+  if (!existing) {
+    return [...items, cartItem];
+  }
+
+  return items.map((item) => {
+    if (item.key !== cartItem.key) {
+      return item;
+    }
+
+    const quantity = Number(item.quantity || 0) + Number(cartItem.quantity || 0);
+    return { ...item, quantity, item_total: itemTotal({ ...item, quantity }) };
+  });
+}
+
 export function readCart() {
   try {
     const parsed = JSON.parse(localStorage.getItem(CART_KEY) || "[]");

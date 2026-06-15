@@ -7,7 +7,7 @@ import OfflineBanner from "../../components/OfflineBanner";
 import ProductCard from "../../components/ProductCard";
 import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal, SectionTitle, toastError, toastSuccess } from "../../components/ui";
 import useOnlineStatus from "../../hooks/useOnlineStatus";
-import { cartItemKey, itemTotal, money, productBasePrice, readCart, writeCart } from "../../utils/cart";
+import { cartItemKey, itemTotal, mergeCartItem, money, productBasePrice, readCart, writeCart } from "../../utils/cart";
 import { menuCacheKey, readMenuCache, writeMenuCache } from "../../utils/menuCache";
 
 const storageUrl = import.meta.env.VITE_STORAGE_URL || "http://127.0.0.1:8000/storage";
@@ -75,21 +75,7 @@ export default function MenuPage() {
   }, [menu, query]);
 
   const addConfiguredItem = (cartItem) => {
-    setCart((items) => {
-      const existing = items.find((item) => item.key === cartItem.key);
-      if (existing) {
-        return items.map((item) => {
-          if (item.key !== cartItem.key) {
-            return item;
-          }
-
-          const quantity = item.quantity + cartItem.quantity;
-          return { ...item, quantity, item_total: itemTotal({ ...item, quantity }) };
-        });
-      }
-
-      return [...items, cartItem];
-    });
+    setCart((items) => mergeCartItem(items, cartItem));
     toastSuccess(`${cartItem.name} added`);
   };
 
