@@ -68,6 +68,16 @@ class Shop extends Model
         return $this->hasMany(NotificationLog::class);
     }
 
+    public function printStations(): HasMany
+    {
+        return $this->hasMany(PrintStation::class);
+    }
+
+    public function printLogs(): HasMany
+    {
+        return $this->hasMany(PrintLog::class);
+    }
+
     public function staffAssignments(): HasMany
     {
         return $this->hasMany(ShopStaff::class);

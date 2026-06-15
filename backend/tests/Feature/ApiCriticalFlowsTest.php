@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\PrintStation;
 use App\Models\Product;
 use App\Models\Shop;
 use App\Models\User;
@@ -1045,6 +1046,169 @@ class ApiCriticalFlowsTest extends TestCase
             $this->postJson("/api/shops/{$catalog['shop']->id}/notifications/test-telegram")
                 ->assertForbidden();
         }
+    }
+
+    public function test_owner_can_create_print_station(): void
+    {
+        $catalog = $this->createCatalog();
+        Sanctum::actingAs($catalog['owner']);
+
+        $this->postJson("/api/shops/{$catalog['shop']->id}/print-stations", [
+            'branch_id' => $catalog['branch']->id,
+            'name' => 'Kitchen 80mm',
+            'type' => 'kitchen',
+            'paper_size' => '80mm',
+            'is_default' => true,
+            'status' => 'active',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.print_station.name', 'Kitchen 80mm')
+            ->assertJsonPath('data.print_station.is_default', true);
+
+        $this->assertDatabaseHas('print_stations', [
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'type' => 'kitchen',
+        ]);
+    }
+
+    public function test_cashier_cannot_create_print_station(): void
+    {
+        $catalog = $this->createCatalog();
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => $catalog['branch']->id,
+            'user_id' => $cashier->id,
+            'role' => 'cashier',
+            'status' => 'active',
+        ]);
+
+        Sanctum::actingAs($cashier);
+
+        $this->postJson("/api/shops/{$catalog['shop']->id}/print-stations", [
+            'branch_id' => $catalog['branch']->id,
+            'name' => 'Cashier Receipt',
+            'type' => 'receipt',
+            'paper_size' => '58mm',
+            'is_default' => true,
+            'status' => 'active',
+        ])->assertForbidden();
+    }
+
+    public function test_manager_can_create_print_station_for_assigned_shop(): void
+    {
+        $catalog = $this->createCatalog();
+        $manager = User::factory()->create(['role' => 'manager']);
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => $catalog['branch']->id,
+            'user_id' => $manager->id,
+            'role' => 'manager',
+            'status' => 'active',
+        ]);
+
+        Sanctum::actingAs($manager);
+
+        $this->postJson("/api/shops/{$catalog['shop']->id}/print-stations", [
+            'branch_id' => $catalog['branch']->id,
+            'name' => 'Assigned Kitchen',
+            'type' => 'kitchen',
+            'paper_size' => '80mm',
+            'is_default' => false,
+            'status' => 'active',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.print_station.name', 'Assigned Kitchen');
+    }
+
+    public function test_kitchen_ticket_endpoint_returns_order_items_and_creates_print_log(): void
+    {
+        $catalog = $this->createCatalog();
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $station = PrintStation::create([
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'name' => 'Kitchen Station',
+            'type' => 'kitchen',
+            'paper_size' => '80mm',
+            'is_default' => true,
+            'status' => 'active',
+        ]);
+
+        Sanctum::actingAs($catalog['owner']);
+
+        $this->getJson("/api/orders/{$order['id']}/kitchen-ticket")
+            ->assertOk()
+            ->assertJsonPath('data.print.print_type', 'kitchen_ticket')
+            ->assertJsonPath('data.print.station.id', $station->id)
+            ->assertJsonPath('data.print.items.0.product_name', 'Iced Latte');
+
+        $this->assertDatabaseHas('print_logs', [
+            'shop_id' => $catalog['shop']->id,
+            'printable_type' => Order::class,
+            'printable_id' => $order['id'],
+            'print_type' => 'kitchen_ticket',
+            'status' => 'generated',
+        ]);
+    }
+
+    public function test_receipt_print_endpoint_returns_totals(): void
+    {
+        $catalog = $this->createCatalog();
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+
+        Sanctum::actingAs($catalog['owner']);
+
+        $this->getJson("/api/orders/{$order['id']}/receipt-print")
+            ->assertOk()
+            ->assertJsonPath('data.print.print_type', 'receipt')
+            ->assertJsonPath('data.print.totals.grand_total', '14500.00')
+            ->assertJsonPath('data.print.items.0.product_name', 'Iced Latte');
+
+        $this->assertDatabaseHas('print_logs', [
+            'printable_type' => Order::class,
+            'printable_id' => $order['id'],
+            'print_type' => 'receipt',
+        ]);
+    }
+
+    public function test_invoice_print_endpoint_returns_invoice_items(): void
+    {
+        $catalog = $this->createCatalog();
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+
+        Sanctum::actingAs($catalog['owner']);
+        $invoice = $this->postJson("/api/orders/{$order['id']}/invoice")
+            ->assertCreated()
+            ->json('data.invoice');
+
+        $this->getJson("/api/invoices/{$invoice['id']}/print")
+            ->assertOk()
+            ->assertJsonPath('data.print.print_type', 'invoice')
+            ->assertJsonPath('data.print.invoice.invoice_number', $invoice['invoice_number'])
+            ->assertJsonPath('data.print.items.0.product_name', 'Iced Latte');
+
+        $this->assertDatabaseHas('print_logs', [
+            'printable_type' => Invoice::class,
+            'printable_id' => $invoice['id'],
+            'print_type' => 'invoice',
+        ]);
+    }
+
+    public function test_unrelated_user_cannot_print_unrelated_shop_order(): void
+    {
+        $catalog = $this->createCatalog();
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $unrelatedOwner = User::factory()->create(['role' => 'shop_owner']);
+
+        Sanctum::actingAs($unrelatedOwner);
+
+        $this->getJson("/api/orders/{$order['id']}/receipt-print")
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('print_logs', [
+            'printable_type' => Order::class,
+            'printable_id' => $order['id'],
+        ]);
     }
 
     private function createCatalog(string $shopName = 'Test Cafe'): array

@@ -51,6 +51,12 @@ const featurePermissions = {
     create: ["super_admin", "shop_owner", "manager", "cashier"],
     update: ["super_admin", "shop_owner", "manager", "cashier"],
   },
+  printStations: {
+    view: ["super_admin", "shop_owner", "manager", "cashier", "waiter"],
+    create: ["super_admin", "shop_owner", "manager"],
+    update: ["super_admin", "shop_owner", "manager"],
+    delete: ["super_admin", "shop_owner", "manager"],
+  },
   staff: {
     view: ["super_admin", "shop_owner", "manager"],
     create: ["super_admin", "shop_owner"],
@@ -93,6 +99,22 @@ export function canManagePayments(user) {
 
 export function canManageInvoices(user) {
   return canUpdate(user, "invoices");
+}
+
+export function canViewPrintStations(user) {
+  return canView(user, "printStations");
+}
+
+export function canManagePrintStations(user) {
+  return canCreate(user, "printStations") && canUpdate(user, "printStations") && canDelete(user, "printStations");
+}
+
+export function canPrintKitchenTicket(user) {
+  return hasRole(user, ["super_admin", "shop_owner", "manager", "waiter"]);
+}
+
+export function canPrintReceipt(user) {
+  return hasRole(user, ["super_admin", "shop_owner", "manager", "cashier"]);
 }
 
 export function canManageOrders(user) {

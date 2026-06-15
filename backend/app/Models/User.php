@@ -80,6 +80,26 @@ class User extends Authenticatable
         return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier', 'waiter'], true);
     }
 
+    public function canViewPrintStations(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier', 'waiter'], true);
+    }
+
+    public function canManagePrintStations(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
+    }
+
+    public function canPrintKitchenTicket(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'waiter'], true);
+    }
+
+    public function canPrintReceipt(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier'], true);
+    }
+
     public function canViewStaff(): bool
     {
         return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);

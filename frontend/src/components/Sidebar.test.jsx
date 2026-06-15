@@ -31,6 +31,7 @@ describe("Sidebar", () => {
     expect(screen.getByRole("link", { name: "System Health" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Payments" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Invoices" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Print Stations" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Staff" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Settings" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Translations" })).toBeInTheDocument();
@@ -48,6 +49,7 @@ describe("Sidebar", () => {
     expect(screen.getByRole("link", { name: "Orders" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Payments" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Invoices" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Print Stations" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Products" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Categories" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Translations" })).not.toBeInTheDocument();
@@ -69,6 +71,23 @@ describe("Sidebar", () => {
     expect(screen.getByRole("link", { name: "Settings" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Translations" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Invoices" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Print Stations" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "System Health" })).not.toBeInTheDocument();
+  });
+
+  it("shows print stations but hides payment pages for waiters", () => {
+    authState.user = { role: "waiter" };
+
+    render(
+      <MemoryRouter>
+        <Sidebar />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("link", { name: "Orders" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Table QR" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Print Stations" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Payments" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Invoices" })).not.toBeInTheDocument();
   });
 });

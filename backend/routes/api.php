@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PrintController;
+use App\Http\Controllers\Api\PrintStationController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\PublicMenuController;
 use App\Http\Controllers\Api\PublicOrderController;
@@ -56,6 +58,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/shops/{shop}/settings', [ShopSettingsController::class, 'show']);
     Route::post('/shops/{shop}/settings', [ShopSettingsController::class, 'update']);
     Route::post('/shops/{shop}/notifications/test-telegram', [ShopSettingsController::class, 'testTelegram']);
+    Route::get('/shops/{shop}/print-stations', [PrintStationController::class, 'index']);
+    Route::post('/shops/{shop}/print-stations', [PrintStationController::class, 'store']);
+    Route::get('/print-stations/{printStation}', [PrintStationController::class, 'show']);
+    Route::put('/print-stations/{printStation}', [PrintStationController::class, 'update']);
+    Route::delete('/print-stations/{printStation}', [PrintStationController::class, 'destroy']);
     Route::get('/shops/{shop}/translations', [TranslationController::class, 'shop']);
     Route::put('/shops/{shop}/translations', [TranslationController::class, 'updateShop']);
     Route::get('/shops/{shop}/staff', [ShopStaffController::class, 'index']);
@@ -97,11 +104,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{order}', [OrderController::class, 'show']);
     Route::get('/orders/{order}/receipt', [OrderController::class, 'receipt']);
+    Route::get('/orders/{order}/kitchen-ticket', [PrintController::class, 'kitchenTicket']);
+    Route::get('/orders/{order}/receipt-print', [PrintController::class, 'receipt']);
     Route::post('/orders/{order}/invoice', [InvoiceController::class, 'store']);
     Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus']);
 
     Route::get('/invoices', [InvoiceController::class, 'index']);
     Route::get('/invoices/{invoice}', [InvoiceController::class, 'show']);
+    Route::get('/invoices/{invoice}/print', [PrintController::class, 'invoice']);
     Route::put('/invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid']);
     Route::put('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel']);
 
