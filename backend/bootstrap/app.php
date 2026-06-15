@@ -46,6 +46,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthenticated',
+                'errors' => (object) [],
             ], 401);
         });
 
@@ -57,6 +58,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'success' => false,
                 'message' => $exception->getMessage() ?: 'Forbidden',
+                'errors' => (object) [],
             ], 403);
         });
 
@@ -68,6 +70,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'success' => false,
                 'message' => 'Resource not found',
+                'errors' => (object) [],
             ], 404);
         });
 
@@ -89,6 +92,7 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json([
                 'success' => false,
                 'message' => $message,
+                'errors' => (object) [],
             ], $status);
         });
     })->create();

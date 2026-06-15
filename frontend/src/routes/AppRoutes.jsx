@@ -15,6 +15,7 @@ const ProductsPage = lazy(() => import("../pages/admin/products/ProductsPage"));
 const TablesPage = lazy(() => import("../pages/admin/tables/TablesPage"));
 const OrdersPage = lazy(() => import("../pages/admin/orders/OrdersPage"));
 const PaymentsPage = lazy(() => import("../pages/admin/payments/PaymentsPage"));
+const SystemHealthPage = lazy(() => import("../pages/admin/SystemHealthPage"));
 const MenuPage = lazy(() => import("../pages/public/MenuPage"));
 const CartPage = lazy(() => import("../pages/public/CartPage"));
 const OrderSuccess = lazy(() => import("../pages/public/OrderSuccess"));
@@ -47,6 +48,7 @@ export default function AppRoutes() {
             <Route path="tables" element={<TablesPage />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="payments" element={<PaymentsPage />} />
+            <Route path="system-health" element={<SystemHealthPage />} />
           </Route>
         </Route>
         <Route element={<PublicMenuLayout />}>

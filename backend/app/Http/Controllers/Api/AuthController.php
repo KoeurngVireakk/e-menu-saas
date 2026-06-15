@@ -50,6 +50,11 @@ class AuthController extends Controller
             ]);
         }
 
+        $this->audit($request, 'login', null, 'user', $user->id, [
+            'email' => $user->email,
+            'role' => $user->role,
+        ]);
+
         return $this->success('Logged in successfully', [
             'user' => $user,
             'token' => $user->createToken($validated['device_name'] ?? 'admin')->plainTextToken,
@@ -58,6 +63,10 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        $this->audit($request, 'logout', null, 'user', $request->user()->id, [
+            'role' => $request->user()->role,
+        ]);
+
         $request->user()->currentAccessToken()?->delete();
 
         return $this->success('Logged out successfully');

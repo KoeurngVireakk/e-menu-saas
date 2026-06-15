@@ -26,6 +26,11 @@ class BranchController extends Controller
 
         $branch = $shop->branches()->create($this->validateBranch($request));
 
+        $this->audit($request, 'branch.created', $shop->id, 'branch', $branch->id, [
+            'name' => $branch->name,
+            'status' => $branch->status,
+        ]);
+
         return $this->success('Branch created successfully', ['branch' => $branch], 201);
     }
 
@@ -41,13 +46,25 @@ class BranchController extends Controller
         $this->authorizeBranchAccess($request, $branch);
         $branch->update($this->validateBranch($request));
 
+        $this->audit($request, 'branch.updated', $branch->shop_id, 'branch', $branch->id, [
+            'name' => $branch->name,
+            'status' => $branch->status,
+        ]);
+
         return $this->success('Branch updated successfully', ['branch' => $branch->fresh()]);
     }
 
     public function destroy(Request $request, Branch $branch)
     {
         $this->authorizeBranchAccess($request, $branch);
+        $branchId = $branch->id;
+        $shopId = $branch->shop_id;
+        $branchName = $branch->name;
         $branch->delete();
+
+        $this->audit($request, 'branch.deleted', $shopId, 'branch', $branchId, [
+            'name' => $branchName,
+        ]);
 
         return $this->success('Branch deleted successfully');
     }

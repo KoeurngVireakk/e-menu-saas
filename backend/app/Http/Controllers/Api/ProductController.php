@@ -45,6 +45,14 @@ class ProductController extends Controller
         $product = Product::create($validated);
         $this->syncOptions($product, $options);
 
+        $this->audit($request, 'product.created', $shop->id, 'product', $product->id, [
+            'name' => $product->name,
+            'branch_id' => $product->branch_id,
+            'category_id' => $product->category_id,
+            'status' => $product->status,
+            'option_count' => count($options),
+        ]);
+
         return $this->success('Product created successfully', ['product' => $product->load('options.values')], 201);
     }
 
@@ -76,13 +84,28 @@ class ProductController extends Controller
             $this->syncOptions($product, $options);
         }
 
+        $this->audit($request, 'product.updated', $product->shop_id, 'product', $product->id, [
+            'name' => $product->name,
+            'branch_id' => $product->branch_id,
+            'category_id' => $product->category_id,
+            'status' => $product->status,
+            'options_changed' => is_array($options),
+        ]);
+
         return $this->success('Product updated successfully', ['product' => $product->fresh()->load('options.values')]);
     }
 
     public function destroy(Request $request, Product $product)
     {
         $this->authorizeShopAccess($request, $product->shop, $product->branch_id);
+        $productId = $product->id;
+        $shopId = $product->shop_id;
+        $productName = $product->name;
         $product->delete();
+
+        $this->audit($request, 'product.deleted', $shopId, 'product', $productId, [
+            'name' => $productName,
+        ]);
 
         return $this->success('Product deleted successfully');
     }

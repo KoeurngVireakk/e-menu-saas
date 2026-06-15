@@ -72,6 +72,7 @@ This checklist is for the E-Menu SaaS React frontend and Laravel API before prod
 - Confirm `php artisan storage:link` exists on the server for payment proof/public assets.
 - Verify public menu, cart, order submit, payment submit, and admin login.
 - Verify service worker update prompt appears after deploying a changed build.
+- Review `docs/observability.md` before launch and confirm logs do not contain secrets, tokens, passwords, or payment proof file payloads.
 
 ## Environment Variable Checklist
 

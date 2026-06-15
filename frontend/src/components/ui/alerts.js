@@ -1,3 +1,5 @@
+import { getApiErrorMessage } from "../../api/axios";
+
 async function getSwal() {
   const module = await import("sweetalert2");
   return module.default;
@@ -21,7 +23,7 @@ export async function confirmAction(title = "Are you sure?", text = "This action
 
 export async function alertError(error, fallback = "Something went wrong.") {
   const Swal = await getSwal();
-  return Swal.fire("Error", error?.response?.data?.message || error?.message || fallback, "error");
+  return Swal.fire("Error", getApiErrorMessage(error, fallback), "error");
 }
 
 export async function alertWarning(title, message) {

@@ -33,6 +33,11 @@ class ShopController extends Controller
 
         $shop = Shop::create($validated);
 
+        $this->audit($request, 'shop.created', $shop->id, 'shop', $shop->id, [
+            'name' => $shop->name,
+            'status' => $shop->status,
+        ]);
+
         return $this->success('Shop created successfully', ['shop' => $shop], 201);
     }
 
@@ -57,13 +62,24 @@ class ShopController extends Controller
         $this->storeUploads($request, $validated);
         $shop->update($validated);
 
+        $this->audit($request, 'shop.updated', $shop->id, 'shop', $shop->id, [
+            'name' => $shop->name,
+            'status' => $shop->status,
+        ]);
+
         return $this->success('Shop updated successfully', ['shop' => $shop->fresh()]);
     }
 
     public function destroy(Request $request, Shop $shop)
     {
         $this->authorizeShopManagement($request, $shop);
+        $shopId = $shop->id;
+        $shopName = $shop->name;
         $shop->delete();
+
+        $this->audit($request, 'shop.deleted', null, 'shop', $shopId, [
+            'name' => $shopName,
+        ]);
 
         return $this->success('Shop deleted successfully');
     }

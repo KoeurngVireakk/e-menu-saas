@@ -1,10 +1,11 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { alertError } from "../../components/ui";
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [saving, setSaving] = useState(false);
@@ -15,7 +16,8 @@ export default function Login() {
 
     try {
       await login(form);
-      navigate("/admin");
+      const nextPath = searchParams.get("next");
+      navigate(nextPath?.startsWith("/admin") ? nextPath : "/admin");
     } catch (error) {
       alertError(error, "Check your email and password.");
     } finally {

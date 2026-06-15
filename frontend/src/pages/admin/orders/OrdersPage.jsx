@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import api from "../../../api/axios";
+import api, { getApiErrorMessage } from "../../../api/axios";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
 import { confirmAction, toastSuccess } from "../../../components/ui";
@@ -23,7 +23,7 @@ export default function OrdersPage() {
         setOrders(response.data.data.orders);
         setSummary(response.data.data.summary);
       })
-      .catch((error) => setLoadError(error.response?.data?.message || "Unable to load orders."))
+      .catch((error) => setLoadError(getApiErrorMessage(error, "Unable to load orders.")))
       .finally(() => setLoading(false));
   }, []);
 
@@ -58,6 +58,11 @@ export default function OrdersPage() {
             <button onClick={() => setSelected(null)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Close</button>
           </div>
           <p className="mt-2 text-sm text-slate-500">{selected.branch?.name} · {selected.dining_table?.table_name || selected.order_type}</p>
+          {failedPaymentReason(selected) ? (
+            <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+              Payment failed: {failedPaymentReason(selected)}
+            </div>
+          ) : null}
           <div className="mt-4 grid gap-2">
             {selected.items?.map((item) => (
               <div key={item.id} className="flex justify-between rounded-md bg-slate-50 p-3 text-sm">
@@ -73,7 +78,16 @@ export default function OrdersPage() {
           { key: "order_number", label: "Order" },
           { key: "branch", label: "Branch", render: (row) => row.branch?.name },
           { key: "grand_total", label: "Total", render: (row) => `${Number(row.grand_total).toLocaleString()} KHR` },
-          { key: "payment_status", label: "Payment", render: (row) => <StatusBadge value={row.payment_status} /> },
+          {
+            key: "payment_status",
+            label: "Payment",
+            render: (row) => (
+              <div className="grid gap-1">
+                <StatusBadge value={row.payment_status} />
+                {failedPaymentReason(row) ? <span className="text-xs text-rose-600">{failedPaymentReason(row)}</span> : null}
+              </div>
+            ),
+          },
           { key: "order_status", label: "Status", render: (row) => <StatusBadge value={row.order_status} /> },
         ]}
         rows={orders}
@@ -91,6 +105,12 @@ export default function OrdersPage() {
       />
     </div>
   );
+}
+
+function failedPaymentReason(order) {
+  const log = [...(order.payment?.logs || [])].reverse().find((entry) => entry.action === "rejected");
+
+  return log?.payload_json?.reason || "";
 }
 
 function Metric({ label, value }) {

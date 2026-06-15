@@ -39,6 +39,12 @@ class CategoryController extends Controller
 
         $category = Category::create($validated);
 
+        $this->audit($request, 'category.created', $shop->id, 'category', $category->id, [
+            'name' => $category->name,
+            'branch_id' => $category->branch_id,
+            'status' => $category->status,
+        ]);
+
         return $this->success('Category created successfully', ['category' => $category], 201);
     }
 
@@ -61,13 +67,26 @@ class CategoryController extends Controller
         $this->storeImage($request, $validated);
         $category->update($validated);
 
+        $this->audit($request, 'category.updated', $category->shop_id, 'category', $category->id, [
+            'name' => $category->name,
+            'branch_id' => $category->branch_id,
+            'status' => $category->status,
+        ]);
+
         return $this->success('Category updated successfully', ['category' => $category->fresh()]);
     }
 
     public function destroy(Request $request, Category $category)
     {
         $this->authorizeShopAccess($request, $category->shop, $category->branch_id);
+        $categoryId = $category->id;
+        $shopId = $category->shop_id;
+        $categoryName = $category->name;
         $category->delete();
+
+        $this->audit($request, 'category.deleted', $shopId, 'category', $categoryId, [
+            'name' => $categoryName,
+        ]);
 
         return $this->success('Category deleted successfully');
     }

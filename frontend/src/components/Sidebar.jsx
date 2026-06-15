@@ -9,6 +9,7 @@ const links = [
   ["Table QR", "/admin/tables"],
   ["Orders", "/admin/orders"],
   ["Payments", "/admin/payments"],
+  ["System Health", "/admin/system-health"],
 ];
 
 export default function Sidebar() {

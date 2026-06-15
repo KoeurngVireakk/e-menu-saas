@@ -24,7 +24,7 @@ class OrderController extends Controller
             ]);
         }
 
-        $orders = Order::with(['items', 'shop', 'branch', 'diningTable', 'payment'])
+        $orders = Order::with(['items', 'shop', 'branch', 'diningTable', 'payment.logs'])
             ->whereIn('shop_id', $shopIds)
             ->when($request->query('shop_id'), fn ($query, $shopId) => $query->where('shop_id', $shopId))
             ->when($request->query('branch_id'), fn ($query, $branchId) => $query->where('branch_id', $branchId))
@@ -72,7 +72,14 @@ class OrderController extends Controller
             'order_status' => ['required', Rule::in(['pending', 'accepted', 'preparing', 'ready', 'completed', 'cancelled'])],
         ]);
 
+        $previousStatus = $order->order_status;
         $order->update($validated);
+
+        $this->audit($request, 'order.status_changed', $order->shop_id, 'order', $order->id, [
+            'order_number' => $order->order_number,
+            'from' => $previousStatus,
+            'to' => $order->order_status,
+        ]);
 
         return $this->success('Order status updated', ['order' => $order->fresh()->load(['items', 'payment'])]);
     }

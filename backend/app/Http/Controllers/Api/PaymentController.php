@@ -17,7 +17,7 @@ class PaymentController extends Controller
             return $this->success('Payments loaded', ['payments' => []]);
         }
 
-        $payments = Payment::with(['order.items', 'shop', 'branch', 'confirmer'])
+        $payments = Payment::with(['order.items', 'shop', 'branch', 'confirmer', 'logs'])
             ->whereIn('shop_id', $shopIds)
             ->when($request->query('status'), fn ($query, $status) => $query->where('status', $status));
 
@@ -61,6 +61,13 @@ class PaymentController extends Controller
                 'action' => 'confirmed',
                 'payload_json' => ['confirmed_by' => $request->user()->id],
             ]);
+
+            $this->audit($request, 'payment.confirmed', $payment->shop_id, 'payment', $payment->id, [
+                'order_id' => $payment->order_id,
+                'order_number' => $payment->order->order_number,
+                'amount' => $payment->amount,
+                'currency_code' => $payment->currency_code,
+            ]);
         });
 
         return $this->success('Payment confirmed', ['payment' => $payment->fresh()->load('order')]);
@@ -74,12 +81,18 @@ class PaymentController extends Controller
             'reason' => ['nullable', 'string', 'max:500'],
         ]);
 
-        DB::transaction(function () use ($payment, $validated) {
+        DB::transaction(function () use ($request, $payment, $validated) {
             $payment->update(['status' => 'failed']);
             $payment->order->update(['payment_status' => 'failed']);
             $payment->logs()->create([
                 'action' => 'rejected',
                 'payload_json' => $validated,
+            ]);
+
+            $this->audit($request, 'payment.rejected', $payment->shop_id, 'payment', $payment->id, [
+                'order_id' => $payment->order_id,
+                'order_number' => $payment->order->order_number,
+                'has_reason' => filled($validated['reason'] ?? null),
             ]);
         });
 
