@@ -6,14 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\Order;
 use App\Services\BillingCalculator;
+use App\Services\Notifications\TelegramNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class InvoiceController extends Controller
 {
-    public function __construct(private readonly BillingCalculator $billing)
-    {
+    public function __construct(
+        private readonly BillingCalculator $billing,
+        private readonly TelegramNotificationService $telegram,
+    ) {
     }
 
     public function index(Request $request)
@@ -132,6 +135,8 @@ class InvoiceController extends Controller
                 'grand_total' => $invoice->grand_total,
                 'currency_code' => $invoice->currency_code,
             ]);
+
+            $this->telegram->notifyInvoicePaid($invoice->fresh()->load(['order', 'shop.settings', 'branch']));
         });
 
         return $this->success('Invoice marked paid', [

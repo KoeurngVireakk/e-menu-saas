@@ -55,6 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('shops', ShopController::class);
     Route::get('/shops/{shop}/settings', [ShopSettingsController::class, 'show']);
     Route::post('/shops/{shop}/settings', [ShopSettingsController::class, 'update']);
+    Route::post('/shops/{shop}/notifications/test-telegram', [ShopSettingsController::class, 'testTelegram']);
     Route::get('/shops/{shop}/translations', [TranslationController::class, 'shop']);
     Route::put('/shops/{shop}/translations', [TranslationController::class, 'updateShop']);
     Route::get('/shops/{shop}/staff', [ShopStaffController::class, 'index']);

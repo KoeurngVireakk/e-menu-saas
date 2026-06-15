@@ -63,6 +63,11 @@ class Shop extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function notificationLogs(): HasMany
+    {
+        return $this->hasMany(NotificationLog::class);
+    }
+
     public function staffAssignments(): HasMany
     {
         return $this->hasMany(ShopStaff::class);

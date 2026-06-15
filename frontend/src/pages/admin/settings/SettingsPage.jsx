@@ -24,6 +24,11 @@ const initial = {
   receipt_footer_text: "",
   invoice_prefix: "INV",
   receipt_prefix: "RCPT",
+  telegram_enabled: false,
+  telegram_chat_id: "",
+  telegram_order_notifications: false,
+  telegram_payment_notifications: false,
+  telegram_invoice_notifications: false,
   logo: null,
   cover: null,
 };
@@ -36,6 +41,8 @@ export default function SettingsPage() {
   const [form, setForm] = useState(initial);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testingTelegram, setTestingTelegram] = useState(false);
+  const [telegramResult, setTelegramResult] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -106,6 +113,21 @@ export default function SettingsPage() {
       alertError(requestError, "Please review the settings.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const testTelegram = async () => {
+    setTestingTelegram(true);
+    setTelegramResult(null);
+
+    try {
+      const response = await api.post(`/shops/${shopId}/notifications/test-telegram`);
+      setTelegramResult(response.data.data.notification);
+      await toastSuccess("Telegram test processed.");
+    } catch (requestError) {
+      alertError(requestError, "Telegram test failed.");
+    } finally {
+      setTestingTelegram(false);
     }
   };
 
@@ -189,6 +211,46 @@ export default function SettingsPage() {
             <Input disabled={!allowManage} label="Receipt prefix" value={form.receipt_prefix || "RCPT"} onChange={(event) => setForm({ ...form, receipt_prefix: event.target.value.toUpperCase() })} />
           </div>
           <Textarea disabled={!allowManage} label="Receipt footer" value={form.receipt_footer_text || ""} onChange={(event) => setForm({ ...form, receipt_footer_text: event.target.value })} />
+        </Card>
+
+        <Card className="grid gap-4 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-950">Telegram notifications</h2>
+              <p className="mt-1 text-sm text-slate-500">Notify staff about new orders, payments, and paid invoices.</p>
+            </div>
+            {allowManage ? (
+              <Button type="button" variant="secondary" disabled={!shopId || testingTelegram} onClick={testTelegram}>
+                {testingTelegram ? "Testing..." : "Test Telegram"}
+              </Button>
+            ) : null}
+          </div>
+          <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
+            <input disabled={!allowManage} type="checkbox" checked={Boolean(form.telegram_enabled)} onChange={(event) => setForm({ ...form, telegram_enabled: event.target.checked })} />
+            Enable Telegram notifications
+          </label>
+          <Input disabled={!allowManage} label="Telegram chat ID" value={form.telegram_chat_id || ""} onChange={(event) => setForm({ ...form, telegram_chat_id: event.target.value })} />
+          <div className="grid gap-3 sm:grid-cols-3">
+            <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
+              <input disabled={!allowManage} type="checkbox" checked={Boolean(form.telegram_order_notifications)} onChange={(event) => setForm({ ...form, telegram_order_notifications: event.target.checked })} />
+              Orders
+            </label>
+            <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
+              <input disabled={!allowManage} type="checkbox" checked={Boolean(form.telegram_payment_notifications)} onChange={(event) => setForm({ ...form, telegram_payment_notifications: event.target.checked })} />
+              Payments
+            </label>
+            <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
+              <input disabled={!allowManage} type="checkbox" checked={Boolean(form.telegram_invoice_notifications)} onChange={(event) => setForm({ ...form, telegram_invoice_notifications: event.target.checked })} />
+              Invoices
+            </label>
+          </div>
+          {telegramResult ? (
+            <div className="rounded-md bg-slate-50 p-3 text-sm">
+              <p className="font-semibold text-slate-950">Last test: {telegramResult.status}</p>
+              {telegramResult.error_message ? <p className="mt-1 text-rose-600">{telegramResult.error_message}</p> : null}
+              {telegramResult.message_preview ? <p className="mt-1 text-slate-500">{telegramResult.message_preview}</p> : null}
+            </div>
+          ) : null}
         </Card>
 
         {allowManage ? <Button type="submit" disabled={saving || !shopId}>{saving ? "Saving..." : "Save settings"}</Button> : null}

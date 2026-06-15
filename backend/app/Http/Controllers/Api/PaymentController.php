@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Services\Notifications\TelegramNotificationService;
 use App\Services\Payments\PaymentStatusSync;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
-    public function __construct(private readonly PaymentStatusSync $paymentStatusSync)
-    {
+    public function __construct(
+        private readonly PaymentStatusSync $paymentStatusSync,
+        private readonly TelegramNotificationService $telegram,
+    ) {
     }
 
     public function index(Request $request)
@@ -71,6 +74,10 @@ class PaymentController extends Controller
                 'amount' => $payment->amount,
                 'currency_code' => $payment->currency_code,
             ]);
+
+            if ($payment->order->invoice) {
+                $this->telegram->notifyInvoicePaid($payment->order->invoice);
+            }
         });
 
         return $this->success('Payment confirmed', ['payment' => $payment->fresh()->load('order.invoice')]);
@@ -97,6 +104,8 @@ class PaymentController extends Controller
                 'order_number' => $payment->order->order_number,
                 'has_reason' => filled($validated['reason'] ?? null),
             ]);
+
+            $this->telegram->notifyPaymentFailed($payment, $validated['reason'] ?? null);
         });
 
         return $this->success('Payment rejected', ['payment' => $payment->fresh()->load('order')]);

@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Services\Notifications\TelegramNotificationService;
 use App\Services\Payments\PaymentStatusSync;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class BakongKhqrWebhookController extends Controller
 {
-    public function __construct(private readonly PaymentStatusSync $paymentStatusSync)
-    {
+    public function __construct(
+        private readonly PaymentStatusSync $paymentStatusSync,
+        private readonly TelegramNotificationService $telegram,
+    ) {
     }
 
     public function __invoke(Request $request)
@@ -68,6 +71,7 @@ class BakongKhqrWebhookController extends Controller
                         'order_id' => $payment->order_id,
                         'status' => 'amount_mismatch',
                     ]);
+                    $this->telegram->notifyPaymentFailed($payment, 'Amount or currency mismatch');
 
                     return;
                 }
@@ -83,6 +87,11 @@ class BakongKhqrWebhookController extends Controller
                     'order_id' => $payment->order_id,
                     'provider_reference' => $payment->provider_reference,
                 ]);
+                $payment->refresh()->load('order.invoice');
+                $this->telegram->notifyPaymentPaid($payment);
+                if ($payment->order->invoice) {
+                    $this->telegram->notifyInvoicePaid($payment->order->invoice);
+                }
 
                 return;
             }
@@ -99,6 +108,7 @@ class BakongKhqrWebhookController extends Controller
                     'order_id' => $payment->order_id,
                     'status' => $status,
                 ]);
+                $this->telegram->notifyPaymentFailed($payment, $payload['failure_reason'] ?? $status);
             }
         });
 

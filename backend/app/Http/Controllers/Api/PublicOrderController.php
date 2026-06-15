@@ -9,6 +9,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Shop;
 use App\Services\BillingCalculator;
+use App\Services\Notifications\TelegramNotificationService;
 use App\Services\Payments\PaymentManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,7 @@ class PublicOrderController extends Controller
     public function __construct(
         private readonly BillingCalculator $billing,
         private readonly PaymentManager $payments,
+        private readonly TelegramNotificationService $telegram,
     ) {
     }
 
@@ -112,6 +114,8 @@ class PublicOrderController extends Controller
             return $order->load(['items', 'shop', 'branch', 'diningTable']);
         });
 
+        $this->telegram->notifyOrderCreated($order);
+
         return $this->success('Order submitted successfully', ['order' => $order], 201);
     }
 
@@ -163,6 +167,10 @@ class PublicOrderController extends Controller
                 'next_action' => $result->nextAction,
             ],
         ]);
+
+        if ($payment->payment_method === 'khqr_manual' && filled($payment->proof_image_path)) {
+            $this->telegram->notifyPaymentProofUploaded($payment);
+        }
 
         $this->audit($request, 'payment.initiated', $payment->shop_id, 'payment', $payment->id, [
             'order_id' => $order->id,

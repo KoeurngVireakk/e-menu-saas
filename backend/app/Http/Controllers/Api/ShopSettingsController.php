@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Shop;
 use App\Services\BillingCalculator;
+use App\Services\Notifications\TelegramNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -22,10 +23,17 @@ class ShopSettingsController extends Controller
         'receipt_footer_text',
         'invoice_prefix',
         'receipt_prefix',
+        'telegram_enabled',
+        'telegram_chat_id',
+        'telegram_order_notifications',
+        'telegram_payment_notifications',
+        'telegram_invoice_notifications',
     ];
 
-    public function __construct(private readonly BillingCalculator $billing)
-    {
+    public function __construct(
+        private readonly BillingCalculator $billing,
+        private readonly TelegramNotificationService $telegram,
+    ) {
     }
 
     public function show(Request $request, Shop $shop)
@@ -64,6 +72,11 @@ class ShopSettingsController extends Controller
             'receipt_footer_text' => ['nullable', 'string', 'max:1000'],
             'invoice_prefix' => ['nullable', 'string', 'max:20'],
             'receipt_prefix' => ['nullable', 'string', 'max:20'],
+            'telegram_enabled' => ['nullable', 'boolean'],
+            'telegram_chat_id' => ['nullable', 'string', 'max:255'],
+            'telegram_order_notifications' => ['nullable', 'boolean'],
+            'telegram_payment_notifications' => ['nullable', 'boolean'],
+            'telegram_invoice_notifications' => ['nullable', 'boolean'],
         ]);
 
         $validated['base_currency'] = $validated['base_currency'] ?? $validated['currency_code'];
@@ -96,6 +109,24 @@ class ShopSettingsController extends Controller
         ]);
     }
 
+    public function testTelegram(Request $request, Shop $shop)
+    {
+        $this->authorizeSettingsManagement($request, $shop);
+
+        $log = $this->telegram->sendTest($shop);
+
+        return $this->success('Telegram test notification processed', [
+            'notification' => [
+                'id' => $log->id,
+                'status' => $log->status,
+                'event' => $log->event,
+                'message_preview' => $log->message_preview,
+                'error_message' => $log->error_message,
+                'sent_at' => $log->sent_at,
+            ],
+        ]);
+    }
+
     private function authorizeSettingsView(Request $request, Shop $shop): void
     {
         $this->authorizeShopAccess($request, $shop);
@@ -115,6 +146,7 @@ class ShopSettingsController extends Controller
         return [
             'order_auto_accept' => filter_var($settings->get('order_auto_accept', false), FILTER_VALIDATE_BOOLEAN),
             ...$this->billing->settings($shop),
+            ...$this->telegram->settings($shop),
         ];
     }
 
@@ -133,7 +165,14 @@ class ShopSettingsController extends Controller
 
     private function stringSettingValue(string $key, mixed $value): string
     {
-        if (in_array($key, ['order_auto_accept', 'display_secondary_currency'], true)) {
+        if (in_array($key, [
+            'order_auto_accept',
+            'display_secondary_currency',
+            'telegram_enabled',
+            'telegram_order_notifications',
+            'telegram_payment_notifications',
+            'telegram_invoice_notifications',
+        ], true)) {
             return filter_var($value, FILTER_VALIDATE_BOOLEAN) ? '1' : '0';
         }
 

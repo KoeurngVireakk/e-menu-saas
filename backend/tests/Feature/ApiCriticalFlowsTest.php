@@ -864,6 +864,189 @@ class ApiCriticalFlowsTest extends TestCase
         $this->assertFalse(collect($uris)->contains(fn (string $uri) => str_contains(strtolower($uri), 'aba')));
     }
 
+    public function test_telegram_order_notification_log_is_created_for_new_order(): void
+    {
+        config(['telegram.enabled' => true, 'telegram.sandbox_mode' => true]);
+        $catalog = $this->createCatalog();
+        $this->enableTelegram($catalog['shop'], order: true);
+
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+
+        $this->assertDatabaseHas('notification_logs', [
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'channel' => 'telegram',
+            'event' => 'order.created',
+            'status' => 'sent',
+        ]);
+        $this->assertDatabaseHas('notification_logs', [
+            'event' => 'order.created',
+            'recipient' => '123456',
+        ]);
+        $this->assertStringContainsString(
+            $order['order_number'],
+            (string) $catalog['shop']->notificationLogs()->where('event', 'order.created')->latest()->first()?->message_preview
+        );
+    }
+
+    public function test_telegram_notification_is_skipped_when_disabled(): void
+    {
+        config(['telegram.enabled' => false, 'telegram.sandbox_mode' => true]);
+        $catalog = $this->createCatalog();
+
+        $this->submitOrder($catalog)->assertCreated();
+
+        $this->assertDatabaseHas('notification_logs', [
+            'shop_id' => $catalog['shop']->id,
+            'event' => 'order.created',
+            'status' => 'skipped',
+            'error_message' => 'Telegram is disabled globally.',
+        ]);
+    }
+
+    public function test_telegram_payment_proof_upload_notification_log_is_created(): void
+    {
+        Storage::fake('public');
+        config(['telegram.enabled' => true, 'telegram.sandbox_mode' => true]);
+        $catalog = $this->createCatalog();
+        $this->enableTelegram($catalog['shop'], payment: true);
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+
+        $this->postJson("/api/public/orders/{$order['order_number']}/payment", [
+            'payment_method' => 'khqr_manual',
+            'transaction_reference' => 'KHQR-100',
+            'proof_image' => $this->fakeProofImage(),
+        ])->assertCreated();
+
+        $this->assertDatabaseHas('notification_logs', [
+            'shop_id' => $catalog['shop']->id,
+            'event' => 'payment.proof_uploaded',
+            'status' => 'sent',
+        ]);
+    }
+
+    public function test_telegram_bakong_paid_webhook_notification_log_is_created(): void
+    {
+        config([
+            'telegram.enabled' => true,
+            'telegram.sandbox_mode' => true,
+            'payment.bakong_khqr.webhook_secret' => 'test-secret',
+        ]);
+        $catalog = $this->createCatalog();
+        $this->enableTelegram($catalog['shop'], payment: true, invoice: true);
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+
+        Sanctum::actingAs($catalog['owner']);
+        $this->postJson("/api/orders/{$order['id']}/invoice")->assertCreated();
+
+        $this->postJson("/api/public/orders/{$order['order_number']}/payment", [
+            'payment_method' => 'bakong_khqr',
+        ])->assertCreated();
+        $payment = Payment::where('order_id', $order['id'])->firstOrFail();
+
+        $payload = [
+            'provider_reference' => $payment->provider_reference,
+            'provider_payment_id' => $payment->provider_payment_id,
+            'status' => 'paid',
+            'amount' => 14500,
+            'currency_code' => 'KHR',
+        ];
+        $json = json_encode($payload);
+
+        $this->call('POST', '/api/webhooks/bakong-khqr', [], [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_ACCEPT' => 'application/json',
+            'HTTP_X_BAKONG_SIGNATURE' => hash_hmac('sha256', $json, 'test-secret'),
+        ], $json)->assertOk();
+
+        $this->assertDatabaseHas('notification_logs', [
+            'shop_id' => $catalog['shop']->id,
+            'event' => 'payment.paid',
+            'status' => 'sent',
+        ]);
+        $this->assertDatabaseHas('notification_logs', [
+            'shop_id' => $catalog['shop']->id,
+            'event' => 'invoice.paid',
+            'status' => 'sent',
+        ]);
+    }
+
+    public function test_telegram_invoice_paid_notification_log_is_created(): void
+    {
+        config(['telegram.enabled' => true, 'telegram.sandbox_mode' => true]);
+        $catalog = $this->createCatalog();
+        $this->enableTelegram($catalog['shop'], invoice: true);
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => $catalog['branch']->id,
+            'user_id' => $cashier->id,
+            'role' => 'cashier',
+            'status' => 'active',
+        ]);
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+
+        Sanctum::actingAs($catalog['owner']);
+        $invoice = $this->postJson("/api/orders/{$order['id']}/invoice")->assertCreated()->json('data.invoice');
+
+        Sanctum::actingAs($cashier);
+        $this->putJson("/api/invoices/{$invoice['id']}/mark-paid")->assertOk();
+
+        $this->assertDatabaseHas('notification_logs', [
+            'shop_id' => $catalog['shop']->id,
+            'event' => 'invoice.paid',
+            'status' => 'sent',
+        ]);
+    }
+
+    public function test_telegram_test_endpoint_works_in_sandbox_and_does_not_expose_token(): void
+    {
+        config([
+            'telegram.enabled' => true,
+            'telegram.sandbox_mode' => true,
+            'telegram.bot_token' => 'secret-bot-token',
+        ]);
+        $catalog = $this->createCatalog();
+        $this->enableTelegram($catalog['shop']);
+
+        Sanctum::actingAs($catalog['owner']);
+        $response = $this->postJson("/api/shops/{$catalog['shop']->id}/notifications/test-telegram")
+            ->assertOk()
+            ->assertJsonPath('data.notification.status', 'sent')
+            ->assertJsonMissing(['secret-bot-token']);
+
+        $this->assertStringNotContainsString('secret-bot-token', $response->getContent());
+        $this->assertDatabaseMissing('notification_logs', [
+            'message_preview' => 'secret-bot-token',
+        ]);
+    }
+
+    public function test_cashier_and_waiter_cannot_update_or_test_telegram_settings(): void
+    {
+        $catalog = $this->createCatalog();
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $waiter = User::factory()->create(['role' => 'waiter']);
+        foreach ([$cashier, $waiter] as $staffUser) {
+            $catalog['shop']->staffAssignments()->create([
+                'branch_id' => $catalog['branch']->id,
+                'user_id' => $staffUser->id,
+                'role' => $staffUser->role,
+                'status' => 'active',
+            ]);
+        }
+
+        foreach ([$cashier, $waiter] as $staffUser) {
+            Sanctum::actingAs($staffUser);
+            $this->postJson("/api/shops/{$catalog['shop']->id}/settings", [
+                'name' => $catalog['shop']->name,
+                'currency_code' => 'KHR',
+                'telegram_enabled' => true,
+                'telegram_chat_id' => '123456',
+            ])->assertForbidden();
+            $this->postJson("/api/shops/{$catalog['shop']->id}/notifications/test-telegram")
+                ->assertForbidden();
+        }
+    }
+
     private function createCatalog(string $shopName = 'Test Cafe'): array
     {
         $owner = User::factory()->create(['role' => 'shop_owner']);
@@ -945,5 +1128,14 @@ class ApiCriticalFlowsTest extends TestCase
             'proof.png',
             base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=')
         );
+    }
+
+    private function enableTelegram(Shop $shop, bool $order = false, bool $payment = false, bool $invoice = false): void
+    {
+        $shop->settings()->updateOrCreate(['key' => 'telegram_enabled'], ['value' => '1']);
+        $shop->settings()->updateOrCreate(['key' => 'telegram_chat_id'], ['value' => '123456']);
+        $shop->settings()->updateOrCreate(['key' => 'telegram_order_notifications'], ['value' => $order ? '1' : '0']);
+        $shop->settings()->updateOrCreate(['key' => 'telegram_payment_notifications'], ['value' => $payment ? '1' : '0']);
+        $shop->settings()->updateOrCreate(['key' => 'telegram_invoice_notifications'], ['value' => $invoice ? '1' : '0']);
     }
 }
