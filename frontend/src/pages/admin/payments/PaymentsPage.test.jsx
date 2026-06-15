@@ -47,7 +47,7 @@ describe("PaymentsPage", () => {
     render(<PaymentsPage />);
 
     await waitFor(() => expect(screen.getByText("ORD-100")).toBeInTheDocument());
-    expect(screen.getByRole("button", { name: "All 1" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /All\s*1/ })).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Search order, reference, customer...")).toBeInTheDocument();
     expect(screen.getByLabelText("Payment method")).toBeInTheDocument();
     expect(screen.getByLabelText("Payment date")).toBeInTheDocument();

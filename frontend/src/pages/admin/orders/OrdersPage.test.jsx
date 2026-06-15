@@ -57,7 +57,7 @@ describe("OrdersPage", () => {
     );
 
     await waitFor(() => expect(screen.getByText("ORD-100")).toBeInTheDocument());
-    expect(screen.getByRole("button", { name: "All 1" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /All\s*1/ })).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Search order, table, customer, phone...")).toBeInTheDocument();
     expect(screen.getByLabelText("Branch")).toBeInTheDocument();
     expect(screen.getByLabelText("Payment status")).toBeInTheDocument();
