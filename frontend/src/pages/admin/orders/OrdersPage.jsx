@@ -1,17 +1,36 @@
-import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { RefreshCw } from "lucide-react";
 import api, { getApiErrorMessage } from "../../../api/axios";
-import DataTable from "../../../components/DataTable";
 import ReceiptPreview from "../../../components/ReceiptPreview";
-import StatusBadge from "../../../components/StatusBadge";
 import KitchenTicketPrint from "../../../components/print/KitchenTicketPrint";
 import ReceiptPrint from "../../../components/print/ReceiptPrint";
 import { confirmAction, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import {
+  AppButton,
+  AppCard,
+  AppEmptyState,
+  AppMetricCard,
+  AppPageHeader,
+  AppTable,
+} from "../../../design-system/components";
+import CrudToolbar from "../../../design-system/crud/CrudToolbar";
+import OperationStatusTabs from "../../../design-system/operations/OperationStatusTabs";
+import OrderDetailDrawer from "../../../design-system/operations/OrderDetailDrawer";
+import OrderStatusBadge from "../../../design-system/operations/OrderStatusBadge";
+import PaymentStatusBadge from "../../../design-system/operations/PaymentStatusBadge";
 import { formatCurrency } from "../../../utils/currency";
 import { canManageInvoices, canManageOrders, canPrintKitchenTicket, canPrintReceipt } from "../../../utils/permissions";
 
-const statuses = ["accepted", "preparing", "ready", "completed", "cancelled"];
+const orderStatuses = [
+  ["all", "All"],
+  ["pending", "Pending"],
+  ["accepted", "Accepted"],
+  ["preparing", "Preparing"],
+  ["ready", "Ready"],
+  ["completed", "Completed"],
+  ["cancelled", "Cancelled"],
+];
 
 export default function OrdersPage() {
   const { user } = useAuth();
@@ -24,6 +43,11 @@ export default function OrdersPage() {
   const [selected, setSelected] = useState(null);
   const [receipt, setReceipt] = useState(null);
   const [printPreview, setPrintPreview] = useState(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [branchFilter, setBranchFilter] = useState("all");
+  const [paymentFilter, setPaymentFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
 
@@ -50,15 +74,48 @@ export default function OrdersPage() {
     };
   }, [load]);
 
+  const branches = useMemo(() => uniqueOptions(orders.map((order) => order.branch).filter(Boolean)), [orders]);
+  const filteredOrders = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return orders
+      .filter((order) => statusFilter === "all" || order.order_status === statusFilter)
+      .filter((order) => branchFilter === "all" || String(order.branch?.id || order.branch_id || "") === String(branchFilter))
+      .filter((order) => paymentFilter === "all" || order.payment_status === paymentFilter)
+      .filter((order) => !dateFilter || String(order.created_at || "").slice(0, 10) === dateFilter)
+      .filter((order) => {
+        if (!query) return true;
+        return [
+          order.order_number,
+          order.dining_table?.table_name,
+          order.customer_name,
+          order.customer_phone,
+          order.branch?.name,
+        ].filter(Boolean).join(" ").toLowerCase().includes(query);
+      });
+  }, [branchFilter, dateFilter, orders, paymentFilter, search, statusFilter]);
+
+  const statusCounts = useMemo(() => {
+    const counts = { all: orders.length };
+    orders.forEach((order) => {
+      counts[order.order_status] = (counts[order.order_status] || 0) + 1;
+    });
+    return counts;
+  }, [orders]);
+
   const update = async (order, order_status) => {
-    if (!await confirmAction("Update order status?", `${order.order_number} will become ${order_status}.`)) return;
+    if (order_status === "cancelled") {
+      if (!await confirmAction("Cancel order?", `${order.order_number} will be cancelled. This action should only be used when the restaurant cannot fulfill the order.`)) return;
+    } else if (!await confirmAction("Update order status?", `${order.order_number} will become ${order_status}.`)) {
+      return;
+    }
 
     await api.put(`/orders/${order.id}/status`, { order_status });
     toastSuccess("Order status updated.");
+    setSelected((current) => current?.id === order.id ? { ...current, order_status } : current);
     load();
   };
 
-  const viewOrder = async (order) => {
+  const viewOrder = (order) => {
     setSelected(order);
     setReceipt(null);
     setPrintPreview(null);
@@ -67,6 +124,7 @@ export default function OrdersPage() {
   const loadReceipt = async (order) => {
     const response = await api.get(`/orders/${order.id}/receipt`);
     setReceipt(response.data.data.receipt);
+    setPrintPreview(null);
   };
 
   const createInvoice = async (order) => {
@@ -79,103 +137,146 @@ export default function OrdersPage() {
     const endpoint = type === "kitchen" ? `/orders/${order.id}/kitchen-ticket` : `/orders/${order.id}/receipt-print`;
     const response = await api.get(endpoint);
     setPrintPreview({ type, payload: response.data.data.print });
+    setReceipt(null);
   };
 
-  return (
-    <div className="grid gap-6">
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Metric label="New orders" value={summary.new_count} />
-        <Metric label="Pending" value={summary.pending_count} />
-        <Metric label="Today revenue" value={formatCurrency(summary.today_revenue, "KHR")} />
-      </div>
-      {selected ? (
-        <div className="rounded-md border border-slate-200 bg-white p-4">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold text-slate-950">{selected.order_number}</h2>
-            <button onClick={() => { setSelected(null); setReceipt(null); setPrintPreview(null); }} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Close</button>
-          </div>
-          <p className="mt-2 text-sm text-slate-500">{selected.branch?.name} · {selected.dining_table?.table_name || selected.order_type}</p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button onClick={() => loadReceipt(selected)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">View receipt</button>
-            <Link to="/admin/kitchen" className="rounded-md border border-blue-300 px-3 py-1 text-sm text-blue-700">Open Kitchen Display</Link>
-            {allowKitchenPrint ? <button onClick={() => loadPrint(selected, "kitchen")} className="rounded-md border border-orange-300 px-3 py-1 text-sm text-orange-700">Print kitchen ticket</button> : null}
-            {allowReceiptPrint ? <button onClick={() => loadPrint(selected, "receipt")} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Print receipt</button> : null}
-            {allowInvoiceActions ? <button onClick={() => createInvoice(selected)} className="rounded-md bg-slate-900 px-3 py-1 text-sm text-white">Create invoice</button> : null}
-            {receipt ? <button onClick={() => window.print()} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Print receipt</button> : null}
-          </div>
-          {failedPaymentReason(selected) ? (
-            <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-              Payment failed: {failedPaymentReason(selected)}
-            </div>
-          ) : null}
-          <div className="mt-4 grid gap-2">
-            {selected.items?.map((item) => (
-              <div key={item.id} className="flex items-center justify-between gap-3 rounded-md bg-slate-50 p-3 text-sm">
-                <span>{item.quantity} x {item.product_name}</span>
-                <span className="flex items-center gap-2">
-                  <StatusBadge value={item.kitchen_status || "pending"} />
-                  {formatCurrency(item.total_price, selected.currency_code)}
-                </span>
-              </div>
-            ))}
-          </div>
-          {receipt ? <div className="mt-4"><ReceiptPreview receipt={receipt} /></div> : null}
-          {printPreview ? (
-            <div className="mt-4 grid gap-3">
-              <div className="flex flex-wrap items-center justify-between gap-2 no-print">
-                <p className="text-sm font-semibold text-slate-700">Print preview</p>
-                <button type="button" onClick={() => window.print()} className="rounded-md bg-slate-900 px-3 py-1 text-sm text-white">Print now</button>
-              </div>
-              {printPreview.type === "kitchen" ? <KitchenTicketPrint print={printPreview.payload} /> : <ReceiptPrint print={printPreview.payload} />}
-            </div>
-          ) : null}
+  const columns = [
+    {
+      accessorKey: "order_number",
+      header: "Order",
+      cell: ({ row }) => (
+        <div>
+          <p className="font-black text-slate-950">{row.original.order_number}</p>
+          <p className="text-xs text-slate-500">{row.original.created_at ? new Date(row.original.created_at).toLocaleString() : "Time not available"}</p>
         </div>
-      ) : null}
-      <DataTable
-        columns={[
-          { key: "order_number", label: "Order" },
-          { key: "branch", label: "Branch", render: (row) => row.branch?.name },
-          { key: "grand_total", label: "Total", render: (row) => formatCurrency(row.grand_total, row.currency_code) },
-          {
-            key: "payment_status",
-            label: "Payment",
-            render: (row) => (
-              <div className="grid gap-1">
-                <StatusBadge value={row.payment_status} />
-                {failedPaymentReason(row) ? <span className="text-xs text-rose-600">{failedPaymentReason(row)}</span> : null}
-              </div>
-            ),
-          },
-          { key: "order_status", label: "Status", render: (row) => <StatusBadge value={row.order_status} /> },
-        ]}
-        rows={orders}
-        loading={loading}
-        error={loadError}
-        emptyMessage="No orders yet."
-        renderActions={(order) => (
-          <div className="flex flex-wrap gap-2">
-            <button onClick={() => viewOrder(order)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">View</button>
-            {allowStatusUpdate ? statuses.map((status) => (
-              <button key={status} onClick={() => update(order, status)} className="rounded-md bg-slate-900 px-3 py-1 text-sm text-white">{status}</button>
-            )) : null}
-          </div>
+      ),
+    },
+    {
+      accessorKey: "branch.name",
+      header: "Table / Branch",
+      cell: ({ row }) => (
+        <div>
+          <p className="font-bold text-slate-800">{row.original.dining_table?.table_name || row.original.order_type}</p>
+          <p className="text-xs text-slate-500">{row.original.branch?.name || "Branch"}</p>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "customer_name",
+      header: "Customer",
+      cell: ({ row }) => (
+        <div>
+          <p className="font-semibold text-slate-800">{row.original.customer_name || "Guest"}</p>
+          <p className="text-xs text-slate-500">{row.original.customer_phone || "-"}</p>
+        </div>
+      ),
+    },
+    { accessorKey: "items", header: "Items", cell: ({ row }) => `${row.original.items?.length || 0} lines` },
+    { accessorKey: "grand_total", header: "Total", cell: ({ row }) => formatCurrency(row.original.grand_total, row.original.currency_code) },
+    { accessorKey: "payment_status", header: "Payment", cell: ({ row }) => <PaymentStatusBadge value={row.original.payment_status} /> },
+    { accessorKey: "order_status", header: "Status", cell: ({ row }) => <OrderStatusBadge value={row.original.order_status} /> },
+  ];
+
+  return (
+    <div className="grid gap-5">
+      <AppPageHeader
+        eyebrow="Operations"
+        title="Orders"
+        description="Track live restaurant orders, update fulfillment status, and open receipts or kitchen tickets from one operations workspace."
+        primaryAction={{ children: "Refresh", onClick: () => load(), iconLeft: <RefreshCw className="h-4 w-4" />, variant: "secondary" }}
+      />
+
+      <section className="grid gap-4 sm:grid-cols-3">
+        <AppMetricCard title="New orders" value={summary.new_count} description="Orders waiting for action" />
+        <AppMetricCard title="Pending" value={summary.pending_count} description="Kitchen and payment queue" />
+        <AppMetricCard title="Today revenue" value={formatCurrency(summary.today_revenue, "KHR")} description="Confirmed sales today" />
+      </section>
+
+      <OperationStatusTabs
+        value={statusFilter}
+        onChange={setStatusFilter}
+        options={orderStatuses.map(([value, label]) => [value, label, statusCounts[value] || 0])}
+      />
+
+      <CrudToolbar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Search order, table, customer, phone..."
+        filters={(
+          <>
+            <SelectFilter ariaLabel="Branch" value={branchFilter} onChange={setBranchFilter} options={[["all", "All branches"], ...branches.map((branch) => [branch.id, branch.name])]} />
+            <SelectFilter ariaLabel="Payment status" value={paymentFilter} onChange={setPaymentFilter} options={[["all", "All payments"], ["unpaid", "Unpaid"], ["pending", "Pending"], ["paid", "Paid"], ["failed", "Failed"]]} />
+            <input aria-label="Order date" type="date" value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100" />
+          </>
         )}
+        onClear={() => {
+          setSearch("");
+          setStatusFilter("all");
+          setBranchFilter("all");
+          setPaymentFilter("all");
+          setDateFilter("");
+        }}
+      />
+
+      <AppCard bodyClassName="p-0">
+        {loadError ? (
+          <AppEmptyState title="Orders could not load" description={loadError} actionLabel="Retry" onAction={load} />
+        ) : (
+          <AppTable
+            columns={columns}
+            data={filteredOrders}
+            loading={loading}
+            emptyTitle="No orders found"
+            emptyDescription="New customer orders will appear here. Clear filters if you expected results."
+            rowActions={(order) => (
+              <div className="flex flex-wrap justify-end gap-2">
+                <AppButton type="button" size="sm" variant="secondary" onClick={() => viewOrder(order)}>View details</AppButton>
+                {allowStatusUpdate && order.order_status === "pending" ? <AppButton type="button" size="sm" onClick={() => update(order, "accepted")}>Accept</AppButton> : null}
+                {allowStatusUpdate && ["pending", "accepted"].includes(order.order_status) ? <AppButton type="button" size="sm" variant="outline" onClick={() => update(order, "preparing")}>Preparing</AppButton> : null}
+              </div>
+            )}
+          />
+        )}
+      </AppCard>
+
+      <OrderDetailDrawer
+        open={Boolean(selected)}
+        order={selected}
+        onClose={() => { setSelected(null); setReceipt(null); setPrintPreview(null); }}
+        onStatus={update}
+        onReceipt={loadReceipt}
+        onPrint={loadPrint}
+        onInvoice={createInvoice}
+        allowStatusUpdate={allowStatusUpdate}
+        allowKitchenPrint={allowKitchenPrint}
+        allowReceiptPrint={allowReceiptPrint}
+        allowInvoiceActions={allowInvoiceActions}
+        receipt={receipt}
+        printPreview={printPreview}
+        receiptPreview={receipt ? <ReceiptPreview receipt={receipt} /> : printPreview?.type === "receipt" ? <ReceiptPrint print={printPreview.payload} /> : null}
+        kitchenPrintPreview={printPreview?.type === "kitchen" ? <KitchenTicketPrint print={printPreview.payload} /> : null}
       />
     </div>
   );
 }
 
-function failedPaymentReason(order) {
-  const log = [...(order.payment?.logs || [])].reverse().find((entry) => entry.action === "rejected");
-
-  return log?.payload_json?.reason || "";
+function SelectFilter({ ariaLabel, value, onChange, options }) {
+  return (
+    <select
+      aria-label={ariaLabel}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+    >
+      {options.map(([optionValue, label]) => <option key={optionValue || "empty"} value={optionValue}>{label}</option>)}
+    </select>
+  );
 }
 
-function Metric({ label, value }) {
-  return (
-    <div className="rounded-md border border-slate-200 bg-white p-4">
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-bold text-slate-950">{value}</p>
-    </div>
-  );
+function uniqueOptions(items) {
+  const map = new Map();
+  items.forEach((item) => {
+    if (item?.id && !map.has(item.id)) map.set(item.id, item);
+  });
+  return Array.from(map.values());
 }

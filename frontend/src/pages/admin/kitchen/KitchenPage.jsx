@@ -1,14 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import api, { getApiErrorMessage } from "../../../api/axios";
-import StatusBadge from "../../../components/StatusBadge";
 import RealtimeStatusBadge from "../../../components/realtime/RealtimeStatusBadge";
-import { Badge, Button, Card, ErrorState, Input, LoadingState, Modal, Select, alertError, toastSuccess } from "../../../components/ui";
+import { Button, ErrorState, Input, LoadingState, Modal, Select, alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { AppButton, AppCard, AppEmptyState, AppPageHeader, AppStatusBadge } from "../../../design-system/components";
+import OperationStatusTabs from "../../../design-system/operations/OperationStatusTabs";
+import BaseKitchenOrderCard from "../../../design-system/operations/KitchenOrderCard";
 import useOperationsRealtime from "../../../hooks/useOperationsRealtime";
 import { getKitchenSoundMuted, playKitchenBeep, setKitchenSoundMuted } from "../../../utils/kitchenSound";
 import { canManageKitchenStations, canUpdateKitchenOrder } from "../../../utils/permissions";
 
-const statusTabs = ["pending", "accepted", "preparing", "ready", "completed", "cancelled"];
+const statusTabs = [
+  ["", "All"],
+  ["pending", "New"],
+  ["accepted", "Accepted"],
+  ["preparing", "Preparing"],
+  ["ready", "Ready"],
+  ["completed", "Completed"],
+  ["cancelled", "Cancelled"],
+];
 const stationInitial = { branch_id: "", name: "", type: "general", category_ids_json: [], status: "active" };
 
 export default function KitchenPage() {
@@ -124,6 +134,14 @@ export default function KitchenPage() {
 
   const selectedShop = useMemo(() => shops.find((shop) => String(shop.id) === String(filters.shop_id)), [shops, filters.shop_id]);
   const grouped = useMemo(() => groupOrders(orders), [orders]);
+  const visibleStatuses = filters.status ? [filters.status] : ["pending", "accepted", "preparing", "ready", "completed", "cancelled"];
+  const statusCounts = useMemo(() => {
+    const counts = { "": orders.length };
+    orders.forEach((order) => {
+      counts[order.order_status] = (counts[order.order_status] || 0) + 1;
+    });
+    return counts;
+  }, [orders]);
 
   const toggleMute = () => {
     const next = !muted;
@@ -215,23 +233,23 @@ export default function KitchenPage() {
 
   return (
     <div className="grid min-h-[calc(100vh-5rem)] gap-5">
-      <Card className="grid gap-4 p-4">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-orange-600">Kitchen Display</p>
-            <h1 className="text-2xl font-black text-slate-950">{selectedShop?.name || "Kitchen"}</h1>
-            <p className="text-sm text-slate-500">{summary?.active_count || 0} active orders · auto-refresh every 7 seconds</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
+      <AppPageHeader
+        eyebrow="Kitchen Display"
+        title={selectedShop?.name || "Kitchen"}
+        description={`${summary?.active_count || 0} active orders · auto-refresh every 7 seconds · real-time ready for connected branches.`}
+        primaryAction={{ children: "Refresh", onClick: () => load(), variant: "secondary" }}
+        secondaryActions={(
+          <>
             <RealtimeStatusBadge status={realtimeStatus} />
-            <Button type="button" variant="secondary" onClick={() => load()}>Refresh</Button>
-            <Button type="button" variant={muted ? "secondary" : "primary"} onClick={toggleMute}>{muted ? "Sound muted" : "Sound on"}</Button>
-            {soundBlocked ? <Button type="button" onClick={enableSound}>Enable sound</Button> : null}
-            <Button type="button" variant="secondary" onClick={() => document.documentElement.requestFullscreen?.()}>Full screen</Button>
-            {allowStations ? <Button type="button" onClick={() => openStationModal()}>Add station</Button> : null}
-          </div>
-        </div>
+            <AppButton type="button" variant={muted ? "secondary" : "primary"} onClick={toggleMute}>{muted ? "Sound muted" : "Sound on"}</AppButton>
+            {soundBlocked ? <AppButton type="button" onClick={enableSound}>Enable sound</AppButton> : null}
+            <AppButton type="button" variant="secondary" onClick={() => document.documentElement.requestFullscreen?.()}>Full screen</AppButton>
+            {allowStations ? <AppButton type="button" onClick={() => openStationModal()}>Add station</AppButton> : null}
+          </>
+        )}
+      />
 
+      <AppCard bodyClassName="grid gap-4 p-4">
         <div className="flex flex-wrap items-end gap-3">
           <Select label="Shop" value={filters.shop_id} onChange={(event) => setFilters({ ...filters, shop_id: event.target.value, branch_id: "", station_id: "" })}>
             {shops.map((shop) => <option key={shop.id} value={shop.id}>{shop.name}</option>)}
@@ -247,26 +265,23 @@ export default function KitchenPage() {
           <Input label="Date" type="date" value={filters.date} onChange={(event) => setFilters({ ...filters, date: event.target.value })} />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto">
-          <button type="button" onClick={() => setFilters({ ...filters, status: "" })} className={tabClass(filters.status === "")}>All</button>
-          {statusTabs.map((status) => (
-            <button key={status} type="button" onClick={() => setFilters({ ...filters, status })} className={tabClass(filters.status === status)}>
-              {status}
-            </button>
-          ))}
-        </div>
-      </Card>
+        <OperationStatusTabs
+          value={filters.status}
+          onChange={(status) => setFilters({ ...filters, status })}
+          options={statusTabs.map(([value, label]) => [value, label, statusCounts[value] || 0])}
+        />
+      </AppCard>
 
       {loading ? <LoadingState message="Loading kitchen orders..." /> : null}
       {loadError ? <ErrorState message={loadError} onRetry={() => load()} /> : null}
 
       {!loading && !loadError ? (
         <div className="grid gap-5 xl:grid-cols-3">
-          {["pending", "accepted", "preparing", "ready", "completed", "cancelled"].map((status) => (
+          {visibleStatuses.map((status) => (
             <section key={status} className="grid content-start gap-3">
-              <div className="flex items-center justify-between rounded-md bg-slate-900 px-3 py-2 text-white">
-                <h2 className="text-sm font-black uppercase tracking-wide">{status}</h2>
-                <Badge tone="slate">{grouped[status]?.length || 0}</Badge>
+              <div className="flex items-center justify-between rounded-2xl bg-slate-950 px-4 py-3 text-white">
+                <h2 className="text-sm font-black uppercase tracking-wide">{status === "pending" ? "new" : status}</h2>
+                <span className="rounded-full bg-white/15 px-2.5 py-1 text-xs font-black">{grouped[status]?.length || 0}</span>
               </div>
               {(grouped[status] || []).map((order) => (
                 <KitchenOrderCard
@@ -278,13 +293,16 @@ export default function KitchenPage() {
                   onItemStatus={updateItem}
                 />
               ))}
+              {!(grouped[status] || []).length ? (
+                <AppEmptyState title={`No ${status === "pending" ? "new" : status} orders`} description="Orders in this state will appear here automatically." />
+              ) : null}
             </section>
           ))}
         </div>
       ) : null}
 
       {allowStations ? (
-        <Card className="grid gap-3 p-4">
+        <AppCard className="grid gap-3" bodyClassName="p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-orange-600">Routing</p>
@@ -301,7 +319,7 @@ export default function KitchenPage() {
                     <p className="text-sm text-slate-500">{station.branch?.name || "All branches"} · {station.type}</p>
                     <p className="mt-1 text-xs text-slate-500">{station.category_ids_json?.length || 0} assigned categories</p>
                   </div>
-                  <StatusBadge value={station.status} />
+                  <AppStatusBadge value={station.status} />
                 </div>
                 <div className="mt-3 flex gap-2">
                   <button type="button" onClick={() => openStationModal(station)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button>
@@ -310,7 +328,7 @@ export default function KitchenPage() {
               </div>
             ))}
           </div>
-        </Card>
+        </AppCard>
       ) : null}
 
       <Modal
@@ -353,63 +371,7 @@ export default function KitchenPage() {
 }
 
 export function KitchenOrderCard({ order, isNew = false, allowUpdate = true, onOrderStatus, onItemStatus }) {
-  return (
-    <Card className={`grid gap-4 p-4 ${isNew ? "animate-pulse border-orange-300 bg-orange-50" : ""}`}>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-xl font-black text-slate-950">{order.order_number}</h3>
-          <p className="text-sm font-semibold text-slate-600">{order.branch?.name || "Branch"} · {order.dining_table?.table_name || order.order_type}</p>
-          {order.note ? <p className="mt-2 rounded-md bg-amber-50 p-2 text-sm font-semibold text-amber-800">{order.note}</p> : null}
-        </div>
-        <div className="grid justify-items-end gap-2">
-          <Badge tone={order.elapsed_minutes > 20 ? "red" : "orange"}>{order.elapsed_minutes} min</Badge>
-          <StatusBadge value={order.payment_status} />
-        </div>
-      </div>
-
-      <div className="grid gap-3">
-        {order.items.map((item) => (
-          <div key={item.id} className="rounded-md border border-slate-200 p-3">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="text-lg font-black text-slate-950">{item.quantity}x {item.product_name}</p>
-                {item.note ? <p className="text-sm font-semibold text-rose-700">{item.note}</p> : null}
-                <OptionList options={item.selected_options} />
-              </div>
-              <StatusBadge value={item.kitchen_status} />
-            </div>
-            {allowUpdate ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {item.kitchen_status === "pending" ? <button type="button" onClick={() => onItemStatus(item, "preparing")} className="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-bold text-white">Start</button> : null}
-                {["pending", "preparing"].includes(item.kitchen_status) ? <button type="button" onClick={() => onItemStatus(item, "ready")} className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-bold text-white">Item ready</button> : null}
-                {item.kitchen_status === "ready" ? <button type="button" onClick={() => onItemStatus(item, "served")} className="rounded-md bg-slate-900 px-3 py-1.5 text-sm font-bold text-white">Served</button> : null}
-              </div>
-            ) : null}
-          </div>
-        ))}
-      </div>
-
-      {allowUpdate ? (
-        <div className="flex flex-wrap gap-2">
-          {order.order_status === "pending" ? <Button type="button" size="sm" onClick={() => onOrderStatus(order, "accepted")}>Accept order</Button> : null}
-          {["pending", "accepted"].includes(order.order_status) ? <Button type="button" size="sm" variant="secondary" onClick={() => onOrderStatus(order, "preparing")}>Start preparing</Button> : null}
-          {["pending", "accepted", "preparing"].includes(order.order_status) ? <Button type="button" size="sm" onClick={() => onOrderStatus(order, "ready")}>Mark order ready</Button> : null}
-          {order.order_status === "ready" ? <Button type="button" size="sm" onClick={() => onOrderStatus(order, "completed")}>Served/completed</Button> : null}
-        </div>
-      ) : null}
-    </Card>
-  );
-}
-
-function OptionList({ options = [] }) {
-  const rows = options.flatMap((option) => (option.values || []).map((value) => `${option.name}: ${value.name}`));
-  if (!rows.length) return null;
-
-  return (
-    <ul className="mt-2 grid gap-1 text-sm text-slate-600">
-      {rows.map((row) => <li key={row}>{row}</li>)}
-    </ul>
-  );
+  return <BaseKitchenOrderCard order={order} isNew={isNew} allowUpdate={allowUpdate} onOrderStatus={onOrderStatus} onItemStatus={onItemStatus} />;
 }
 
 function groupOrders(orders) {
@@ -417,10 +379,6 @@ function groupOrders(orders) {
     groups[order.order_status] = [...(groups[order.order_status] || []), order];
     return groups;
   }, {});
-}
-
-function tabClass(active) {
-  return `shrink-0 rounded-md px-3 py-2 text-sm font-bold ${active ? "bg-slate-950 text-white" : "bg-slate-100 text-slate-700"}`;
 }
 
 function cleanParams(values) {

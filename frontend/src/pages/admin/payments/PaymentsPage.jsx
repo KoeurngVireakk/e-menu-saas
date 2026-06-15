@@ -1,17 +1,42 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { RefreshCw } from "lucide-react";
 import api, { getApiErrorMessage } from "../../../api/axios";
-import DataTable from "../../../components/DataTable";
-import StatusBadge from "../../../components/StatusBadge";
-import { Card, confirmAction, promptText, toastSuccess } from "../../../components/ui";
+import { confirmAction, promptText, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import {
+  AppButton,
+  AppCard,
+  AppEmptyState,
+  AppPageHeader,
+  AppTable,
+} from "../../../design-system/components";
+import CrudToolbar from "../../../design-system/crud/CrudToolbar";
+import OperationStatusTabs from "../../../design-system/operations/OperationStatusTabs";
+import PaymentDetailDrawer from "../../../design-system/operations/PaymentDetailDrawer";
+import PaymentStatusBadge from "../../../design-system/operations/PaymentStatusBadge";
+import { failedPaymentReason, providerLabel } from "../../../design-system/operations/paymentReview";
 import { formatCurrency } from "../../../utils/currency";
 import { canManagePayments } from "../../../utils/permissions";
+
+const paymentStatuses = [
+  ["all", "All"],
+  ["pending", "Pending"],
+  ["paid", "Paid"],
+  ["confirmed", "Confirmed"],
+  ["failed", "Failed"],
+  ["rejected", "Rejected"],
+  ["refunded", "Refunded"],
+];
 
 export default function PaymentsPage() {
   const { user } = useAuth();
   const allowPaymentActions = canManagePayments(user);
   const [payments, setPayments] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [methodFilter, setMethodFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
 
@@ -31,10 +56,39 @@ export default function PaymentsPage() {
     return () => window.clearTimeout(timer);
   }, [load]);
 
+  const methods = useMemo(() => Array.from(new Set(payments.map((payment) => payment.payment_method).filter(Boolean))), [payments]);
+  const statusCounts = useMemo(() => {
+    const counts = { all: payments.length };
+    payments.forEach((payment) => {
+      counts[payment.status] = (counts[payment.status] || 0) + 1;
+    });
+    return counts;
+  }, [payments]);
+
+  const filteredPayments = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return payments
+      .filter((payment) => statusFilter === "all" || payment.status === statusFilter)
+      .filter((payment) => methodFilter === "all" || payment.payment_method === methodFilter)
+      .filter((payment) => !dateFilter || String(payment.created_at || "").slice(0, 10) === dateFilter)
+      .filter((payment) => {
+        if (!query) return true;
+        return [
+          payment.order?.order_number,
+          payment.provider_reference,
+          payment.transaction_reference,
+          payment.order?.customer_name,
+          payment.order?.customer_phone,
+          payment.payment_method,
+        ].filter(Boolean).join(" ").toLowerCase().includes(query);
+      });
+  }, [dateFilter, methodFilter, payments, search, statusFilter]);
+
   const confirm = async (payment) => {
     if (!await confirmAction("Confirm payment?", "This payment will be marked as paid.")) return;
     await api.put(`/payments/${payment.id}/confirm`);
     toastSuccess("Payment marked as paid.");
+    setSelected((current) => current?.id === payment.id ? { ...current, status: "confirmed" } : current);
     load();
   };
 
@@ -43,112 +97,117 @@ export default function PaymentsPage() {
     if (!result.isConfirmed) return;
     await api.put(`/payments/${payment.id}/reject`, { reason: result.value });
     toastSuccess("Payment was rejected.");
+    setSelected((current) => current?.id === payment.id ? { ...current, status: "rejected", failure_reason: result.value } : current);
     load();
   };
 
+  const columns = [
+    {
+      accessorKey: "order.order_number",
+      header: "Order",
+      cell: ({ row }) => (
+        <div>
+          <p className="font-black text-slate-950">{row.original.order?.order_number || `Payment #${row.original.id}`}</p>
+          <p className="text-xs text-slate-500">{row.original.created_at ? new Date(row.original.created_at).toLocaleString() : "Time not available"}</p>
+        </div>
+      ),
+    },
+    { accessorKey: "payment_method", header: "Method", cell: ({ row }) => row.original.payment_method },
+    { accessorKey: "provider", header: "Provider", cell: ({ row }) => providerLabel(row.original) },
+    { accessorKey: "amount", header: "Amount", cell: ({ row }) => formatCurrency(row.original.amount, row.original.currency_code) },
+    {
+      accessorKey: "transaction_reference",
+      header: "Reference",
+      cell: ({ row }) => <span className="line-clamp-1 max-w-xs text-xs text-slate-600">{row.original.provider_reference || row.original.transaction_reference || "-"}</span>,
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <div className="grid gap-1">
+          <PaymentStatusBadge value={row.original.status} />
+          {row.original.provider === "bakong_khqr" && row.original.webhook_verified_at ? <span className="text-xs font-semibold text-emerald-600">Verified</span> : null}
+          {row.original.failure_reason || failedPaymentReason(row.original) ? <span className="text-xs text-rose-600">{row.original.failure_reason || failedPaymentReason(row.original)}</span> : null}
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <div className="grid gap-6">
-      {selected ? (
-        <Card className="p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-950">{selected.order?.order_number || `Payment #${selected.id}`}</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                {formatCurrency(selected.amount, selected.currency_code)} · {selected.payment_method}
-              </p>
-            </div>
-            <button onClick={() => setSelected(null)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Close</button>
-          </div>
+    <div className="grid gap-5">
+      <AppPageHeader
+        eyebrow="Finance operations"
+        title="Payments"
+        description="Review customer payments, verify proof images, inspect references, and confirm or reject payments safely."
+        primaryAction={{ children: "Refresh", onClick: () => load(), iconLeft: <RefreshCw className="h-4 w-4" />, variant: "secondary" }}
+      />
 
-          <div className="mt-4 grid gap-2 rounded-md bg-slate-50 p-3 text-sm sm:grid-cols-2">
-            <Detail label="Provider" value={providerLabel(selected)} />
-            <Detail label="Provider reference" value={selected.provider_reference || selected.transaction_reference || "-"} />
-            <Detail label="Provider payment ID" value={selected.provider_payment_id || "-"} />
-            <Detail label="Webhook verified" value={selected.webhook_verified_at ? new Date(selected.webhook_verified_at).toLocaleString() : "-"} />
-            <Detail label="Expires" value={selected.expires_at ? new Date(selected.expires_at).toLocaleString() : "-"} />
-            <Detail label="Failure reason" value={selected.failure_reason || failedPaymentReason(selected) || "-"} />
-          </div>
+      <OperationStatusTabs
+        value={statusFilter}
+        onChange={setStatusFilter}
+        options={paymentStatuses.map(([value, label]) => [value, label, statusCounts[value] || 0])}
+      />
 
-          {selected.provider === "bakong_khqr" && selected.webhook_verified_at ? (
-            <div className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">
-              Bakong webhook verified
-            </div>
-          ) : null}
-
-          {failedPaymentReason(selected) ? (
-            <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-              Rejection reason: {failedPaymentReason(selected)}
-            </div>
-          ) : null}
-
-          <div className="mt-4 grid gap-2">
-            {(selected.logs || []).length ? selected.logs.map((log) => (
-              <div key={log.id} className="rounded-md bg-slate-50 p-3 text-sm">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-semibold text-slate-950">{log.action}</span>
-                  <span className="text-xs text-slate-500">{new Date(log.created_at).toLocaleString()}</span>
-                </div>
-                {log.payload_json?.reason ? <p className="mt-1 text-rose-600">{log.payload_json.reason}</p> : null}
-              </div>
-            )) : <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-500">No payment logs available.</p>}
-          </div>
-        </Card>
-      ) : null}
-
-      <DataTable
-        columns={[
-          { key: "order", label: "Order", render: (row) => row.order?.order_number },
-          { key: "payment_method", label: "Method" },
-          { key: "provider", label: "Provider", render: (row) => providerLabel(row) },
-          { key: "amount", label: "Amount", render: (row) => formatCurrency(row.amount, row.currency_code) },
-          { key: "transaction_reference", label: "Reference", render: (row) => row.provider_reference || row.transaction_reference },
-          {
-            key: "status",
-            label: "Status",
-            render: (row) => (
-              <div className="grid gap-1">
-                <StatusBadge value={row.status} />
-                {row.provider === "bakong_khqr" && row.webhook_verified_at ? <span className="text-xs font-semibold text-emerald-600">Verified</span> : null}
-                {row.failure_reason || failedPaymentReason(row) ? <span className="text-xs text-rose-600">{row.failure_reason || failedPaymentReason(row)}</span> : null}
-              </div>
-            ),
-          },
-        ]}
-        rows={payments}
-        loading={loading}
-        error={loadError}
-        emptyMessage="No payments yet."
-        renderActions={(payment) => (
-          <div className="flex flex-wrap gap-2">
-            <button onClick={() => setSelected(payment)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">View</button>
-            {payment.proof_image_path ? <a href={`${import.meta.env.VITE_STORAGE_URL || "http://127.0.0.1:8000/storage"}/${payment.proof_image_path}`} target="_blank" rel="noreferrer" className="rounded-md border border-slate-300 px-3 py-1 text-sm">Proof</a> : null}
-            {allowPaymentActions ? <button onClick={() => confirm(payment)} className="rounded-md bg-emerald-600 px-3 py-1 text-sm text-white">Confirm</button> : null}
-            {allowPaymentActions ? <button onClick={() => reject(payment)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Reject</button> : null}
-          </div>
+      <CrudToolbar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Search order, reference, customer..."
+        filters={(
+          <>
+            <SelectFilter ariaLabel="Payment method" value={methodFilter} onChange={setMethodFilter} options={[["all", "All methods"], ...methods.map((method) => [method, method])]} />
+            <input aria-label="Payment date" type="date" value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100" />
+          </>
         )}
+        onClear={() => {
+          setSearch("");
+          setStatusFilter("all");
+          setMethodFilter("all");
+          setDateFilter("");
+        }}
+      />
+
+      <AppCard bodyClassName="p-0">
+        {loadError ? (
+          <AppEmptyState title="Payments could not load" description={loadError} actionLabel="Retry" onAction={load} />
+        ) : (
+          <AppTable
+            columns={columns}
+            data={filteredPayments}
+            loading={loading}
+            emptyTitle="No payments found"
+            emptyDescription="Payment records will appear here after customers submit proof or online payments."
+            rowActions={(payment) => (
+              <div className="flex flex-wrap justify-end gap-2">
+                <AppButton type="button" size="sm" variant="secondary" onClick={() => setSelected(payment)}>View details</AppButton>
+                {allowPaymentActions ? <AppButton type="button" size="sm" variant="success" onClick={() => confirm(payment)}>Confirm</AppButton> : null}
+                {allowPaymentActions ? <AppButton type="button" size="sm" variant="danger" onClick={() => reject(payment)}>Reject</AppButton> : null}
+              </div>
+            )}
+          />
+        )}
+      </AppCard>
+
+      <PaymentDetailDrawer
+        open={Boolean(selected)}
+        payment={selected}
+        onClose={() => setSelected(null)}
+        onConfirm={confirm}
+        onReject={reject}
+        allowActions={allowPaymentActions}
       />
     </div>
   );
 }
 
-function failedPaymentReason(payment) {
-  const log = [...(payment.logs || [])].reverse().find((entry) => entry.action === "rejected");
-
-  return log?.payload_json?.reason || "";
-}
-
-function providerLabel(payment) {
-  if (payment.provider === "bakong_khqr") return "Bakong KHQR";
-  if (payment.provider === "manual") return "Manual";
-
-  return payment.provider || "Manual";
-}
-
-function Detail({ label, value }) {
+function SelectFilter({ ariaLabel, value, onChange, options }) {
   return (
-    <div>
-      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="mt-1 font-semibold text-slate-900">{value}</p>
-    </div>
+    <select
+      aria-label={ariaLabel}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+    >
+      {options.map(([optionValue, label]) => <option key={optionValue || "empty"} value={optionValue}>{label}</option>)}
+    </select>
   );
 }
