@@ -5,6 +5,7 @@ import InvoicePrint from "./InvoicePrint";
 import KitchenTicketPrint from "./KitchenTicketPrint";
 import ReceiptPrint from "./ReceiptPrint";
 import SalesReportPrint from "./SalesReportPrint";
+import ShiftReportPrint from "./ShiftReportPrint";
 
 const basePrint = {
   paper_size: "80mm",
@@ -111,5 +112,31 @@ describe("print components", () => {
     expect(screen.getByText("Daily Closing")).toBeInTheDocument();
     expect(screen.getByText("Expected cash")).toBeInTheDocument();
     expect(screen.getByText("-1,000 KHR")).toBeInTheDocument();
+  });
+
+  it("renders shift report totals", () => {
+    render(
+      <ShiftReportPrint
+        shift={{
+          shop: { name: "QA Cafe", currency_code: "KHR" },
+          branch: { name: "Main Branch" },
+          user: { name: "Cashier" },
+          shift_code: "SHIFT-1",
+          opening_float: 20000,
+          cash_payment_total: 14500,
+          cash_in_total: 5000,
+          cash_out_total: 3000,
+          expected_cash_total: 36500,
+          counted_cash_total: 36000,
+          cash_difference: -500,
+          movements: [{ id: 1, type: "cash_in", reason: "Extra float", amount: 5000 }],
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Shift Report")).toBeInTheDocument();
+    expect(screen.getByText("SHIFT-1")).toBeInTheDocument();
+    expect(screen.getByText("Expected cash")).toBeInTheDocument();
+    expect(screen.getByText("-500 KHR")).toBeInTheDocument();
   });
 });

@@ -17,6 +17,7 @@ export default function DailyClosingPage() {
   const [closings, setClosings] = useState([]);
   const [summary, setSummary] = useState(null);
   const [payments, setPayments] = useState(null);
+  const [shiftSummary, setShiftSummary] = useState(null);
   const [selectedClosing, setSelectedClosing] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -62,6 +63,7 @@ export default function DailyClosingPage() {
         setClosings(response.data.data.closings);
         setSummary(response.data.data.summary);
         setPayments(response.data.data.payment_methods);
+        setShiftSummary(response.data.data.shift_summary);
       })
       .catch((error) => setLoadError(getApiErrorMessage(error, "Unable to load daily closing.")))
       .finally(() => setLoading(false));
@@ -119,6 +121,12 @@ export default function DailyClosingPage() {
             <StatCard label="Net sales" value={formatCurrency(summary.net_sales, currency)} tone="blue" />
             <StatCard label="Open balance" value={formatCurrency(summary.unpaid_total, currency)} />
           </div>
+
+          {shiftSummary?.open_shifts ? (
+            <Card className="border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800 no-print">
+              {shiftSummary.open_shifts} open shift(s) must be closed before daily closing.
+            </Card>
+          ) : null}
 
           <Card className="grid gap-4 p-4 no-print">
             <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto]">

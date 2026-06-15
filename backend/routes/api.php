@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\PublicMenuController;
 use App\Http\Controllers\Api\PublicOrderController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\ShiftController;
 use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\ShopSettingsController;
 use App\Http\Controllers\Api\ShopStaffController;
@@ -60,6 +61,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reports/payment-methods', [ReportController::class, 'paymentMethods']);
     Route::get('/reports/daily-closing', [ReportController::class, 'dailyClosing']);
     Route::post('/reports/daily-closing', [ReportController::class, 'storeDailyClosing']);
+
+    Route::get('/shifts', [ShiftController::class, 'index']);
+    Route::post('/shifts/open', [ShiftController::class, 'open']);
+    Route::get('/shifts/{shift}', [ShiftController::class, 'show']);
+    Route::post('/shifts/{shift}/cash-movement', [ShiftController::class, 'cashMovement']);
+    Route::post('/shifts/{shift}/close', [ShiftController::class, 'close']);
+    Route::post('/shifts/{shift}/cancel', [ShiftController::class, 'cancel']);
+    Route::get('/shifts/{shift}/report', [ShiftController::class, 'report']);
 
     Route::apiResource('shops', ShopController::class);
     Route::get('/shops/{shop}/settings', [ShopSettingsController::class, 'show']);

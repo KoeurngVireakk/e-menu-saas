@@ -45,6 +45,11 @@ class User extends Authenticatable
         return $this->hasMany(ShopStaff::class);
     }
 
+    public function cashDrawerShifts(): HasMany
+    {
+        return $this->hasMany(CashDrawerShift::class);
+    }
+
     public function isSuperAdmin(): bool
     {
         return $this->role === 'super_admin';
@@ -113,6 +118,31 @@ class User extends Authenticatable
     public function canExportReports(): bool
     {
         return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
+    }
+
+    public function canViewShifts(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier'], true);
+    }
+
+    public function canOpenShift(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier'], true);
+    }
+
+    public function canManageShift(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
+    }
+
+    public function canCloseShift(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier'], true);
+    }
+
+    public function canAddCashMovement(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier'], true);
     }
 
     public function canViewStaff(): bool

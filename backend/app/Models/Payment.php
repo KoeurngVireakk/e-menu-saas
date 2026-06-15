@@ -30,6 +30,7 @@ class Payment extends Model
         'failure_reason',
         'expires_at',
         'confirmed_by',
+        'cash_drawer_shift_id',
         'confirmed_at',
     ];
 
@@ -61,6 +62,11 @@ class Payment extends Model
     public function confirmer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'confirmed_by');
+    }
+
+    public function cashDrawerShift(): BelongsTo
+    {
+        return $this->belongsTo(CashDrawerShift::class);
     }
 
     public function logs(): HasMany

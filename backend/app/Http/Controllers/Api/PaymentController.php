@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CashDrawerShift;
 use App\Models\Payment;
 use App\Services\Notifications\TelegramNotificationService;
 use App\Services\Payments\PaymentStatusSync;
@@ -58,8 +59,18 @@ class PaymentController extends Controller
         abort_unless($request->user()->canManagePayments(), 403);
 
         DB::transaction(function () use ($request, $payment) {
+            $shift = $payment->payment_method === 'cash'
+                ? CashDrawerShift::where('shop_id', $payment->shop_id)
+                    ->where('branch_id', $payment->branch_id)
+                    ->where('user_id', $request->user()->id)
+                    ->where('status', 'open')
+                    ->latest('opened_at')
+                    ->first()
+                : null;
+
             $this->paymentStatusSync->markPaid($payment->load('order.invoice'), [
                 'confirmed_by' => $request->user()->id,
+                'cash_drawer_shift_id' => $shift?->id,
                 'confirmed_at' => now(),
             ]);
 

@@ -66,6 +66,12 @@ const featurePermissions = {
     create: ["super_admin", "shop_owner", "manager", "cashier"],
     update: ["super_admin", "shop_owner", "manager", "cashier"],
   },
+  shifts: {
+    view: ["super_admin", "shop_owner", "manager", "cashier"],
+    create: ["super_admin", "shop_owner", "manager", "cashier"],
+    update: ["super_admin", "shop_owner", "manager", "cashier"],
+    manage: ["super_admin", "shop_owner", "manager"],
+  },
   staff: {
     view: ["super_admin", "shop_owner", "manager"],
     create: ["super_admin", "shop_owner"],
@@ -136,6 +142,26 @@ export function canManageDailyClosing(user) {
 
 export function canExportReports(user) {
   return hasPermission(user, "reports", "export");
+}
+
+export function canViewShifts(user) {
+  return canView(user, "shifts");
+}
+
+export function canOpenShift(user) {
+  return canCreate(user, "shifts");
+}
+
+export function canManageShift(user) {
+  return hasPermission(user, "shifts", "manage");
+}
+
+export function canCloseShift(user) {
+  return canUpdate(user, "shifts");
+}
+
+export function canAddCashMovement(user) {
+  return canUpdate(user, "shifts");
 }
 
 export function canManageOrders(user) {

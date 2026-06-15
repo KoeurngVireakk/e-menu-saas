@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CashDrawerShift;
 use App\Models\DailyClosing;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -67,6 +68,7 @@ class ReportController extends Controller
             'closings' => $closings->latest('closing_date')->limit(30)->get(),
             'summary' => $filters['shop_id'] ? $this->salesSummaryData($request, $filters) : null,
             'payment_methods' => $filters['shop_id'] ? $this->paymentMethodData($request, $filters) : null,
+            'shift_summary' => $filters['shop_id'] ? $this->shiftSummaryData($request, $filters) : null,
         ]);
     }
 
@@ -84,6 +86,13 @@ class ReportController extends Controller
         $filters = $this->filters($request, requireShop: true, dateKey: 'closing_date');
         abort_unless($request->user()->canManageDailyClosing(), 403);
         $this->authorizeReports($request, $filters);
+
+        $openShifts = $this->shiftQuery($request, $filters)->where('status', 'open')->count();
+        if ($openShifts > 0) {
+            return $this->error('Close open cashier shifts before daily closing.', [
+                'open_shifts' => [$openShifts.' open shift(s) must be closed first.'],
+            ], 409);
+        }
 
         $existing = DailyClosing::where('shop_id', $filters['shop_id'])
             ->where('branch_id', $filters['branch_id'])
@@ -310,6 +319,20 @@ class ReportController extends Controller
         ];
     }
 
+    private function shiftSummaryData(Request $request, array $filters): array
+    {
+        $shifts = $this->shiftQuery($request, $filters)->get();
+
+        return [
+            'open_shifts' => $shifts->where('status', 'open')->count(),
+            'closed_shifts' => $shifts->where('status', 'closed')->count(),
+            'cancelled_shifts' => $shifts->where('status', 'cancelled')->count(),
+            'expected_cash_total' => $this->money($shifts->where('status', 'closed')->sum('expected_cash_total')),
+            'counted_cash_total' => $this->money($shifts->where('status', 'closed')->sum('counted_cash_total')),
+            'cash_difference' => $this->money($shifts->where('status', 'closed')->sum('cash_difference')),
+        ];
+    }
+
     private function orderQuery(Request $request, array $filters): Builder
     {
         $orders = Order::with('shop')
@@ -329,6 +352,24 @@ class ReportController extends Controller
         });
 
         return $orders;
+    }
+
+    private function shiftQuery(Request $request, array $filters): Builder
+    {
+        $shifts = CashDrawerShift::whereIn('shop_id', $filters['shop_ids'])
+            ->whereBetween('opened_at', [$filters['date_from'], $filters['date_to']])
+            ->when($filters['has_branch_filter'], fn ($query) => $query->where('branch_id', $filters['branch_id']));
+
+        $shifts->where(function (Builder $query) use ($request, $filters) {
+            foreach ($filters['shop_ids'] as $shopId) {
+                $query->orWhere(function (Builder $shopQuery) use ($request, $shopId) {
+                    $shopQuery->where('shop_id', $shopId);
+                    $this->scopeBranchAccess($request, $shopQuery, $shopId);
+                });
+            }
+        });
+
+        return $shifts;
     }
 
     private function currencyCode(array $filters, mixed $fallbackShop = null): string

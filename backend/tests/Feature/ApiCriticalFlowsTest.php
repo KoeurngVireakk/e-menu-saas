@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\AuditLog;
 use App\Models\Branch;
+use App\Models\CashDrawerShift;
 use App\Models\Category;
 use App\Models\DailyClosing;
 use App\Models\Invoice;
@@ -1349,6 +1350,178 @@ class ApiCriticalFlowsTest extends TestCase
         $this->assertSame(1, DailyClosing::where('shop_id', $catalog['shop']->id)->where('branch_id', $catalog['branch']->id)->count());
     }
 
+    public function test_cashier_can_open_shift_and_duplicate_open_shift_is_blocked(): void
+    {
+        $catalog = $this->createCatalog();
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => $catalog['branch']->id,
+            'user_id' => $cashier->id,
+            'role' => 'cashier',
+            'status' => 'active',
+        ]);
+
+        Sanctum::actingAs($cashier);
+
+        $this->postJson('/api/shifts/open', [
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'opening_float' => 20000,
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.shift.status', 'open')
+            ->assertJsonPath('data.shift.opening_float', '20000.00');
+
+        $this->postJson('/api/shifts/open', [
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'opening_float' => 10000,
+        ])->assertStatus(409);
+
+        $this->assertDatabaseHas('audit_logs', ['action' => 'shift.opened']);
+    }
+
+    public function test_cashier_can_add_movements_and_close_shift_with_expected_cash_difference(): void
+    {
+        $catalog = $this->createCatalog();
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => $catalog['branch']->id,
+            'user_id' => $cashier->id,
+            'role' => 'cashier',
+            'status' => 'active',
+        ]);
+
+        Sanctum::actingAs($cashier);
+        $shift = $this->postJson('/api/shifts/open', [
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'opening_float' => 20000,
+        ])->assertCreated()->json('data.shift');
+
+        $this->postJson("/api/shifts/{$shift['id']}/cash-movement", [
+            'type' => 'cash_in',
+            'amount' => 5000,
+            'reason' => 'Extra float',
+        ])->assertCreated();
+
+        $this->postJson("/api/shifts/{$shift['id']}/cash-movement", [
+            'type' => 'cash_out',
+            'amount' => 3000,
+            'reason' => 'Petty cash',
+        ])->assertCreated();
+
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $this->markCompletedPaid($order['id'], 'cash', $cashier);
+
+        $this->postJson("/api/shifts/{$shift['id']}/close", [
+            'counted_cash_total' => 36000,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.shift.status', 'closed')
+            ->assertJsonPath('data.shift.expected_cash_total', '36500.00')
+            ->assertJsonPath('data.shift.cash_difference', '-500.00');
+
+        $this->assertDatabaseHas('audit_logs', ['action' => 'shift.cash_in']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'shift.cash_out']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'shift.closed']);
+    }
+
+    public function test_waiter_cannot_open_shift_and_unrelated_user_cannot_view_shift(): void
+    {
+        $catalog = $this->createCatalog();
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $waiter = User::factory()->create(['role' => 'waiter']);
+        $unrelatedOwner = User::factory()->create(['role' => 'shop_owner']);
+        foreach ([$cashier, $waiter] as $staffUser) {
+            $catalog['shop']->staffAssignments()->create([
+                'branch_id' => $catalog['branch']->id,
+                'user_id' => $staffUser->id,
+                'role' => $staffUser->role,
+                'status' => 'active',
+            ]);
+        }
+
+        Sanctum::actingAs($cashier);
+        $shift = $this->postJson('/api/shifts/open', [
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'opening_float' => 10000,
+        ])->assertCreated()->json('data.shift');
+
+        Sanctum::actingAs($waiter);
+        $this->postJson('/api/shifts/open', [
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'opening_float' => 10000,
+        ])->assertForbidden();
+
+        Sanctum::actingAs($unrelatedOwner);
+        $this->getJson("/api/shifts/{$shift['id']}")->assertForbidden();
+    }
+
+    public function test_manager_can_view_branch_shifts_and_owner_can_cancel_shift(): void
+    {
+        $catalog = $this->createCatalog();
+        $manager = User::factory()->create(['role' => 'manager']);
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        foreach ([$manager, $cashier] as $staffUser) {
+            $catalog['shop']->staffAssignments()->create([
+                'branch_id' => $catalog['branch']->id,
+                'user_id' => $staffUser->id,
+                'role' => $staffUser->role,
+                'status' => 'active',
+            ]);
+        }
+
+        Sanctum::actingAs($cashier);
+        $shift = $this->postJson('/api/shifts/open', [
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'opening_float' => 10000,
+        ])->assertCreated()->json('data.shift');
+
+        Sanctum::actingAs($manager);
+        $this->getJson("/api/shifts?shop_id={$catalog['shop']->id}&branch_id={$catalog['branch']->id}&date=".now()->toDateString())
+            ->assertOk()
+            ->assertJsonPath('data.shifts.0.id', $shift['id']);
+
+        Sanctum::actingAs($catalog['owner']);
+        $this->postJson("/api/shifts/{$shift['id']}/cancel")
+            ->assertOk()
+            ->assertJsonPath('data.shift.status', 'cancelled');
+
+        $this->assertDatabaseHas('audit_logs', ['action' => 'shift.cancelled']);
+    }
+
+    public function test_daily_closing_blocks_open_shifts(): void
+    {
+        $catalog = $this->createCatalog();
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => $catalog['branch']->id,
+            'user_id' => $cashier->id,
+            'role' => 'cashier',
+            'status' => 'active',
+        ]);
+        Sanctum::actingAs($cashier);
+        $this->postJson('/api/shifts/open', [
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'opening_float' => 10000,
+        ])->assertCreated();
+
+        Sanctum::actingAs($catalog['owner']);
+        $this->postJson('/api/reports/daily-closing', [
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'closing_date' => now()->toDateString(),
+            'counted_cash_total' => 10000,
+        ])
+            ->assertStatus(409)
+            ->assertJsonPath('success', false);
+    }
+
     private function createCatalog(string $shopName = 'Test Cafe'): array
     {
         $owner = User::factory()->create(['role' => 'shop_owner']);
@@ -1424,7 +1597,7 @@ class ApiCriticalFlowsTest extends TestCase
         ]);
     }
 
-    private function markCompletedPaid(int $orderId, string $method = 'cash'): void
+    private function markCompletedPaid(int $orderId, string $method = 'cash', ?User $confirmedBy = null): void
     {
         $order = Order::findOrFail($orderId);
         $order->update([
@@ -1442,7 +1615,7 @@ class ApiCriticalFlowsTest extends TestCase
                 'amount' => $order->grand_total,
                 'currency_code' => $order->currency_code,
                 'status' => 'paid',
-                'confirmed_by' => null,
+                'confirmed_by' => $confirmedBy?->id,
                 'confirmed_at' => now(),
             ]
         );

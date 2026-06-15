@@ -57,6 +57,11 @@ class Branch extends Model
         return $this->hasMany(DailyClosing::class);
     }
 
+    public function cashDrawerShifts(): HasMany
+    {
+        return $this->hasMany(CashDrawerShift::class);
+    }
+
     public function staffAssignments(): HasMany
     {
         return $this->hasMany(ShopStaff::class);

@@ -33,6 +33,7 @@ describe("Sidebar", () => {
     expect(screen.getByRole("link", { name: "Invoices" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Reports" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Daily Closing" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Shifts" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Print Stations" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Staff" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Settings" })).toBeInTheDocument();
@@ -53,6 +54,7 @@ describe("Sidebar", () => {
     expect(screen.getByRole("link", { name: "Invoices" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Reports" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Daily Closing" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Shifts" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Print Stations" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Products" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Categories" })).not.toBeInTheDocument();
@@ -77,6 +79,7 @@ describe("Sidebar", () => {
     expect(screen.getByRole("link", { name: "Invoices" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Reports" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Daily Closing" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Shifts" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Print Stations" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "System Health" })).not.toBeInTheDocument();
   });
@@ -97,5 +100,6 @@ describe("Sidebar", () => {
     expect(screen.queryByRole("link", { name: "Invoices" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Reports" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Daily Closing" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Shifts" })).not.toBeInTheDocument();
   });
 });
