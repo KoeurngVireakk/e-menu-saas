@@ -1,10 +1,23 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Download, Edit3, Plus, Printer, QrCode, Trash2 } from "lucide-react";
 import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
-import DataTable from "../../../components/DataTable";
-import StatusBadge from "../../../components/StatusBadge";
 import { alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import {
+  AppButton,
+  AppCard,
+  AppEmptyState,
+  AppPageHeader,
+  AppSheet,
+  AppStatusBadge,
+  AppTable,
+} from "../../../design-system/components";
+import CreateEditDrawer from "../../../design-system/crud/CreateEditDrawer";
+import CrudToolbar from "../../../design-system/crud/CrudToolbar";
+import { Field, SelectInput, TextInput } from "../../../design-system/crud/FormControls";
+import RowActionsMenu from "../../../design-system/crud/RowActionsMenu";
+import StatusTabs from "../../../design-system/crud/StatusTabs";
 import { canCreate, canDelete, canUpdate } from "../../../utils/permissions";
 
 const initial = { table_name: "", table_code: "", status: "active" };
@@ -21,22 +34,29 @@ export default function TablesPage() {
   const [branchId, setBranchId] = useState("");
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [qr, setQr] = useState(null);
+  const [qrOpen, setQrOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     api.get("/shops").then((response) => {
-      setShops(response.data.data.shops);
-      setShopId(response.data.data.shops[0]?.id || "");
+      const loaded = response.data.data.shops;
+      setShops(loaded);
+      setShopId(loaded[0]?.id || "");
     });
   }, []);
 
   useEffect(() => {
     if (!shopId) return;
     api.get(`/shops/${shopId}/branches`).then((response) => {
-      setBranches(response.data.data.branches);
-      setBranchId(response.data.data.branches[0]?.id || "");
+      const loaded = response.data.data.branches;
+      setBranches(loaded);
+      setBranchId(loaded[0]?.id || "");
     });
   }, [shopId]);
 
@@ -60,8 +80,34 @@ export default function TablesPage() {
     return () => window.clearTimeout(timer);
   }, [load]);
 
+  const filteredTables = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return tables
+      .filter((table) => statusFilter === "all" || table.status === statusFilter)
+      .filter((table) => !query || [table.table_name, table.table_code, table.qr_url].filter(Boolean).join(" ").toLowerCase().includes(query));
+  }, [search, statusFilter, tables]);
+
+  const openCreate = () => {
+    setEditing(null);
+    setForm(initial);
+    setDrawerOpen(true);
+  };
+
+  const openEdit = (table) => {
+    setEditing(table);
+    setForm({ ...initial, ...table });
+    setDrawerOpen(true);
+  };
+
+  const closeDrawer = () => {
+    setDrawerOpen(false);
+    setEditing(null);
+    setForm(initial);
+  };
+
   const submit = async (event) => {
     event.preventDefault();
+    setSaving(true);
     try {
       if (editing) {
         await api.put(`/tables/${editing.id}`, form);
@@ -70,17 +116,19 @@ export default function TablesPage() {
         await api.post(`/branches/${branchId}/tables`, form);
         toastSuccess("Table created successfully.");
       }
-      setForm(initial);
-      setEditing(null);
+      closeDrawer();
       load();
     } catch (error) {
       alertError(error, "Please review the table.");
+    } finally {
+      setSaving(false);
     }
   };
 
   const showQr = async (table) => {
     const response = await api.get(`/tables/${table.id}/qr`);
-    setQr(response.data.data);
+    setQr({ ...response.data.data, table });
+    setQrOpen(true);
   };
 
   const remove = async (table) => {
@@ -89,73 +137,157 @@ export default function TablesPage() {
     load();
   };
 
+  const columns = [
+    {
+      accessorKey: "table_name",
+      header: "Table",
+      cell: ({ row }) => (
+        <div>
+          <p className="font-black text-slate-950">{row.original.table_name}</p>
+          <p className="text-xs text-slate-500">{row.original.table_code}</p>
+        </div>
+      ),
+    },
+    { accessorKey: "qr_url", header: "Menu link", cell: ({ row }) => <span className="line-clamp-1 max-w-md text-xs text-slate-500">{row.original.qr_url}</span> },
+    { accessorKey: "status", header: "Status", cell: ({ row }) => <AppStatusBadge value={row.original.status} /> },
+  ];
+
   return (
-    <div className={`grid gap-6 ${allowCreate || allowUpdate ? "lg:grid-cols-[360px_1fr]" : ""}`}>
-      {allowCreate || allowUpdate ? <form onSubmit={submit} className="rounded-md border border-slate-200 bg-white p-4">
-        <h2 className="text-lg font-semibold text-slate-950">{editing ? "Edit table" : "Add table"}</h2>
-        <Select label="Shop" value={shopId} onChange={setShopId} disabled={Boolean(editing)} options={shops.map((shop) => [shop.id, shop.name])} />
-        <Select label="Branch" value={branchId} onChange={setBranchId} disabled={Boolean(editing)} options={branches.map((branch) => [branch.id, branch.name])} />
-        <Input label="Table name" value={form.table_name} required onChange={(value) => setForm({ ...form, table_name: value })} />
-        <Input label="Table code" value={form.table_code} required onChange={(value) => setForm({ ...form, table_code: value })} />
-        <Select label="Status" value={form.status || "active"} onChange={(value) => setForm({ ...form, status: value })} options={[["active", "Active"], ["inactive", "Inactive"]]} />
-        <button disabled={!branchId || (editing ? !allowUpdate : !allowCreate)} className="mt-5 rounded-md bg-orange-600 px-4 py-2 font-semibold text-white hover:bg-orange-700 disabled:opacity-60">{editing ? "Update table" : "Create table"}</button>
-      </form> : null}
-      <div className="grid gap-4">
+    <div className="grid gap-5">
+      <AppPageHeader
+        eyebrow="QR operations"
+        title="Tables"
+        description="Create table QR codes from a clean list view. QR previews, downloads, and edits open in focused drawers."
+        primaryAction={allowCreate ? { children: "Add Table", onClick: openCreate, iconLeft: <Plus className="h-4 w-4" /> } : null}
+        secondaryActions={<AppButton type="button" variant="secondary" iconLeft={<Printer className="h-4 w-4" />} onClick={() => window.print()}>Bulk print</AppButton>}
+      />
+
+      <CrudToolbar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Search tables..."
+        filters={(
+          <>
+            <StatusTabs value={statusFilter} onChange={setStatusFilter} />
+            <SelectFilter ariaLabel="Shop" value={shopId} onChange={setShopId} options={shops.map((shop) => [shop.id, shop.name])} />
+            <SelectFilter ariaLabel="Branch" value={branchId} onChange={setBranchId} options={branches.map((branch) => [branch.id, branch.name])} />
+          </>
+        )}
+        onClear={() => {
+          setSearch("");
+          setStatusFilter("all");
+        }}
+      />
+
+      <AppCard bodyClassName="p-0">
+        {loadError ? (
+          <AppEmptyState title="Tables could not load" description={loadError} actionLabel="Retry" onAction={load} />
+        ) : (
+          <AppTable
+            columns={columns}
+            data={filteredTables}
+            loading={loading}
+            emptyTitle="No tables found"
+            emptyDescription="Create a table to generate a QR menu link for guests."
+            rowActions={(table) => (
+              <RowActionsMenu>
+                {allowUpdate ? <IconAction label="Edit table" icon={<Edit3 className="h-4 w-4" />} onClick={() => openEdit(table)}>Edit</IconAction> : null}
+                <IconAction label="Preview QR" icon={<QrCode className="h-4 w-4" />} onClick={() => showQr(table)}>QR</IconAction>
+                {allowDelete ? (
+                  <ConfirmButton
+                    title="Delete table?"
+                    text={`This will delete ${table.table_name} and its QR reference.`}
+                    onConfirm={() => remove(table)}
+                    className="inline-flex h-9 items-center gap-2 rounded-xl bg-rose-600 px-3 text-sm font-bold text-white transition hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    Delete
+                  </ConfirmButton>
+                ) : null}
+              </RowActionsMenu>
+            )}
+          />
+        )}
+      </AppCard>
+
+      <CreateEditDrawer
+        open={drawerOpen}
+        title={editing ? "Edit table" : "Add table"}
+        description="Table codes should be short and easy for staff to recognize."
+        onClose={closeDrawer}
+        onSubmit={submit}
+        submitLabel={editing ? "Save changes" : "Create table"}
+        loading={saving}
+        disabled={!branchId || (editing ? !allowUpdate : !allowCreate)}
+      >
+        <Field label="Shop">
+          <SelectInput value={shopId} onChange={setShopId} disabled={Boolean(editing)} options={shops.map((shop) => [shop.id, shop.name])} />
+        </Field>
+        <Field label="Branch">
+          <SelectInput value={branchId} onChange={setBranchId} disabled={Boolean(editing)} options={branches.map((branch) => [branch.id, branch.name])} />
+        </Field>
+        <Field label="Table name">
+          <TextInput value={form.table_name} required placeholder="Table 01" onChange={(value) => setForm({ ...form, table_name: value })} />
+        </Field>
+        <Field label="Table code">
+          <TextInput value={form.table_code} required placeholder="T01" onChange={(value) => setForm({ ...form, table_code: value })} />
+        </Field>
+        <Field label="Status">
+          <SelectInput value={form.status || "active"} onChange={(value) => setForm({ ...form, status: value })} options={[["active", "Active"], ["inactive", "Inactive"]]} />
+        </Field>
+      </CreateEditDrawer>
+
+      <AppSheet open={qrOpen} title="Table QR preview" onClose={() => setQrOpen(false)}>
         {qr ? (
-          <div className="rounded-md border border-slate-200 bg-white p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-semibold text-slate-950">QR preview</h2>
-                <a className="break-all text-sm text-orange-700" href={qr.qr_url} target="_blank" rel="noreferrer">{qr.qr_url}</a>
+          <div className="grid gap-5">
+            <AppCard title={qr.table?.table_name || "Table"} description="Print this QR for guests or download it for a table tent.">
+              <div className="grid place-items-center rounded-2xl border border-slate-200 bg-slate-50 p-6">
+                <img className="h-56 w-56 rounded-xl border border-slate-200 bg-white" src={qr.qr_image_url} alt={`${qr.table?.table_name || "Table"} QR code`} />
               </div>
-              <div className="flex gap-2">
-                <a href={qr.qr_image_url} download className="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold">Download</a>
-                <button onClick={() => window.print()} className="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white">Print</button>
-              </div>
+              <a className="mt-4 block break-all text-sm font-semibold text-blue-700" href={qr.qr_url} target="_blank" rel="noreferrer">{qr.qr_url}</a>
+            </AppCard>
+            <div className="flex flex-wrap gap-2">
+              <AppButton as="a" href={qr.qr_image_url} download variant="outline" iconLeft={<Download className="h-4 w-4" />}>Download PNG</AppButton>
+              <AppButton type="button" variant="secondary" iconLeft={<Printer className="h-4 w-4" />} onClick={() => window.print()}>Print QR</AppButton>
+              <ConfirmButton
+                title="Regenerate QR?"
+                text="Regeneration is a future placeholder. Current QR links remain stable."
+                onConfirm={() => toastSuccess("QR regeneration is prepared for a future module.")}
+                className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-slate-50"
+              >
+                Regenerate
+              </ConfirmButton>
             </div>
-            <img className="mt-4 h-48 w-48 rounded-md border border-slate-200" src={qr.qr_image_url} alt="Table QR" />
           </div>
         ) : null}
-        <DataTable
-          columns={[
-            { key: "table_name", label: "Name" },
-            { key: "table_code", label: "Code" },
-            { key: "qr_url", label: "URL", render: (row) => <span className="break-all text-xs">{row.qr_url}</span> },
-            { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
-          ]}
-          rows={tables}
-          loading={loading}
-          error={loadError}
-          emptyMessage="No tables yet."
-          renderActions={(table) => (
-            <div className="flex flex-wrap gap-2">
-              {allowUpdate ? <button onClick={() => { setEditing(table); setForm({ ...initial, ...table }); }} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button> : null}
-              <button onClick={() => showQr(table)} className="rounded-md bg-slate-900 px-3 py-1 text-sm text-white">QR</button>
-              {allowDelete ? <ConfirmButton onConfirm={() => remove(table)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Delete</ConfirmButton> : null}
-            </div>
-          )}
-        />
-      </div>
+      </AppSheet>
     </div>
   );
 }
 
-function Input({ label, value, onChange, required = false }) {
+function SelectFilter({ ariaLabel, value, onChange, options }) {
   return (
-    <label className="mt-3 block text-sm font-medium text-slate-700">
-      {label}
-      <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" value={value} required={required} onChange={(event) => onChange(event.target.value)} />
-    </label>
+    <select
+      aria-label={ariaLabel}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+    >
+      {options.map(([optionValue, label]) => <option key={optionValue || "empty"} value={optionValue}>{label}</option>)}
+    </select>
   );
 }
 
-function Select({ label, value, onChange, options, disabled = false }) {
+function IconAction({ label, icon, onClick, children }) {
   return (
-    <label className="mt-3 block text-sm font-medium text-slate-700">
-      {label}
-      <select disabled={disabled} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" value={value} onChange={(event) => onChange(event.target.value)}>
-        {options.map(([optionValue, labelText]) => <option key={optionValue || "empty"} value={optionValue}>{labelText}</option>)}
-      </select>
-    </label>
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      className="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+    >
+      {icon}
+      {children}
+    </button>
   );
 }

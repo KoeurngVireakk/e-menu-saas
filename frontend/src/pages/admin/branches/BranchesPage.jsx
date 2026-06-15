@@ -1,10 +1,21 @@
-  import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Edit3, MapPin, Plus, Trash2 } from "lucide-react";
 import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
-import DataTable from "../../../components/DataTable";
-import StatusBadge from "../../../components/StatusBadge";
 import { alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import {
+  AppCard,
+  AppEmptyState,
+  AppPageHeader,
+  AppStatusBadge,
+  AppTable,
+} from "../../../design-system/components";
+import CreateEditDrawer from "../../../design-system/crud/CreateEditDrawer";
+import CrudToolbar from "../../../design-system/crud/CrudToolbar";
+import { Field, SelectInput, TextInput } from "../../../design-system/crud/FormControls";
+import RowActionsMenu from "../../../design-system/crud/RowActionsMenu";
+import StatusTabs from "../../../design-system/crud/StatusTabs";
 import { canCreate, canDelete, canUpdate } from "../../../utils/permissions";
 
 const initial = { name: "", phone: "", address: "", google_map_url: "", opening_time: "", closing_time: "", status: "active" };
@@ -19,13 +30,18 @@ export default function BranchesPage() {
   const [branches, setBranches] = useState([]);
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     api.get("/shops").then((response) => {
-      setShops(response.data.data.shops);
-      setShopId(response.data.data.shops[0]?.id || "");
+      const loaded = response.data.data.shops;
+      setShops(loaded);
+      setShopId(loaded[0]?.id || "");
     });
   }, []);
 
@@ -49,8 +65,34 @@ export default function BranchesPage() {
     return () => window.clearTimeout(timer);
   }, [load]);
 
+  const filteredBranches = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return branches
+      .filter((branch) => statusFilter === "all" || branch.status === statusFilter)
+      .filter((branch) => !query || [branch.name, branch.phone, branch.address].filter(Boolean).join(" ").toLowerCase().includes(query));
+  }, [branches, search, statusFilter]);
+
+  const openCreate = () => {
+    setEditing(null);
+    setForm(initial);
+    setDrawerOpen(true);
+  };
+
+  const openEdit = (branch) => {
+    setEditing(branch);
+    setForm({ ...initial, ...branch });
+    setDrawerOpen(true);
+  };
+
+  const closeDrawer = () => {
+    setDrawerOpen(false);
+    setEditing(null);
+    setForm(initial);
+  };
+
   const submit = async (event) => {
     event.preventDefault();
+    setSaving(true);
     try {
       if (editing) {
         await api.put(`/branches/${editing.id}`, form);
@@ -59,17 +101,13 @@ export default function BranchesPage() {
         await api.post(`/shops/${shopId}/branches`, form);
         toastSuccess("Branch created successfully.");
       }
-      setForm(initial);
-      setEditing(null);
+      closeDrawer();
       load();
     } catch (error) {
       alertError(error, "Please review the branch.");
+    } finally {
+      setSaving(false);
     }
-  };
-
-  const edit = (branch) => {
-    setEditing(branch);
-    setForm({ ...initial, ...branch });
   };
 
   const remove = async (branch) => {
@@ -78,67 +116,157 @@ export default function BranchesPage() {
     load();
   };
 
-  return (
-    <div className={`grid gap-6 ${allowCreate || allowUpdate ? "lg:grid-cols-[390px_1fr]" : ""}`}>
-      {allowCreate || allowUpdate ? <form onSubmit={submit} className="rounded-md border border-slate-200 bg-white p-4">
-        <h2 className="text-lg font-semibold text-slate-950">{editing ? "Edit branch" : "Add branch"}</h2>
-        <ShopSelect shops={shops} value={shopId} onChange={setShopId} disabled={Boolean(editing)} />
-        <Input label="Name" value={form.name} required onChange={(value) => setForm({ ...form, name: value })} />
-        <Input label="Phone" value={form.phone || ""} onChange={(value) => setForm({ ...form, phone: value })} />
-        <Input label="Address" value={form.address || ""} onChange={(value) => setForm({ ...form, address: value })} />
-        <Input label="Google map URL" value={form.google_map_url || ""} onChange={(value) => setForm({ ...form, google_map_url: value })} />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Opening" type="time" value={form.opening_time || ""} onChange={(value) => setForm({ ...form, opening_time: value })} />
-          <Input label="Closing" type="time" value={form.closing_time || ""} onChange={(value) => setForm({ ...form, closing_time: value })} />
+  const columns = [
+    {
+      accessorKey: "name",
+      header: "Branch",
+      cell: ({ row }) => (
+        <div>
+          <p className="font-black text-slate-950">{row.original.name}</p>
+          <p className="text-xs text-slate-500">{row.original.opening_time || "Open"} - {row.original.closing_time || "Close"}</p>
         </div>
-        <label className="mt-3 block text-sm font-medium text-slate-700">
-          Status
-          <select className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" value={form.status || "active"} onChange={(event) => setForm({ ...form, status: event.target.value })}>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </label>
-        <button disabled={!shopId || (editing ? !allowUpdate : !allowCreate)} className="mt-5 rounded-md bg-orange-600 px-4 py-2 font-semibold text-white hover:bg-orange-700 disabled:opacity-60">{editing ? "Update branch" : "Create branch"}</button>
-        {editing ? <button type="button" onClick={() => { setEditing(null); setForm(initial); }} className="ml-2 rounded-md border border-slate-300 px-4 py-2 font-semibold">Cancel</button> : null}
-      </form> : null}
-      <DataTable
-        columns={[
-          { key: "name", label: "Name" },
-          { key: "phone", label: "Phone" },
-          { key: "address", label: "Address" },
-          { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
-        ]}
-        rows={branches}
-        loading={loading}
-        error={loadError}
-        emptyMessage="No branches yet."
-        renderActions={allowUpdate || allowDelete ? (branch) => (
-          <div className="flex gap-2">
-            {allowUpdate ? <button onClick={() => edit(branch)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button> : null}
-            {allowDelete ? <ConfirmButton onConfirm={() => remove(branch)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Delete</ConfirmButton> : null}
-          </div>
-        ) : undefined}
+      ),
+    },
+    { accessorKey: "phone", header: "Phone", cell: ({ row }) => row.original.phone || "Not set" },
+    { accessorKey: "address", header: "Address", cell: ({ row }) => <span className="line-clamp-2">{row.original.address || "Not set"}</span> },
+    { accessorKey: "status", header: "Status", cell: ({ row }) => <AppStatusBadge value={row.original.status} /> },
+  ];
+
+  return (
+    <div className="grid gap-5">
+      <AppPageHeader
+        eyebrow="Operations"
+        title="Branches"
+        description="Manage restaurant locations from a focused list-first workspace. Branch details open in a drawer so the list remains scannable."
+        primaryAction={allowCreate ? { children: "Add Branch", onClick: openCreate, iconLeft: <Plus className="h-4 w-4" /> } : null}
       />
+
+      <CrudToolbar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Search branches..."
+        filters={(
+          <>
+            <StatusTabs value={statusFilter} onChange={setStatusFilter} />
+            <SelectFilter ariaLabel="Shop" value={shopId} onChange={setShopId} options={shops.map((shop) => [shop.id, shop.name])} />
+          </>
+        )}
+        onClear={() => {
+          setSearch("");
+          setStatusFilter("all");
+        }}
+      />
+
+      <AppCard bodyClassName="p-0">
+        {loadError ? (
+          <AppEmptyState title="Branches could not load" description={loadError} actionLabel="Retry" onAction={load} />
+        ) : (
+          <AppTable
+            columns={columns}
+            data={filteredBranches}
+            loading={loading}
+            emptyTitle="No branches found"
+            emptyDescription="Create a branch or clear filters to see more locations."
+            rowActions={(branch) => (
+              <RowActionsMenu>
+                {allowUpdate ? <IconAction label="Edit branch" icon={<Edit3 className="h-4 w-4" />} onClick={() => openEdit(branch)}>Edit</IconAction> : null}
+                {branch.google_map_url ? <IconLink href={branch.google_map_url} label="Open map" icon={<MapPin className="h-4 w-4" />}>Map</IconLink> : null}
+                {allowDelete ? (
+                  <ConfirmButton
+                    title="Delete branch?"
+                    text={`This will delete ${branch.name}. Make sure no active operations depend on it.`}
+                    onConfirm={() => remove(branch)}
+                    className="inline-flex h-9 items-center gap-2 rounded-xl bg-rose-600 px-3 text-sm font-bold text-white transition hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    Delete
+                  </ConfirmButton>
+                ) : null}
+              </RowActionsMenu>
+            )}
+          />
+        )}
+      </AppCard>
+
+      <CreateEditDrawer
+        open={drawerOpen}
+        title={editing ? "Edit branch" : "Add branch"}
+        description="Branch details are used for operations, kitchen filtering, reports, and table QR menus."
+        onClose={closeDrawer}
+        onSubmit={submit}
+        submitLabel={editing ? "Save changes" : "Create branch"}
+        loading={saving}
+        disabled={!shopId || (editing ? !allowUpdate : !allowCreate)}
+      >
+        <Field label="Shop">
+          <SelectInput value={shopId} onChange={setShopId} disabled={Boolean(editing)} options={shops.map((shop) => [shop.id, shop.name])} />
+        </Field>
+        <Field label="Name">
+          <TextInput value={form.name} required placeholder="Main Branch" onChange={(value) => setForm({ ...form, name: value })} />
+        </Field>
+        <Field label="Phone">
+          <TextInput value={form.phone || ""} placeholder="+855..." onChange={(value) => setForm({ ...form, phone: value })} />
+        </Field>
+        <Field label="Address">
+          <TextInput value={form.address || ""} placeholder="Street, city, landmark" onChange={(value) => setForm({ ...form, address: value })} />
+        </Field>
+        <Field label="Google map URL">
+          <TextInput value={form.google_map_url || ""} placeholder="https://maps.google.com/..." onChange={(value) => setForm({ ...form, google_map_url: value })} />
+        </Field>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Opening">
+            <TextInput type="time" value={form.opening_time || ""} onChange={(value) => setForm({ ...form, opening_time: value })} />
+          </Field>
+          <Field label="Closing">
+            <TextInput type="time" value={form.closing_time || ""} onChange={(value) => setForm({ ...form, closing_time: value })} />
+          </Field>
+        </div>
+        <Field label="Status">
+          <SelectInput value={form.status || "active"} onChange={(value) => setForm({ ...form, status: value })} options={[["active", "Active"], ["inactive", "Inactive"]]} />
+        </Field>
+      </CreateEditDrawer>
     </div>
   );
 }
 
-function ShopSelect({ shops, value, onChange, disabled }) {
+function SelectFilter({ ariaLabel, value, onChange, options }) {
   return (
-    <label className="mt-3 block text-sm font-medium text-slate-700">
-      Shop
-      <select disabled={disabled} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" value={value} onChange={(event) => onChange(event.target.value)}>
-        {shops.map((shop) => <option key={shop.id} value={shop.id}>{shop.name}</option>)}
-      </select>
-    </label>
+    <select
+      aria-label={ariaLabel}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+    >
+      {options.map(([optionValue, label]) => <option key={optionValue || "empty"} value={optionValue}>{label}</option>)}
+    </select>
   );
 }
 
-function Input({ label, value, onChange, type = "text", required = false }) {
+function IconAction({ label, icon, onClick, children }) {
   return (
-    <label className="mt-3 block text-sm font-medium text-slate-700">
-      {label}
-      <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" type={type} value={value} required={required} onChange={(event) => onChange(event.target.value)} />
-    </label>
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      className="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+    >
+      {icon}
+      {children}
+    </button>
+  );
+}
+
+function IconLink({ href, label, icon, children }) {
+  return (
+    <a
+      aria-label={label}
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+    >
+      {icon}
+      {children}
+    </a>
   );
 }

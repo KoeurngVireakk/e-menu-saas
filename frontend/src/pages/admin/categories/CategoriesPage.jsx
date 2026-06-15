@@ -1,10 +1,22 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Edit3, Languages, Plus, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
-import DataTable from "../../../components/DataTable";
-import StatusBadge from "../../../components/StatusBadge";
 import { alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import {
+  AppCard,
+  AppEmptyState,
+  AppPageHeader,
+  AppStatusBadge,
+  AppTable,
+} from "../../../design-system/components";
+import CreateEditDrawer from "../../../design-system/crud/CreateEditDrawer";
+import CrudToolbar from "../../../design-system/crud/CrudToolbar";
+import { Field, FileInput, SelectInput, TextInput } from "../../../design-system/crud/FormControls";
+import RowActionsMenu from "../../../design-system/crud/RowActionsMenu";
+import StatusTabs from "../../../design-system/crud/StatusTabs";
 import { canCreate, canDelete, canUpdate } from "../../../utils/permissions";
 
 const initial = { name: "", branch_id: "", sort_order: 0, status: "active", image: null };
@@ -20,13 +32,19 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("sort_order");
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     api.get("/shops").then((response) => {
-      setShops(response.data.data.shops);
-      setShopId(response.data.data.shops[0]?.id || "");
+      const loaded = response.data.data.shops;
+      setShops(loaded);
+      setShopId(loaded[0]?.id || "");
     });
   }, []);
 
@@ -52,6 +70,36 @@ export default function CategoriesPage() {
     return () => window.clearTimeout(timer);
   }, [load]);
 
+  const filteredCategories = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return categories
+      .filter((category) => statusFilter === "all" || category.status === statusFilter)
+      .filter((category) => !query || [category.name, category.branch?.name].filter(Boolean).join(" ").toLowerCase().includes(query))
+      .sort((a, b) => {
+        if (sortBy === "name") return String(a.name).localeCompare(String(b.name));
+        if (sortBy === "status") return String(a.status).localeCompare(String(b.status));
+        return Number(a.sort_order || 0) - Number(b.sort_order || 0);
+      });
+  }, [categories, search, sortBy, statusFilter]);
+
+  const openCreate = () => {
+    setEditing(null);
+    setForm(initial);
+    setDrawerOpen(true);
+  };
+
+  const openEdit = (category) => {
+    setEditing(category);
+    setForm({ ...initial, ...category, branch_id: category.branch_id || "", image: null });
+    setDrawerOpen(true);
+  };
+
+  const closeDrawer = () => {
+    setDrawerOpen(false);
+    setEditing(null);
+    setForm(initial);
+  };
+
   const submit = async (event) => {
     event.preventDefault();
     const data = new FormData();
@@ -59,6 +107,7 @@ export default function CategoriesPage() {
       if (value !== null && value !== "") data.append(key, value);
     });
 
+    setSaving(true);
     try {
       if (editing) {
         data.append("_method", "PUT");
@@ -68,17 +117,13 @@ export default function CategoriesPage() {
         await api.post(`/shops/${shopId}/categories`, data, { headers: { "Content-Type": "multipart/form-data" } });
         toastSuccess("Category created successfully.");
       }
-      setForm(initial);
-      setEditing(null);
+      closeDrawer();
       load();
     } catch (error) {
       alertError(error, "Please review the category.");
+    } finally {
+      setSaving(false);
     }
-  };
-
-  const edit = (category) => {
-    setEditing(category);
-    setForm({ ...initial, ...category, branch_id: category.branch_id || "", image: null });
   };
 
   const remove = async (category) => {
@@ -87,59 +132,149 @@ export default function CategoriesPage() {
     load();
   };
 
+  const columns = [
+    {
+      accessorKey: "name",
+      header: "Category",
+      cell: ({ row }) => (
+        <div>
+          <p className="font-black text-slate-950">{row.original.name}</p>
+          <p className="text-xs text-slate-500">Sort order {row.original.sort_order ?? 0}</p>
+        </div>
+      ),
+    },
+    { accessorKey: "branch.name", header: "Branch", cell: ({ row }) => row.original.branch?.name || "All branches" },
+    { accessorKey: "sort_order", header: "Sort" },
+    { accessorKey: "status", header: "Status", cell: ({ row }) => <AppStatusBadge value={row.original.status} /> },
+  ];
+
   return (
-    <div className={`grid gap-6 ${allowCreate || allowUpdate ? "lg:grid-cols-[360px_1fr]" : ""}`}>
-      {allowCreate || allowUpdate ? <form onSubmit={submit} className="rounded-md border border-slate-200 bg-white p-4">
-        <h2 className="text-lg font-semibold text-slate-950">{editing ? "Edit category" : "Add category"}</h2>
-        <Select label="Shop" value={shopId} onChange={setShopId} disabled={Boolean(editing)} options={shops.map((shop) => [shop.id, shop.name])} />
-        <Input label="Name" value={form.name} required onChange={(value) => setForm({ ...form, name: value })} />
-        <Select label="Branch" value={form.branch_id || ""} onChange={(value) => setForm({ ...form, branch_id: value })} options={[["", "All branches"], ...branches.map((branch) => [branch.id, branch.name])]} />
-        <Input label="Sort order" type="number" value={form.sort_order || 0} onChange={(value) => setForm({ ...form, sort_order: value })} />
-        <Select label="Status" value={form.status || "active"} onChange={(value) => setForm({ ...form, status: value })} options={[["active", "Active"], ["inactive", "Inactive"]]} />
-        <label className="mt-3 block text-sm font-medium text-slate-700">
-          Image
-          <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" type="file" accept="image/*" onChange={(event) => setForm({ ...form, image: event.target.files?.[0] || null })} />
-        </label>
-        <button disabled={!shopId || (editing ? !allowUpdate : !allowCreate)} className="mt-5 rounded-md bg-orange-600 px-4 py-2 font-semibold text-white hover:bg-orange-700 disabled:opacity-60">{editing ? "Update category" : "Create category"}</button>
-      </form> : null}
-      <DataTable
-        columns={[
-          { key: "name", label: "Name" },
-          { key: "branch", label: "Branch", render: (row) => row.branch?.name || "All" },
-          { key: "sort_order", label: "Sort" },
-          { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
-        ]}
-        rows={categories}
-        loading={loading}
-        error={loadError}
-        emptyMessage="No categories yet."
-        renderActions={allowUpdate || allowDelete ? (category) => (
-          <div className="flex gap-2">
-            {allowUpdate ? <button onClick={() => edit(category)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button> : null}
-            {allowDelete ? <ConfirmButton onConfirm={() => remove(category)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Delete</ConfirmButton> : null}
-          </div>
-        ) : undefined}
+    <div className="grid gap-5">
+      <AppPageHeader
+        eyebrow="Menu setup"
+        title="Categories"
+        description="Organize menu sections with a list-first workflow. Add or edit categories from a focused drawer without covering the table."
+        primaryAction={allowCreate ? { children: "Add Category", onClick: openCreate, iconLeft: <Plus className="h-4 w-4" /> } : null}
       />
+
+      <CrudToolbar
+        search={search}
+        onSearch={setSearch}
+        searchPlaceholder="Search categories..."
+        filters={(
+          <>
+            <StatusTabs value={statusFilter} onChange={setStatusFilter} />
+            <SelectFilter ariaLabel="Sort categories" value={sortBy} onChange={setSortBy} options={[["sort_order", "Sort order"], ["name", "Name"], ["status", "Status"]]} />
+            <SelectFilter ariaLabel="Shop" value={shopId} onChange={setShopId} options={shops.map((shop) => [shop.id, shop.name])} />
+          </>
+        )}
+        onClear={() => {
+          setSearch("");
+          setStatusFilter("all");
+          setSortBy("sort_order");
+        }}
+      />
+
+      <AppCard bodyClassName="p-0">
+        {loadError ? (
+          <AppEmptyState title="Categories could not load" description={loadError} actionLabel="Retry" onAction={load} />
+        ) : (
+          <AppTable
+            columns={columns}
+            data={filteredCategories}
+            loading={loading}
+            emptyTitle="No categories found"
+            emptyDescription="Create a category or clear filters to see more menu sections."
+            rowActions={(category) => (
+              <RowActionsMenu>
+                {allowUpdate ? <IconAction label="Edit category" icon={<Edit3 className="h-4 w-4" />} onClick={() => openEdit(category)} /> : null}
+                {allowUpdate ? <IconLink label="Manage translations" icon={<Languages className="h-4 w-4" />} to="/admin/translations" /> : null}
+                {allowDelete ? (
+                  <ConfirmButton
+                    title="Delete category?"
+                    text={`This will delete ${category.name}. Products assigned to it may need review.`}
+                    onConfirm={() => remove(category)}
+                    className="inline-flex h-9 items-center gap-2 rounded-xl bg-rose-600 px-3 text-sm font-bold text-white transition hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    Delete
+                  </ConfirmButton>
+                ) : null}
+              </RowActionsMenu>
+            )}
+          />
+        )}
+      </AppCard>
+
+      <CreateEditDrawer
+        open={drawerOpen}
+        title={editing ? "Edit category" : "Add category"}
+        description="Keep category names short and easy for customers to scan on mobile menus."
+        onClose={closeDrawer}
+        onSubmit={submit}
+        submitLabel={editing ? "Save changes" : "Create category"}
+        loading={saving}
+        disabled={!shopId || (editing ? !allowUpdate : !allowCreate)}
+      >
+        <Field label="Shop">
+          <SelectInput value={shopId} onChange={setShopId} disabled={Boolean(editing)} options={shops.map((shop) => [shop.id, shop.name])} />
+        </Field>
+        <Field label="Name">
+          <TextInput value={form.name} required placeholder="Coffee, Food, Desserts..." onChange={(value) => setForm({ ...form, name: value })} />
+        </Field>
+        <Field label="Branch">
+          <SelectInput value={form.branch_id || ""} onChange={(value) => setForm({ ...form, branch_id: value })} options={[["", "All branches"], ...branches.map((branch) => [branch.id, branch.name])]} />
+        </Field>
+        <Field label="Sort order">
+          <TextInput type="number" value={form.sort_order || 0} onChange={(value) => setForm({ ...form, sort_order: value })} />
+        </Field>
+        <Field label="Status">
+          <SelectInput value={form.status || "active"} onChange={(value) => setForm({ ...form, status: value })} options={[["active", "Active"], ["inactive", "Inactive"]]} />
+        </Field>
+        <Field label="Image">
+          <FileInput onChange={(image) => setForm({ ...form, image })} />
+        </Field>
+      </CreateEditDrawer>
     </div>
   );
 }
 
-function Input({ label, value, onChange, type = "text", required = false }) {
+function SelectFilter({ ariaLabel, value, onChange, options }) {
   return (
-    <label className="mt-3 block text-sm font-medium text-slate-700">
-      {label}
-      <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" type={type} value={value} required={required} onChange={(event) => onChange(event.target.value)} />
-    </label>
+    <select
+      aria-label={ariaLabel}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+    >
+      {options.map(([optionValue, label]) => <option key={optionValue || "empty"} value={optionValue}>{label}</option>)}
+    </select>
   );
 }
 
-function Select({ label, value, onChange, options, disabled = false }) {
+function IconAction({ label, icon, onClick }) {
   return (
-    <label className="mt-3 block text-sm font-medium text-slate-700">
-      {label}
-      <select disabled={disabled} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" value={value} onChange={(event) => onChange(event.target.value)}>
-        {options.map(([optionValue, labelText]) => <option key={optionValue || "empty"} value={optionValue}>{labelText}</option>)}
-      </select>
-    </label>
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      className="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+    >
+      {icon}
+      Edit
+    </button>
+  );
+}
+
+function IconLink({ label, icon, to }) {
+  return (
+    <Link
+      aria-label={label}
+      to={to}
+      className="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+    >
+      {icon}
+      Translate
+    </Link>
   );
 }
