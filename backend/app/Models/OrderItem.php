@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OrderItem extends Model
 {
@@ -20,6 +21,9 @@ class OrderItem extends Model
         'total_price',
         'note',
         'selected_options_json',
+        'kitchen_status',
+        'prepared_at',
+        'served_at',
     ];
 
     protected function casts(): array
@@ -29,6 +33,8 @@ class OrderItem extends Model
             'discount_price' => 'decimal:2',
             'total_price' => 'decimal:2',
             'selected_options_json' => 'array',
+            'prepared_at' => 'datetime',
+            'served_at' => 'datetime',
         ];
     }
 
@@ -40,5 +46,10 @@ class OrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function kitchenEvents(): HasMany
+    {
+        return $this->hasMany(KitchenEvent::class);
     }
 }

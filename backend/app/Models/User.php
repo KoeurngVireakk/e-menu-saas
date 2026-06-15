@@ -175,6 +175,26 @@ class User extends Authenticatable
         return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
     }
 
+    public function canViewKitchen(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier', 'waiter'], true);
+    }
+
+    public function canManageKitchen(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
+    }
+
+    public function canUpdateKitchenOrder(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier', 'waiter'], true);
+    }
+
+    public function canManageKitchenStations(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
+    }
+
     public function canViewStaff(): bool
     {
         return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);

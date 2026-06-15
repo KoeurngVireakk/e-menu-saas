@@ -103,6 +103,16 @@ class Shop extends Model
         return $this->hasMany(CashLedgerEntry::class);
     }
 
+    public function kitchenStations(): HasMany
+    {
+        return $this->hasMany(KitchenStation::class);
+    }
+
+    public function kitchenEvents(): HasMany
+    {
+        return $this->hasMany(KitchenEvent::class);
+    }
+
     public function staffAssignments(): HasMany
     {
         return $this->hasMany(ShopStaff::class);

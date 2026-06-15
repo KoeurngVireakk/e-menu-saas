@@ -74,4 +74,9 @@ class Order extends Model
     {
         return $this->hasOne(Invoice::class);
     }
+
+    public function kitchenEvents(): HasMany
+    {
+        return $this->hasMany(KitchenEvent::class);
+    }
 }

@@ -424,7 +424,8 @@ class ReportController extends Controller
     private function expenseQuery(Request $request, array $filters): Builder
     {
         $expenses = Expense::whereIn('shop_id', $filters['shop_ids'])
-            ->whereBetween('expense_date', [$filters['date_from']->toDateString(), $filters['date_to']->toDateString()])
+            ->whereDate('expense_date', '>=', $filters['date_from']->toDateString())
+            ->whereDate('expense_date', '<=', $filters['date_to']->toDateString())
             ->when($filters['has_branch_filter'], fn ($query) => $query->where('branch_id', $filters['branch_id']));
 
         $expenses->where(function (Builder $query) use ($request, $filters) {
@@ -442,7 +443,8 @@ class ReportController extends Controller
     private function ledgerQuery(Request $request, array $filters): Builder
     {
         $entries = CashLedgerEntry::whereIn('shop_id', $filters['shop_ids'])
-            ->whereBetween('entry_date', [$filters['date_from']->toDateString(), $filters['date_to']->toDateString()])
+            ->whereDate('entry_date', '>=', $filters['date_from']->toDateString())
+            ->whereDate('entry_date', '<=', $filters['date_to']->toDateString())
             ->when($filters['has_branch_filter'], fn ($query) => $query->where('branch_id', $filters['branch_id']));
 
         $entries->where(function (Builder $query) use ($request, $filters) {

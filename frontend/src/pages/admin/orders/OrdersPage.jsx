@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api, { getApiErrorMessage } from "../../../api/axios";
 import DataTable from "../../../components/DataTable";
 import ReceiptPreview from "../../../components/ReceiptPreview";
@@ -96,6 +97,7 @@ export default function OrdersPage() {
           <p className="mt-2 text-sm text-slate-500">{selected.branch?.name} · {selected.dining_table?.table_name || selected.order_type}</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <button onClick={() => loadReceipt(selected)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">View receipt</button>
+            <Link to="/admin/kitchen" className="rounded-md border border-blue-300 px-3 py-1 text-sm text-blue-700">Open Kitchen Display</Link>
             {allowKitchenPrint ? <button onClick={() => loadPrint(selected, "kitchen")} className="rounded-md border border-orange-300 px-3 py-1 text-sm text-orange-700">Print kitchen ticket</button> : null}
             {allowReceiptPrint ? <button onClick={() => loadPrint(selected, "receipt")} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Print receipt</button> : null}
             {allowInvoiceActions ? <button onClick={() => createInvoice(selected)} className="rounded-md bg-slate-900 px-3 py-1 text-sm text-white">Create invoice</button> : null}
@@ -108,9 +110,12 @@ export default function OrdersPage() {
           ) : null}
           <div className="mt-4 grid gap-2">
             {selected.items?.map((item) => (
-              <div key={item.id} className="flex justify-between rounded-md bg-slate-50 p-3 text-sm">
+              <div key={item.id} className="flex items-center justify-between gap-3 rounded-md bg-slate-50 p-3 text-sm">
                 <span>{item.quantity} x {item.product_name}</span>
-                <span>{formatCurrency(item.total_price, selected.currency_code)}</span>
+                <span className="flex items-center gap-2">
+                  <StatusBadge value={item.kitchen_status || "pending"} />
+                  {formatCurrency(item.total_price, selected.currency_code)}
+                </span>
               </div>
             ))}
           </div>

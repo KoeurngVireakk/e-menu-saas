@@ -11,7 +11,10 @@ use App\Models\DailyClosing;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Invoice;
+use App\Models\KitchenEvent;
+use App\Models\KitchenStation;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\PrintStation;
 use App\Models\Product;
@@ -863,7 +866,7 @@ class ApiCriticalFlowsTest extends TestCase
 
     public function test_no_aba_payway_provider_config_or_routes_are_introduced(): void
     {
-        $this->assertFalse(class_exists(\App\Services\Payments\AbaPayWayProvider::class));
+        $this->assertFalse(class_exists('App\\Services\\Payments\\AbaPayWayProvider'));
         $this->assertArrayNotHasKey('aba_payway', config('payment'));
 
         $uris = collect(app('router')->getRoutes())->map(fn ($route) => $route->uri())->all();
@@ -1716,6 +1719,143 @@ class ApiCriticalFlowsTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.summary.total_expenses', 4000)
             ->assertJsonPath('data.summary.net_after_expenses', 10500);
+    }
+
+    public function test_manager_and_waiter_can_view_branch_kitchen_orders_and_unrelated_user_cannot(): void
+    {
+        $catalog = $this->createCatalog();
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $manager = User::factory()->create(['role' => 'manager']);
+        $waiter = User::factory()->create(['role' => 'waiter']);
+        $unrelatedOwner = User::factory()->create(['role' => 'shop_owner']);
+        foreach ([$manager, $waiter] as $staffUser) {
+            $catalog['shop']->staffAssignments()->create([
+                'branch_id' => $catalog['branch']->id,
+                'user_id' => $staffUser->id,
+                'role' => $staffUser->role,
+                'status' => 'active',
+            ]);
+        }
+
+        Sanctum::actingAs($manager);
+        $this->getJson("/api/kitchen/orders?shop_id={$catalog['shop']->id}&branch_id={$catalog['branch']->id}&date=".now()->toDateString())
+            ->assertOk()
+            ->assertJsonPath('data.orders.0.id', $order['id'])
+            ->assertJsonPath('data.orders.0.order_status', 'pending')
+            ->assertJsonPath('data.orders.0.items.0.kitchen_status', 'pending')
+            ->assertJsonPath('data.orders.0.items.0.selected_options.0.name', 'Size');
+
+        Sanctum::actingAs($waiter);
+        $this->getJson("/api/kitchen/orders?shop_id={$catalog['shop']->id}&branch_id={$catalog['branch']->id}&date=".now()->toDateString())
+            ->assertOk()
+            ->assertJsonPath('data.orders.0.id', $order['id']);
+
+        Sanctum::actingAs($unrelatedOwner);
+        $this->getJson("/api/kitchen/orders?shop_id={$catalog['shop']->id}&branch_id={$catalog['branch']->id}&date=".now()->toDateString())
+            ->assertForbidden();
+    }
+
+    public function test_kitchen_item_and_order_status_updates_create_events_and_audit_logs(): void
+    {
+        $catalog = $this->createCatalog();
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $item = OrderItem::where('order_id', $order['id'])->firstOrFail();
+
+        Sanctum::actingAs($catalog['owner']);
+
+        $this->putJson("/api/kitchen/orders/{$order['id']}/status", [
+            'order_status' => 'accepted',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.order.order_status', 'accepted');
+
+        $this->putJson("/api/kitchen/order-items/{$item->id}/status", [
+            'kitchen_status' => 'preparing',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.order.items.0.kitchen_status', 'preparing');
+
+        $this->putJson("/api/kitchen/order-items/{$item->id}/status", [
+            'kitchen_status' => 'ready',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.order.order_status', 'ready')
+            ->assertJsonPath('data.order.items.0.kitchen_status', 'ready');
+
+        $this->putJson("/api/kitchen/orders/{$order['id']}/status", [
+            'order_status' => 'completed',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.order.order_status', 'completed')
+            ->assertJsonPath('data.order.items.0.kitchen_status', 'served');
+
+        $this->assertDatabaseHas('kitchen_events', ['order_id' => $order['id'], 'event_type' => 'order_received']);
+        $this->assertDatabaseHas('kitchen_events', ['order_item_id' => $item->id, 'event_type' => 'item_preparing']);
+        $this->assertDatabaseHas('kitchen_events', ['order_item_id' => $item->id, 'event_type' => 'item_ready']);
+        $this->assertDatabaseHas('kitchen_events', ['order_id' => $order['id'], 'event_type' => 'order_served']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'kitchen.order_accepted']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'kitchen.item_preparing']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'kitchen.item_ready']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'kitchen.order_served']);
+    }
+
+    public function test_kitchen_station_crud_is_manager_allowed_and_cashier_waiter_blocked(): void
+    {
+        $catalog = $this->createCatalog();
+        $manager = User::factory()->create(['role' => 'manager']);
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $waiter = User::factory()->create(['role' => 'waiter']);
+        foreach ([$manager, $cashier, $waiter] as $staffUser) {
+            $catalog['shop']->staffAssignments()->create([
+                'branch_id' => $catalog['branch']->id,
+                'user_id' => $staffUser->id,
+                'role' => $staffUser->role,
+                'status' => 'active',
+            ]);
+        }
+
+        Sanctum::actingAs($manager);
+        $station = $this->postJson("/api/shops/{$catalog['shop']->id}/kitchen-stations", [
+            'branch_id' => $catalog['branch']->id,
+            'name' => 'Hot Kitchen',
+            'type' => 'kitchen',
+            'category_ids_json' => [$catalog['category']->id],
+            'status' => 'active',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.kitchen_station.name', 'Hot Kitchen')
+            ->json('data.kitchen_station');
+
+        $this->putJson("/api/kitchen-stations/{$station['id']}", [
+            'branch_id' => $catalog['branch']->id,
+            'name' => 'Main Kitchen',
+            'type' => 'kitchen',
+            'category_ids_json' => [$catalog['category']->id],
+            'status' => 'active',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.kitchen_station.name', 'Main Kitchen');
+
+        Sanctum::actingAs($cashier);
+        $this->postJson("/api/shops/{$catalog['shop']->id}/kitchen-stations", [
+            'branch_id' => $catalog['branch']->id,
+            'name' => 'Blocked',
+            'type' => 'general',
+            'status' => 'active',
+        ])->assertForbidden();
+
+        Sanctum::actingAs($waiter);
+        $this->deleteJson("/api/kitchen-stations/{$station['id']}")
+            ->assertForbidden();
+
+        Sanctum::actingAs($catalog['owner']);
+        $this->deleteJson("/api/kitchen-stations/{$station['id']}")
+            ->assertOk()
+            ->assertJsonPath('data.kitchen_station.status', 'inactive');
+
+        $this->assertDatabaseHas('audit_logs', ['action' => 'kitchen.station_created']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'kitchen.station_updated']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'kitchen.station_deleted']);
     }
 
     private function createCatalog(string $shopName = 'Test Cafe'): array

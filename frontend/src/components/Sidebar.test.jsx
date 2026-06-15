@@ -30,6 +30,7 @@ describe("Sidebar", () => {
     expect(screen.getByRole("link", { name: "Shops" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "System Health" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Payments" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Kitchen" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Invoices" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Reports" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Daily Closing" })).toBeInTheDocument();
@@ -53,7 +54,9 @@ describe("Sidebar", () => {
 
     expect(screen.getByRole("link", { name: "Orders" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Payments" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Kitchen" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Invoices" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Kitchen" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Reports" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Daily Closing" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Shifts" })).toBeInTheDocument();
@@ -100,6 +103,7 @@ describe("Sidebar", () => {
     );
 
     expect(screen.getByRole("link", { name: "Orders" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Kitchen" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Table QR" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Print Stations" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Payments" })).not.toBeInTheDocument();

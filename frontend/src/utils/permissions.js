@@ -82,6 +82,17 @@ const featurePermissions = {
     view: ["super_admin", "shop_owner", "manager", "cashier"],
     export: ["super_admin", "shop_owner", "manager"],
   },
+  kitchen: {
+    view: ["super_admin", "shop_owner", "manager", "cashier", "waiter"],
+    update: ["super_admin", "shop_owner", "manager", "cashier", "waiter"],
+    manage: ["super_admin", "shop_owner", "manager"],
+  },
+  kitchenStations: {
+    view: ["super_admin", "shop_owner", "manager"],
+    create: ["super_admin", "shop_owner", "manager"],
+    update: ["super_admin", "shop_owner", "manager"],
+    delete: ["super_admin", "shop_owner", "manager"],
+  },
   staff: {
     view: ["super_admin", "shop_owner", "manager"],
     create: ["super_admin", "shop_owner"],
@@ -192,6 +203,22 @@ export function canViewCashLedger(user) {
 
 export function canExportCashLedger(user) {
   return hasPermission(user, "cashLedger", "export");
+}
+
+export function canViewKitchen(user) {
+  return canView(user, "kitchen");
+}
+
+export function canManageKitchen(user) {
+  return hasPermission(user, "kitchen", "manage");
+}
+
+export function canUpdateKitchenOrder(user) {
+  return canUpdate(user, "kitchen");
+}
+
+export function canManageKitchenStations(user) {
+  return canCreate(user, "kitchenStations") && canUpdate(user, "kitchenStations") && canDelete(user, "kitchenStations");
 }
 
 export function canManageOrders(user) {

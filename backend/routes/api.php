@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\ExpenseCategoryController;
 use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\KitchenController;
+use App\Http\Controllers\Api\KitchenStationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PrintController;
@@ -81,6 +83,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/cash-ledger', [CashLedgerController::class, 'index']);
     Route::get('/cash-ledger/export', [CashLedgerController::class, 'export']);
+
+    Route::get('/kitchen/orders', [KitchenController::class, 'index']);
+    Route::get('/kitchen/orders/{order}', [KitchenController::class, 'show']);
+    Route::put('/kitchen/orders/{order}/status', [KitchenController::class, 'updateOrderStatus']);
+    Route::put('/kitchen/order-items/{orderItem}/status', [KitchenController::class, 'updateItemStatus']);
+    Route::get('/kitchen/events', [KitchenController::class, 'events']);
+    Route::get('/shops/{shop}/kitchen-stations', [KitchenStationController::class, 'index']);
+    Route::post('/shops/{shop}/kitchen-stations', [KitchenStationController::class, 'store']);
+    Route::put('/kitchen-stations/{station}', [KitchenStationController::class, 'update']);
+    Route::delete('/kitchen-stations/{station}', [KitchenStationController::class, 'destroy']);
 
     Route::get('/shifts', [ShiftController::class, 'index']);
     Route::post('/shifts/open', [ShiftController::class, 'open']);

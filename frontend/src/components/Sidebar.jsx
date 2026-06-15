@@ -11,6 +11,7 @@ const links = [
   { label: "Translations", to: "/admin/translations", feature: "translations" },
   { label: "Table QR", to: "/admin/tables", feature: "tables" },
   { label: "Orders", to: "/admin/orders", feature: "orders" },
+  { label: "Kitchen", to: "/admin/kitchen", feature: "kitchen" },
   { label: "Payments", to: "/admin/payments", feature: "payments" },
   { label: "Invoices", to: "/admin/invoices", feature: "invoices" },
   { label: "Reports", to: "/admin/reports", feature: "reports" },

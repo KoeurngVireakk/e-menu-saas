@@ -5,6 +5,8 @@ import {
   canManageInvoices,
   canManageDailyClosing,
   canManageExpenses,
+  canManageKitchen,
+  canManageKitchenStations,
   canManagePayments,
   canManageProducts,
   canManagePrintStations,
@@ -15,6 +17,7 @@ import {
   canExportReports,
   canApproveExpenses,
   canExportCashLedger,
+  canUpdateKitchenOrder,
   canAddCashMovement,
   canCloseShift,
   canPrintKitchenTicket,
@@ -27,6 +30,7 @@ import {
   canViewReports,
   canViewCashLedger,
   canViewExpenses,
+  canViewKitchen,
   canViewShifts,
   canViewStaff,
   canViewSystemHealth,
@@ -66,6 +70,10 @@ describe("permissions", () => {
     expect(canApproveExpenses(user)).toBe(true);
     expect(canViewCashLedger(user)).toBe(true);
     expect(canExportCashLedger(user)).toBe(true);
+    expect(canViewKitchen(user)).toBe(true);
+    expect(canManageKitchen(user)).toBe(true);
+    expect(canUpdateKitchenOrder(user)).toBe(true);
+    expect(canManageKitchenStations(user)).toBe(true);
     expect(canExportReports(user)).toBe(true);
     expect(canViewShifts(user)).toBe(true);
     expect(canOpenShift(user)).toBe(true);
@@ -96,6 +104,10 @@ describe("permissions", () => {
     expect(canViewExpenses(user)).toBe(true);
     expect(canViewCashLedger(user)).toBe(true);
     expect(canExportCashLedger(user)).toBe(false);
+    expect(canViewKitchen(user)).toBe(true);
+    expect(canManageKitchen(user)).toBe(false);
+    expect(canUpdateKitchenOrder(user)).toBe(true);
+    expect(canManageKitchenStations(user)).toBe(false);
     expect(canExportReports(user)).toBe(false);
     expect(canViewShifts(user)).toBe(true);
     expect(canOpenShift(user)).toBe(true);
@@ -130,6 +142,10 @@ describe("permissions", () => {
     expect(canOpenShift(user)).toBe(false);
     expect(canManageShift(user)).toBe(false);
     expect(canPrintKitchenTicket(user)).toBe(true);
+    expect(canViewKitchen(user)).toBe(true);
+    expect(canManageKitchen(user)).toBe(false);
+    expect(canUpdateKitchenOrder(user)).toBe(true);
+    expect(canManageKitchenStations(user)).toBe(false);
     expect(canPrintReceipt(user)).toBe(false);
     expect(canView(user, "payments")).toBe(false);
     expect(canView(user, "invoices")).toBe(false);

@@ -236,7 +236,8 @@ class ExpenseController extends Controller
     private function expenseQuery(Request $request, array $filters): Builder
     {
         $expenses = Expense::whereIn('shop_id', $filters['shop_ids'])
-            ->whereBetween('expense_date', [$filters['date_from']->toDateString(), $filters['date_to']->toDateString()])
+            ->whereDate('expense_date', '>=', $filters['date_from']->toDateString())
+            ->whereDate('expense_date', '<=', $filters['date_to']->toDateString())
             ->when($filters['has_branch_filter'], fn ($query) => $query->where('branch_id', $filters['branch_id']))
             ->when($filters['payment_method'], fn ($query, $method) => $query->where('payment_method', $method))
             ->when($filters['status'], fn ($query, $status) => $query->where('status', $status));

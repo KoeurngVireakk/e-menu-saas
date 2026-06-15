@@ -111,7 +111,8 @@ class CashLedgerController extends Controller
     private function ledgerQuery(Request $request, array $filters): Builder
     {
         $entries = CashLedgerEntry::whereIn('shop_id', $filters['shop_ids'])
-            ->whereBetween('entry_date', [$filters['date_from']->toDateString(), $filters['date_to']->toDateString()])
+            ->whereDate('entry_date', '>=', $filters['date_from']->toDateString())
+            ->whereDate('entry_date', '<=', $filters['date_to']->toDateString())
             ->when($filters['has_branch_filter'], fn ($query) => $query->where('branch_id', $filters['branch_id']))
             ->when($filters['entry_type'], fn ($query, $type) => $query->where('entry_type', $type))
             ->when($filters['direction'], fn ($query, $direction) => $query->where('direction', $direction))
