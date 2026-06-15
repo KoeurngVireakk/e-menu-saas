@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Badge, Button } from "./ui";
+import { Plus, Star } from "lucide-react";
+import { AppBadge, AppButton } from "../design-system/components";
 
 export default function ProductCard({ product, onAdd, onView }) {
   const imageUrl = product.image_path
@@ -11,12 +12,12 @@ export default function ProductCard({ product, onAdd, onView }) {
   return (
     <motion.article
       className={`grid grid-cols-[96px_1fr] gap-3 rounded-2xl border bg-white p-3 shadow-sm transition ${
-        available ? "border-slate-200 hover:border-orange-200" : "border-slate-200 opacity-70"
+        available ? "border-slate-200 hover:border-blue-200 hover:shadow-md" : "border-slate-200 opacity-70"
       }`}
       whileHover={available ? { y: -2 } : undefined}
       whileTap={available ? { scale: 0.99 } : undefined}
     >
-      <button type="button" onClick={() => onView(product)} className="h-28 overflow-hidden rounded-xl bg-slate-100">
+      <button type="button" onClick={() => onView(product)} className="h-28 overflow-hidden rounded-xl bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
         {imageUrl ? (
           <img className="h-full w-full object-cover transition duration-300 hover:scale-105" src={imageUrl} alt={product.name} />
         ) : (
@@ -28,18 +29,18 @@ export default function ProductCard({ product, onAdd, onView }) {
           <button type="button" onClick={() => onView(product)} className="block text-left font-bold leading-snug text-slate-950">
             {product.name}
           </button>
-          {product.is_featured ? <Badge tone="orange">Featured</Badge> : null}
+          {product.is_featured ? <AppBadge status="warning"><Star className="mr-1 h-3 w-3" aria-hidden="true" /> Featured</AppBadge> : null}
         </div>
         <p className="mt-1 line-clamp-2 text-sm text-slate-500">{product.description}</p>
         <div className="mt-3 flex items-center justify-between gap-3">
           <div>
             {product.discount_price ? <p className="text-xs text-slate-400 line-through">{Number(product.price).toLocaleString()} KHR</p> : null}
-            <p className="font-black text-orange-700">{price} KHR</p>
+            <p className="font-black text-blue-700">{price} KHR</p>
           </div>
           {available ? (
-            <Button type="button" size="sm" onClick={() => onAdd(product)}>Add</Button>
+            <AppButton type="button" size="sm" iconLeft={<Plus className="h-4 w-4" />} onClick={() => onAdd(product)}>Add</AppButton>
           ) : (
-            <Badge tone="red">Sold out</Badge>
+            <AppBadge status="danger">Sold out</AppBadge>
           )}
         </div>
       </div>

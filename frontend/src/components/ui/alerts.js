@@ -1,4 +1,5 @@
 import { getApiErrorMessage } from "../../api/axios";
+import { toast } from "sonner";
 
 async function getSwal() {
   const module = await import("sweetalert2");
@@ -6,13 +7,11 @@ async function getSwal() {
 }
 
 export async function toastSuccess(message) {
-  const Swal = await getSwal();
-  return Swal.fire({ icon: "success", title: message, timer: 1200, showConfirmButton: false, toast: true, position: "top-end" });
+  return toast.success(message);
 }
 
 export async function toastError(message) {
-  const Swal = await getSwal();
-  return Swal.fire({ icon: "error", title: message, timer: 1800, showConfirmButton: false, toast: true, position: "top-end" });
+  return toast.error(message);
 }
 
 export async function confirmAction(title = "Are you sure?", text = "This action cannot be undone.") {

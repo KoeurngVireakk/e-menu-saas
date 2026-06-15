@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
+import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
+import { AppButton, AppEmptyState } from "../design-system/components";
 import { cartTotal, itemTotal, money, optionSummary, unitPrice } from "../utils/cart";
 import { getPreferredLocale, t } from "../utils/localization";
-import { Button, Drawer, EmptyState } from "./ui";
+import { Drawer } from "./ui";
 
 export default function CartDrawer({ cart, onQuantity, onRemove, onCheckout, locale = getPreferredLocale() }) {
   const total = cartTotal(cart);
@@ -11,10 +13,10 @@ export default function CartDrawer({ cart, onQuantity, onRemove, onCheckout, loc
       <div className="mx-auto max-w-3xl">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-orange-600">{cart.length} {t(locale, "itemTypes")}</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-blue-600">{cart.length} {t(locale, "itemTypes")}</p>
             <p className="text-xl font-black text-slate-950">{money(total)} KHR</p>
           </div>
-          <Button type="button" variant="dark" disabled={!cart.length} onClick={onCheckout}>{t(locale, "checkout")}</Button>
+          <AppButton type="button" disabled={!cart.length} iconLeft={<ShoppingCart className="h-4 w-4" />} onClick={onCheckout}>{t(locale, "checkout")}</AppButton>
         </div>
         {cart.length ? (
           <div className="mt-3 grid max-h-56 gap-2 overflow-y-auto">
@@ -33,22 +35,22 @@ export default function CartDrawer({ cart, onQuantity, onRemove, onCheckout, loc
                     {optionSummary(item) ? <p className="mt-0.5 text-xs text-slate-500">{optionSummary(item)}</p> : null}
                     <p className="mt-1 text-xs text-slate-500">{money(unitPrice(item))} KHR {t(locale, "each")}</p>
                   </div>
-                  <p className="shrink-0 font-semibold text-orange-700">{money(itemTotal(item))} KHR</p>
+                  <p className="shrink-0 font-semibold text-blue-700">{money(itemTotal(item))} KHR</p>
                 </div>
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <Button type="button" variant="secondary" size="icon" aria-label={`Decrease quantity for ${item.name}`} onClick={() => onQuantity(item.key, item.quantity - 1)}>-</Button>
+                    <AppButton type="button" variant="secondary" size="sm" aria-label={`Decrease quantity for ${item.name}`} onClick={() => onQuantity(item.key, item.quantity - 1)}><Minus className="h-4 w-4" /></AppButton>
                     <span className="w-8 text-center font-bold">{item.quantity}</span>
-                    <Button type="button" variant="secondary" size="icon" aria-label={`Increase quantity for ${item.name}`} onClick={() => onQuantity(item.key, item.quantity + 1)}>+</Button>
+                    <AppButton type="button" variant="secondary" size="sm" aria-label={`Increase quantity for ${item.name}`} onClick={() => onQuantity(item.key, item.quantity + 1)}><Plus className="h-4 w-4" /></AppButton>
                   </div>
-                  <Button type="button" variant="ghost" size="sm" className="text-rose-700 hover:bg-rose-50" onClick={() => onRemove(item.key)}>{t(locale, "remove")}</Button>
+                  <AppButton type="button" variant="ghost" size="sm" className="text-rose-700 hover:bg-rose-50" iconLeft={<Trash2 className="h-4 w-4" />} onClick={() => onRemove(item.key)}>{t(locale, "remove")}</AppButton>
                 </div>
               </motion.div>
             ))}
           </div>
         ) : (
           <div className="mt-3">
-            <EmptyState title={t(locale, "cartEmpty")} message={t(locale, "chooseProduct")} />
+            <AppEmptyState title={t(locale, "cartEmpty")} description={t(locale, "chooseProduct")} />
           </div>
         )}
       </div>
