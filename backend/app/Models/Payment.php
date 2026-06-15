@@ -16,11 +16,19 @@ class Payment extends Model
         'shop_id',
         'branch_id',
         'payment_method',
+        'provider',
+        'provider_payment_id',
+        'provider_reference',
+        'qr_payload',
+        'qr_image_url',
         'amount',
         'currency_code',
         'transaction_reference',
         'proof_image_path',
         'status',
+        'webhook_verified_at',
+        'failure_reason',
+        'expires_at',
         'confirmed_by',
         'confirmed_at',
     ];
@@ -30,6 +38,8 @@ class Payment extends Model
         return [
             'amount' => 'decimal:2',
             'confirmed_at' => 'datetime',
+            'webhook_verified_at' => 'datetime',
+            'expires_at' => 'datetime',
         ];
     }
 

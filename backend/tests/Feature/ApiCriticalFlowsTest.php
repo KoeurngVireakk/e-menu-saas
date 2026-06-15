@@ -181,12 +181,14 @@ class ApiCriticalFlowsTest extends TestCase
         ]);
 
         $this->postJson("/api/public/orders/{$order['order_number']}/payment", [
-            'payment_method' => 'aba_manual',
+            'payment_method' => 'khqr_manual',
             'transaction_reference' => 'TXN-1001',
             'proof_image' => $this->fakeProofImage(),
         ])
             ->assertCreated()
-            ->assertJsonPath('data.payment.status', 'pending');
+            ->assertJsonPath('data.payment.status', 'pending')
+            ->assertJsonPath('data.payment.provider', 'manual')
+            ->assertJsonPath('data.next_action', 'upload_proof');
 
         $payment = Payment::where('order_id', $order['id'])->firstOrFail();
         $this->assertTrue(Storage::disk('public')->exists((string) $payment->proof_image_path));
@@ -204,7 +206,9 @@ class ApiCriticalFlowsTest extends TestCase
         $secondOrder = $this->submitOrder($catalog)->json('data.order');
         $this->postJson("/api/public/orders/{$secondOrder['order_number']}/payment", [
             'payment_method' => 'cash',
-        ])->assertCreated();
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.next_action', 'none');
 
         $failedPayment = Payment::where('order_id', $secondOrder['id'])->firstOrFail();
 
@@ -724,6 +728,140 @@ class ApiCriticalFlowsTest extends TestCase
             'entity_type' => 'invoice',
             'entity_id' => $invoice['id'],
         ]);
+    }
+
+    public function test_bakong_khqr_initiation_uses_backend_amount_and_returns_qr_data(): void
+    {
+        $catalog = $this->createCatalog();
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+
+        $this->postJson("/api/public/orders/{$order['order_number']}/payment", [
+            'payment_method' => 'bakong_khqr',
+            'amount' => 1,
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.next_action', 'show_qr')
+            ->assertJsonPath('data.payment.provider', 'bakong_khqr')
+            ->assertJsonPath('data.payment.amount', '14500.00')
+            ->assertJsonPath('data.payment.currency_code', 'KHR')
+            ->assertJsonPath('data.payment.status', 'pending')
+            ->assertJsonStructure(['data' => ['qr_payload']]);
+
+        $payment = Payment::where('order_id', $order['id'])->firstOrFail();
+        $this->assertStringContainsString($order['order_number'], $payment->qr_payload);
+        $this->assertSame('bakong_khqr', $payment->provider);
+    }
+
+    public function test_invalid_bakong_webhook_signature_is_rejected(): void
+    {
+        config(['payment.bakong_khqr.webhook_secret' => 'test-secret']);
+
+        $this->postJson('/api/webhooks/bakong-khqr', [
+            'provider_reference' => 'BKHQR-INVALID',
+            'status' => 'paid',
+        ], ['X-Bakong-Signature' => 'bad-signature'])
+            ->assertUnauthorized()
+            ->assertJsonPath('success', false);
+    }
+
+    public function test_valid_bakong_webhook_marks_payment_order_and_invoice_paid(): void
+    {
+        config(['payment.bakong_khqr.webhook_secret' => 'test-secret']);
+        $catalog = $this->createCatalog();
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+
+        Sanctum::actingAs($catalog['owner']);
+        $invoice = $this->postJson("/api/orders/{$order['id']}/invoice")
+            ->assertCreated()
+            ->json('data.invoice');
+
+        $this->postJson("/api/public/orders/{$order['order_number']}/payment", [
+            'payment_method' => 'bakong_khqr',
+        ])->assertCreated();
+        $payment = Payment::where('order_id', $order['id'])->firstOrFail();
+
+        $payload = [
+            'provider_reference' => $payment->provider_reference,
+            'provider_payment_id' => $payment->provider_payment_id,
+            'status' => 'paid',
+            'amount' => 14500,
+            'currency_code' => 'KHR',
+        ];
+        $json = json_encode($payload);
+        $signature = hash_hmac('sha256', $json, 'test-secret');
+
+        $this->call('POST', '/api/webhooks/bakong-khqr', [], [], [], [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_ACCEPT' => 'application/json',
+            'HTTP_X_BAKONG_SIGNATURE' => $signature,
+        ], $json)
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('payments', [
+            'id' => $payment->id,
+            'status' => 'paid',
+            'provider' => 'bakong_khqr',
+        ]);
+        $this->assertDatabaseHas('orders', [
+            'id' => $order['id'],
+            'payment_status' => 'paid',
+        ]);
+        $this->assertDatabaseHas('invoices', [
+            'id' => $invoice['id'],
+            'status' => 'paid',
+            'balance_due' => 0,
+        ]);
+        $this->assertDatabaseHas('payment_logs', [
+            'payment_id' => $payment->id,
+            'action' => 'bakong_paid',
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'payment.webhook_paid',
+            'entity_type' => 'payment',
+            'entity_id' => $payment->id,
+        ]);
+    }
+
+    public function test_cashier_can_manage_bakong_payment_but_waiter_cannot_confirm(): void
+    {
+        $catalog = $this->createCatalog();
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $waiter = User::factory()->create(['role' => 'waiter']);
+        foreach ([$cashier, $waiter] as $staffUser) {
+            $catalog['shop']->staffAssignments()->create([
+                'branch_id' => $catalog['branch']->id,
+                'user_id' => $staffUser->id,
+                'role' => $staffUser->role,
+                'status' => 'active',
+            ]);
+        }
+
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $this->postJson("/api/public/orders/{$order['order_number']}/payment", [
+            'payment_method' => 'bakong_khqr',
+        ])->assertCreated();
+        $payment = Payment::where('order_id', $order['id'])->firstOrFail();
+
+        Sanctum::actingAs($waiter);
+        $this->putJson("/api/payments/{$payment->id}/confirm")->assertForbidden();
+
+        Sanctum::actingAs($cashier);
+        $this->getJson('/api/payments')
+            ->assertOk()
+            ->assertJsonFragment(['provider' => 'bakong_khqr']);
+        $this->putJson("/api/payments/{$payment->id}/confirm")
+            ->assertOk()
+            ->assertJsonPath('data.payment.status', 'paid');
+    }
+
+    public function test_no_aba_payway_provider_config_or_routes_are_introduced(): void
+    {
+        $this->assertFalse(class_exists(\App\Services\Payments\AbaPayWayProvider::class));
+        $this->assertArrayNotHasKey('aba_payway', config('payment'));
+
+        $uris = collect(app('router')->getRoutes())->map(fn ($route) => $route->uri())->all();
+        $this->assertFalse(collect($uris)->contains(fn (string $uri) => str_contains(strtolower($uri), 'aba')));
     }
 
     private function createCatalog(string $shopName = 'Test Cafe'): array

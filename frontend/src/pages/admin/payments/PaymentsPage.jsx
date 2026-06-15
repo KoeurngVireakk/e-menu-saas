@@ -4,6 +4,7 @@ import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
 import { Card, confirmAction, promptText, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { formatCurrency } from "../../../utils/currency";
 import { canManagePayments } from "../../../utils/permissions";
 
 export default function PaymentsPage() {
@@ -53,11 +54,26 @@ export default function PaymentsPage() {
             <div>
               <h2 className="text-lg font-semibold text-slate-950">{selected.order?.order_number || `Payment #${selected.id}`}</h2>
               <p className="mt-1 text-sm text-slate-500">
-                {Number(selected.amount).toLocaleString()} {selected.currency_code} · {selected.payment_method}
+                {formatCurrency(selected.amount, selected.currency_code)} · {selected.payment_method}
               </p>
             </div>
             <button onClick={() => setSelected(null)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Close</button>
           </div>
+
+          <div className="mt-4 grid gap-2 rounded-md bg-slate-50 p-3 text-sm sm:grid-cols-2">
+            <Detail label="Provider" value={providerLabel(selected)} />
+            <Detail label="Provider reference" value={selected.provider_reference || selected.transaction_reference || "-"} />
+            <Detail label="Provider payment ID" value={selected.provider_payment_id || "-"} />
+            <Detail label="Webhook verified" value={selected.webhook_verified_at ? new Date(selected.webhook_verified_at).toLocaleString() : "-"} />
+            <Detail label="Expires" value={selected.expires_at ? new Date(selected.expires_at).toLocaleString() : "-"} />
+            <Detail label="Failure reason" value={selected.failure_reason || failedPaymentReason(selected) || "-"} />
+          </div>
+
+          {selected.provider === "bakong_khqr" && selected.webhook_verified_at ? (
+            <div className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">
+              Bakong webhook verified
+            </div>
+          ) : null}
 
           {failedPaymentReason(selected) ? (
             <div className="mt-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
@@ -83,15 +99,17 @@ export default function PaymentsPage() {
         columns={[
           { key: "order", label: "Order", render: (row) => row.order?.order_number },
           { key: "payment_method", label: "Method" },
-          { key: "amount", label: "Amount", render: (row) => `${Number(row.amount).toLocaleString()} ${row.currency_code}` },
-          { key: "transaction_reference", label: "Reference" },
+          { key: "provider", label: "Provider", render: (row) => providerLabel(row) },
+          { key: "amount", label: "Amount", render: (row) => formatCurrency(row.amount, row.currency_code) },
+          { key: "transaction_reference", label: "Reference", render: (row) => row.provider_reference || row.transaction_reference },
           {
             key: "status",
             label: "Status",
             render: (row) => (
               <div className="grid gap-1">
                 <StatusBadge value={row.status} />
-                {failedPaymentReason(row) ? <span className="text-xs text-rose-600">{failedPaymentReason(row)}</span> : null}
+                {row.provider === "bakong_khqr" && row.webhook_verified_at ? <span className="text-xs font-semibold text-emerald-600">Verified</span> : null}
+                {row.failure_reason || failedPaymentReason(row) ? <span className="text-xs text-rose-600">{row.failure_reason || failedPaymentReason(row)}</span> : null}
               </div>
             ),
           },
@@ -117,4 +135,20 @@ function failedPaymentReason(payment) {
   const log = [...(payment.logs || [])].reverse().find((entry) => entry.action === "rejected");
 
   return log?.payload_json?.reason || "";
+}
+
+function providerLabel(payment) {
+  if (payment.provider === "bakong_khqr") return "Bakong KHQR";
+  if (payment.provider === "manual") return "Manual";
+
+  return payment.provider || "Manual";
+}
+
+function Detail({ label, value }) {
+  return (
+    <div>
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{label}</p>
+      <p className="mt-1 font-semibold text-slate-900">{value}</p>
+    </div>
+  );
 }

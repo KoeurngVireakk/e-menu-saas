@@ -9,6 +9,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Shop;
 use App\Services\BillingCalculator;
+use App\Services\Payments\PaymentManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -17,8 +18,10 @@ use Illuminate\Validation\ValidationException;
 
 class PublicOrderController extends Controller
 {
-    public function __construct(private readonly BillingCalculator $billing)
-    {
+    public function __construct(
+        private readonly BillingCalculator $billing,
+        private readonly PaymentManager $payments,
+    ) {
     }
 
     public function store(Request $request)
@@ -116,19 +119,22 @@ class PublicOrderController extends Controller
     {
         $order = Order::where('order_number', $orderNumber)->with(['items', 'payment', 'shop', 'branch', 'diningTable'])->firstOrFail();
 
-        return $this->success('Order loaded', ['order' => $order]);
+        return $this->success('Order loaded', [
+            'order' => $order,
+            'payment_methods' => $this->payments->publicMethods(),
+        ]);
     }
 
     public function payment(Request $request, string $orderNumber)
     {
-        $order = Order::where('order_number', $orderNumber)->with('shop')->firstOrFail();
+        $order = Order::where('order_number', $orderNumber)->with(['shop', 'invoice'])->firstOrFail();
         $validated = $request->validate([
-            'payment_method' => ['required', Rule::in(['cash', 'aba_manual', 'khqr_manual'])],
+            'payment_method' => ['required', Rule::in(['cash', 'khqr_manual', 'bakong_khqr'])],
             'transaction_reference' => ['nullable', 'string', 'max:255'],
             'proof_image' => ['nullable', 'image', 'max:4096'],
         ]);
 
-        if (in_array($validated['payment_method'], ['aba_manual', 'khqr_manual'], true)) {
+        if ($validated['payment_method'] === 'khqr_manual') {
             $request->validate(['proof_image' => ['required', 'image', 'max:4096']]);
         }
 
@@ -137,26 +143,42 @@ class PublicOrderController extends Controller
         }
 
         unset($validated['proof_image']);
+        $result = $this->payments->initiate($order, $validated);
 
         $payment = Payment::updateOrCreate(
             ['order_id' => $order->id],
-            $validated + [
+            array_filter($result->paymentAttributes(), fn ($value) => $value !== null) + $validated + [
                 'shop_id' => $order->shop_id,
                 'branch_id' => $order->branch_id,
                 'amount' => $order->grand_total,
                 'currency_code' => $order->currency_code,
-                'status' => 'pending',
             ]
         );
 
         $payment->logs()->create([
-            'action' => 'submitted',
-            'payload_json' => ['method' => $payment->payment_method],
+            'action' => 'initiated',
+            'payload_json' => [
+                'method' => $payment->payment_method,
+                'provider' => $payment->provider,
+                'next_action' => $result->nextAction,
+            ],
+        ]);
+
+        $this->audit($request, 'payment.initiated', $payment->shop_id, 'payment', $payment->id, [
+            'order_id' => $order->id,
+            'order_number' => $order->order_number,
+            'payment_method' => $payment->payment_method,
+            'provider' => $payment->provider,
+            'amount' => $payment->amount,
+            'currency_code' => $payment->currency_code,
         ]);
 
         $order->update(['payment_status' => $payment->payment_method === 'cash' ? 'pending' : 'pending']);
 
-        return $this->success('Payment submitted successfully', ['payment' => $payment], 201);
+        return $this->success('Payment submitted successfully', [
+            'payment' => $payment,
+            ...$result->responsePayload(),
+        ], 201);
     }
 
     private function orderNumber(): string

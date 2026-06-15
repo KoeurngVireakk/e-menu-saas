@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Services\Payments\PaymentStatusSync;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
+    public function __construct(private readonly PaymentStatusSync $paymentStatusSync)
+    {
+    }
+
     public function index(Request $request)
     {
         $shopIds = $this->accessibleShopIds($request);
@@ -50,13 +55,10 @@ class PaymentController extends Controller
         abort_unless($request->user()->canManagePayments(), 403);
 
         DB::transaction(function () use ($request, $payment) {
-            $payment->update([
-                'status' => 'paid',
+            $this->paymentStatusSync->markPaid($payment->load('order.invoice'), [
                 'confirmed_by' => $request->user()->id,
                 'confirmed_at' => now(),
             ]);
-
-            $payment->order->update(['payment_status' => 'paid']);
 
             $payment->logs()->create([
                 'action' => 'confirmed',
@@ -71,7 +73,7 @@ class PaymentController extends Controller
             ]);
         });
 
-        return $this->success('Payment confirmed', ['payment' => $payment->fresh()->load('order')]);
+        return $this->success('Payment confirmed', ['payment' => $payment->fresh()->load('order.invoice')]);
     }
 
     public function reject(Request $request, Payment $payment)
@@ -84,8 +86,7 @@ class PaymentController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $payment, $validated) {
-            $payment->update(['status' => 'failed']);
-            $payment->order->update(['payment_status' => 'failed']);
+            $this->paymentStatusSync->markFailed($payment->load('order'), $validated['reason'] ?? null);
             $payment->logs()->create([
                 'action' => 'rejected',
                 'payload_json' => $validated,

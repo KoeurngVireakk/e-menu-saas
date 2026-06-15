@@ -44,7 +44,7 @@ export default function OrderSuccess() {
           <Button type="button" variant="secondary" onClick={() => window.print()}>Print/Save</Button>
         </div>
         {showReceipt ? <CustomerReceipt order={order} /> : null}
-        <Button as={Link} variant="dark" size="lg" className="mt-6" to={`/payment/${order.order_number}`}>
+        <Button as={Link} variant="dark" size="lg" className="mt-6" to={`/payment/${order.order_number}?locale=${locale}`}>
           Continue to payment
         </Button>
       </Card>

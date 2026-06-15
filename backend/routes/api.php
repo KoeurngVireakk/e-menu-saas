@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BakongKhqrWebhookController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DiningTableController;
@@ -45,6 +46,8 @@ Route::prefix('public')->group(function () {
     Route::get('/orders/{orderNumber}', [PublicOrderController::class, 'show']);
     Route::post('/orders/{orderNumber}/payment', [PublicOrderController::class, 'payment']);
 });
+
+Route::post('/webhooks/bakong-khqr', BakongKhqrWebhookController::class);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/system/health', [HealthController::class, 'index']);
