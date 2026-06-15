@@ -4,6 +4,7 @@ import {
   canDelete,
   canManageInvoices,
   canManageDailyClosing,
+  canManageExpenses,
   canManagePayments,
   canManageProducts,
   canManagePrintStations,
@@ -12,6 +13,8 @@ import {
   canManageTenantSettings,
   canManageTranslations,
   canExportReports,
+  canApproveExpenses,
+  canExportCashLedger,
   canAddCashMovement,
   canCloseShift,
   canPrintKitchenTicket,
@@ -22,6 +25,8 @@ import {
   canView,
   canViewPrintStations,
   canViewReports,
+  canViewCashLedger,
+  canViewExpenses,
   canViewShifts,
   canViewStaff,
   canViewSystemHealth,
@@ -57,6 +62,10 @@ describe("permissions", () => {
     expect(canManagePrintStations(user)).toBe(true);
     expect(canViewReports(user)).toBe(true);
     expect(canManageDailyClosing(user)).toBe(true);
+    expect(canManageExpenses(user)).toBe(true);
+    expect(canApproveExpenses(user)).toBe(true);
+    expect(canViewCashLedger(user)).toBe(true);
+    expect(canExportCashLedger(user)).toBe(true);
     expect(canExportReports(user)).toBe(true);
     expect(canViewShifts(user)).toBe(true);
     expect(canOpenShift(user)).toBe(true);
@@ -82,6 +91,11 @@ describe("permissions", () => {
     expect(canManagePrintStations(user)).toBe(false);
     expect(canViewReports(user)).toBe(true);
     expect(canManageDailyClosing(user)).toBe(true);
+    expect(canManageExpenses(user)).toBe(true);
+    expect(canApproveExpenses(user)).toBe(false);
+    expect(canViewExpenses(user)).toBe(true);
+    expect(canViewCashLedger(user)).toBe(true);
+    expect(canExportCashLedger(user)).toBe(false);
     expect(canExportReports(user)).toBe(false);
     expect(canViewShifts(user)).toBe(true);
     expect(canOpenShift(user)).toBe(true);
@@ -109,6 +123,10 @@ describe("permissions", () => {
     expect(canManageDailyClosing(user)).toBe(false);
     expect(canExportReports(user)).toBe(false);
     expect(canViewShifts(user)).toBe(false);
+    expect(canViewExpenses(user)).toBe(false);
+    expect(canManageExpenses(user)).toBe(false);
+    expect(canViewCashLedger(user)).toBe(false);
+    expect(canExportCashLedger(user)).toBe(false);
     expect(canOpenShift(user)).toBe(false);
     expect(canManageShift(user)).toBe(false);
     expect(canPrintKitchenTicket(user)).toBe(true);
