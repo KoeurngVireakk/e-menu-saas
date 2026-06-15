@@ -339,6 +339,135 @@ class ApiCriticalFlowsTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_shop_owner_can_manage_staff_and_settings_with_audit_logs(): void
+    {
+        $catalog = $this->createCatalog();
+        $owner = $catalog['owner'];
+        Sanctum::actingAs($owner);
+
+        $staffResponse = $this->postJson("/api/shops/{$catalog['shop']->id}/staff", [
+            'name' => 'QA Waiter',
+            'email' => 'qa-waiter@example.test',
+            'phone' => '+85510000005',
+            'branch_id' => $catalog['branch']->id,
+            'role' => 'waiter',
+            'status' => 'active',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.staff.role', 'waiter')
+            ->assertJsonStructure(['data' => ['staff', 'temporary_password']]);
+
+        $staffId = $staffResponse->json('data.staff.id');
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'staff.added',
+            'entity_type' => 'shop_staff',
+            'entity_id' => $staffId,
+        ]);
+
+        $this->putJson("/api/shop-staff/{$staffId}", [
+            'branch_id' => null,
+            'role' => 'cashier',
+            'status' => 'active',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.staff.role', 'cashier')
+            ->assertJsonPath('data.staff.branch_id', null);
+
+        $this->putJson("/api/shop-staff/{$staffId}/status", ['status' => 'inactive'])
+            ->assertOk()
+            ->assertJsonPath('data.staff.status', 'inactive');
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'staff.disabled',
+            'entity_type' => 'shop_staff',
+            'entity_id' => $staffId,
+        ]);
+
+        $this->postJson("/api/shops/{$catalog['shop']->id}/settings", [
+            'name' => 'Updated Cafe',
+            'phone' => '+85510000006',
+            'email' => 'updated@example.test',
+            'address' => 'Updated address',
+            'description' => 'Updated description',
+            'primary_color' => '#111827',
+            'secondary_color' => '#f97316',
+            'currency_code' => 'USD',
+            'order_auto_accept' => true,
+            'service_charge_percentage' => 5,
+            'tax_percentage' => 10,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.shop.name', 'Updated Cafe')
+            ->assertJsonPath('data.settings.order_auto_accept', true)
+            ->assertJsonPath('data.settings.service_charge_percentage', 5);
+
+        $this->assertDatabaseHas('shop_settings', [
+            'shop_id' => $catalog['shop']->id,
+            'key' => 'tax_percentage',
+            'value' => '10',
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'shop.settings_updated',
+            'entity_type' => 'shop',
+            'entity_id' => $catalog['shop']->id,
+        ]);
+    }
+
+    public function test_staff_management_permissions_are_enforced(): void
+    {
+        $catalog = $this->createCatalog();
+        $manager = User::factory()->create(['role' => 'manager']);
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $waiter = User::factory()->create(['role' => 'waiter']);
+
+        $managerStaff = $catalog['shop']->staffAssignments()->create([
+            'branch_id' => null,
+            'user_id' => $manager->id,
+            'role' => 'manager',
+            'status' => 'active',
+        ]);
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => $catalog['branch']->id,
+            'user_id' => $cashier->id,
+            'role' => 'cashier',
+            'status' => 'active',
+        ]);
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => $catalog['branch']->id,
+            'user_id' => $waiter->id,
+            'role' => 'waiter',
+            'status' => 'active',
+        ]);
+
+        Sanctum::actingAs($manager);
+        $this->getJson("/api/shops/{$catalog['shop']->id}/staff")
+            ->assertOk()
+            ->assertJsonPath('success', true);
+        $this->deleteJson("/api/shop-staff/{$managerStaff->id}")
+            ->assertForbidden();
+
+        Sanctum::actingAs($cashier);
+        $this->postJson("/api/shops/{$catalog['shop']->id}/staff", [
+            'name' => 'Blocked',
+            'email' => 'blocked@example.test',
+            'role' => 'waiter',
+        ])->assertForbidden();
+
+        Sanctum::actingAs($waiter);
+        $this->putJson("/api/shop-staff/{$managerStaff->id}", [
+            'branch_id' => null,
+            'role' => 'cashier',
+            'status' => 'active',
+        ])->assertForbidden();
+
+        Sanctum::actingAs($catalog['owner']);
+        $this->postJson("/api/shops/{$catalog['shop']->id}/staff", [
+            'name' => 'Blocked Admin',
+            'email' => 'blocked-admin@example.test',
+            'role' => 'super_admin',
+        ])->assertUnprocessable();
+    }
+
     private function createCatalog(string $shopName = 'Test Cafe'): array
     {
         $owner = User::factory()->create(['role' => 'shop_owner']);

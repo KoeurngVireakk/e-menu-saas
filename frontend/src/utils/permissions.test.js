@@ -5,9 +5,13 @@ import {
   canManagePayments,
   canManageProducts,
   canManageShopSettings,
+  canManageStaff,
+  canManageTenantSettings,
   canUpdate,
   canView,
+  canViewStaff,
   canViewSystemHealth,
+  canViewTenantSettings,
   hasRole,
 } from "./permissions";
 
@@ -22,8 +26,12 @@ describe("permissions", () => {
 
   it("limits shop settings and system health to owners and super admins", () => {
     expect(canManageShopSettings({ role: "shop_owner" })).toBe(true);
+    expect(canManageTenantSettings({ role: "shop_owner" })).toBe(true);
+    expect(canViewTenantSettings({ role: "shop_owner" })).toBe(true);
     expect(canViewSystemHealth({ role: "shop_owner" })).toBe(true);
     expect(canManageShopSettings({ role: "manager" })).toBe(false);
+    expect(canManageTenantSettings({ role: "manager" })).toBe(false);
+    expect(canViewTenantSettings({ role: "manager" })).toBe(true);
     expect(canViewSystemHealth({ role: "manager" })).toBe(false);
   });
 
@@ -31,6 +39,8 @@ describe("permissions", () => {
     const user = { role: "manager" };
 
     expect(canManageProducts(user)).toBe(true);
+    expect(canViewStaff(user)).toBe(true);
+    expect(canManageStaff(user)).toBe(false);
     expect(canCreate(user, "categories")).toBe(true);
     expect(canUpdate(user, "branches")).toBe(true);
     expect(canManageShopSettings(user)).toBe(false);

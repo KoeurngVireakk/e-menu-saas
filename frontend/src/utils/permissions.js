@@ -42,6 +42,16 @@ const featurePermissions = {
     view: ["super_admin", "shop_owner", "manager", "cashier"],
     update: ["super_admin", "shop_owner", "manager", "cashier"],
   },
+  staff: {
+    view: ["super_admin", "shop_owner", "manager"],
+    create: ["super_admin", "shop_owner"],
+    update: ["super_admin", "shop_owner"],
+    delete: ["super_admin", "shop_owner"],
+  },
+  settings: {
+    view: ["super_admin", "shop_owner", "manager"],
+    update: ["super_admin", "shop_owner"],
+  },
   systemHealth: {
     view: ["super_admin", "shop_owner"],
   },
@@ -86,6 +96,22 @@ export function canManageShopSettings(user) {
 
 export function canViewSystemHealth(user) {
   return canView(user, "systemHealth");
+}
+
+export function canViewStaff(user) {
+  return canView(user, "staff");
+}
+
+export function canManageStaff(user) {
+  return canCreate(user, "staff") && canUpdate(user, "staff") && canDelete(user, "staff");
+}
+
+export function canViewTenantSettings(user) {
+  return canView(user, "settings");
+}
+
+export function canManageTenantSettings(user) {
+  return canUpdate(user, "settings");
 }
 
 function hasPermission(user, feature, action) {

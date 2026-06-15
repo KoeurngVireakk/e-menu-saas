@@ -80,6 +80,26 @@ class User extends Authenticatable
         return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier', 'waiter'], true);
     }
 
+    public function canViewStaff(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
+    }
+
+    public function canManageStaff(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner'], true);
+    }
+
+    public function canViewTenantSettings(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
+    }
+
+    public function canManageTenantSettings(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner'], true);
+    }
+
     public function accessibleShopIds(): array
     {
         if ($this->isSuperAdmin()) {

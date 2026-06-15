@@ -61,4 +61,9 @@ class Shop extends Model
     {
         return $this->hasMany(ShopStaff::class);
     }
+
+    public function settings(): HasMany
+    {
+        return $this->hasMany(ShopSetting::class);
+    }
 }

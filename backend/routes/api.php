@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\PublicMenuController;
 use App\Http\Controllers\Api\PublicOrderController;
 use App\Http\Controllers\Api\ShopController;
+use App\Http\Controllers\Api\ShopSettingsController;
+use App\Http\Controllers\Api\ShopStaffController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', function () {
@@ -46,6 +48,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/system/health', [HealthController::class, 'index']);
 
     Route::apiResource('shops', ShopController::class);
+    Route::get('/shops/{shop}/settings', [ShopSettingsController::class, 'show']);
+    Route::post('/shops/{shop}/settings', [ShopSettingsController::class, 'update']);
+    Route::get('/shops/{shop}/staff', [ShopStaffController::class, 'index']);
+    Route::post('/shops/{shop}/staff', [ShopStaffController::class, 'store']);
+    Route::get('/shop-staff/{staff}', [ShopStaffController::class, 'show']);
+    Route::put('/shop-staff/{staff}', [ShopStaffController::class, 'update']);
+    Route::delete('/shop-staff/{staff}', [ShopStaffController::class, 'destroy']);
+    Route::put('/shop-staff/{staff}/status', [ShopStaffController::class, 'updateStatus']);
 
     Route::get('/shops/{shop}/branches', [BranchController::class, 'index']);
     Route::post('/shops/{shop}/branches', [BranchController::class, 'store']);
