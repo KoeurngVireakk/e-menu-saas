@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasLocalizedFields;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProductOption extends Model
 {
-    use HasFactory;
+    use HasFactory, HasLocalizedFields;
 
     protected $fillable = [
         'product_id',
@@ -33,5 +34,10 @@ class ProductOption extends Model
     public function values(): HasMany
     {
         return $this->hasMany(ProductOptionValue::class);
+    }
+
+    public function translations(): HasMany
+    {
+        return $this->hasMany(ProductOptionTranslation::class);
     }
 }

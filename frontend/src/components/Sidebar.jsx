@@ -8,6 +8,7 @@ const links = [
   { label: "Branches", to: "/admin/branches", feature: "branches" },
   { label: "Categories", to: "/admin/categories", feature: "categories" },
   { label: "Products", to: "/admin/products", feature: "products" },
+  { label: "Translations", to: "/admin/translations", feature: "translations" },
   { label: "Table QR", to: "/admin/tables", feature: "tables" },
   { label: "Orders", to: "/admin/orders", feature: "orders" },
   { label: "Payments", to: "/admin/payments", feature: "payments" },

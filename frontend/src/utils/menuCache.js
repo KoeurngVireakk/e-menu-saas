@@ -1,7 +1,7 @@
 const MENU_CACHE_PREFIX = "emenu_public_menu_cache";
 
-export function menuCacheKey(shopSlug, search) {
-  return `${MENU_CACHE_PREFIX}:${shopSlug}:${search || ""}`;
+export function menuCacheKey(shopSlug, search, locale = "en") {
+  return `${MENU_CACHE_PREFIX}:${shopSlug}:${locale}:${search || ""}`;
 }
 
 export function readMenuCache(key) {

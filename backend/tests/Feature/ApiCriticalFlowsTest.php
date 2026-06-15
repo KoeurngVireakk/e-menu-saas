@@ -10,6 +10,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Shop;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -466,6 +467,157 @@ class ApiCriticalFlowsTest extends TestCase
             'email' => 'blocked-admin@example.test',
             'role' => 'super_admin',
         ])->assertUnprocessable();
+    }
+
+    public function test_public_menu_returns_khmer_translations_when_locale_is_km(): void
+    {
+        $catalog = $this->createCatalog();
+
+        $catalog['shop']->translations()->create([
+            'locale' => 'km',
+            'name' => 'ហាងកាហ្វេសាកល្បង',
+            'description' => 'ម៉ឺនុយភាសាខ្មែរ',
+            'address' => 'ភ្នំពេញ',
+        ]);
+        $catalog['category']->translations()->create([
+            'locale' => 'km',
+            'name' => 'កាហ្វេ',
+        ]);
+        $catalog['product']->translations()->create([
+            'locale' => 'km',
+            'name' => 'ឡាតេទឹកកក',
+            'description' => 'កាហ្វេជាមួយទឹកដោះគោ',
+        ]);
+        $catalog['size']->translations()->create([
+            'locale' => 'km',
+            'name' => 'ទំហំ',
+        ]);
+        $catalog['large']->translations()->create([
+            'locale' => 'km',
+            'name' => 'ធំ',
+        ]);
+
+        $this->getJson("/api/public/shops/{$catalog['shop']->slug}/menu?branch={$catalog['branch']->id}&locale=km")
+            ->assertOk()
+            ->assertJsonPath('data.current_locale', 'km')
+            ->assertJsonPath('data.supported_locales.0', 'en')
+            ->assertJsonPath('data.supported_locales.1', 'km')
+            ->assertJsonPath('data.shop.name', 'ហាងកាហ្វេសាកល្បង')
+            ->assertJsonPath('data.shop.description', 'ម៉ឺនុយភាសាខ្មែរ')
+            ->assertJsonPath('data.categories.0.name', 'កាហ្វេ')
+            ->assertJsonPath('data.categories.0.products.0.name', 'ឡាតេទឹកកក')
+            ->assertJsonPath('data.categories.0.products.0.description', 'កាហ្វេជាមួយទឹកដោះគោ')
+            ->assertJsonPath('data.categories.0.products.0.options.0.name', 'ទំហំ')
+            ->assertJsonPath('data.categories.0.products.0.options.0.values.0.name', 'ធំ');
+    }
+
+    public function test_public_menu_falls_back_to_base_text_when_translation_is_missing(): void
+    {
+        $catalog = $this->createCatalog();
+
+        $this->getJson("/api/public/shops/{$catalog['shop']->slug}/menu?branch={$catalog['branch']->id}&locale=km")
+            ->assertOk()
+            ->assertJsonPath('data.current_locale', 'km')
+            ->assertJsonPath('data.shop.name', $catalog['shop']->name)
+            ->assertJsonPath('data.categories.0.name', $catalog['category']->name)
+            ->assertJsonPath('data.categories.0.products.0.name', $catalog['product']->name)
+            ->assertJsonPath('data.categories.0.products.0.options.0.name', $catalog['size']->name)
+            ->assertJsonPath('data.categories.0.products.0.options.0.values.0.name', $catalog['large']->name);
+    }
+
+    public function test_manager_can_update_assigned_category_and_product_translations(): void
+    {
+        $catalog = $this->createCatalog();
+        $manager = User::factory()->create(['role' => 'manager']);
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => null,
+            'user_id' => $manager->id,
+            'role' => 'manager',
+            'status' => 'active',
+        ]);
+
+        Sanctum::actingAs($manager);
+
+        $this->putJson("/api/categories/{$catalog['category']->id}/translations", [
+            'translations' => [
+                'en' => ['name' => 'Coffee'],
+                'km' => ['name' => 'កាហ្វេ'],
+            ],
+        ])
+            ->assertOk()
+            ->assertJsonFragment(['locale' => 'km', 'name' => 'កាហ្វេ']);
+
+        $this->putJson("/api/products/{$catalog['product']->id}/translations", [
+            'translations' => [
+                'en' => ['name' => 'Iced Latte', 'description' => 'Cold latte'],
+                'km' => ['name' => 'ឡាតេទឹកកក', 'description' => 'កាហ្វេត្រជាក់'],
+            ],
+        ])
+            ->assertOk()
+            ->assertJsonFragment(['locale' => 'km', 'name' => 'ឡាតេទឹកកក']);
+
+        $this->assertDatabaseHas('category_translations', [
+            'category_id' => $catalog['category']->id,
+            'locale' => 'km',
+            'name' => 'កាហ្វេ',
+        ]);
+        $this->assertDatabaseHas('product_translations', [
+            'product_id' => $catalog['product']->id,
+            'locale' => 'km',
+            'name' => 'ឡាតេទឹកកក',
+        ]);
+    }
+
+    public function test_cashier_and_waiter_cannot_update_translations(): void
+    {
+        $catalog = $this->createCatalog();
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $waiter = User::factory()->create(['role' => 'waiter']);
+        foreach ([$cashier, $waiter] as $staffUser) {
+            $catalog['shop']->staffAssignments()->create([
+                'branch_id' => null,
+                'user_id' => $staffUser->id,
+                'role' => $staffUser->role,
+                'status' => 'active',
+            ]);
+        }
+
+        $payload = [
+            'translations' => [
+                'en' => ['name' => 'Iced Latte'],
+                'km' => ['name' => 'ឡាតេទឹកកក'],
+            ],
+        ];
+
+        Sanctum::actingAs($cashier);
+        $this->putJson("/api/products/{$catalog['product']->id}/translations", $payload)
+            ->assertForbidden();
+
+        Sanctum::actingAs($waiter);
+        $this->putJson("/api/categories/{$catalog['category']->id}/translations", [
+            'translations' => [
+                'en' => ['name' => 'Coffee'],
+                'km' => ['name' => 'កាហ្វេ'],
+            ],
+        ])
+            ->assertForbidden();
+    }
+
+    public function test_translation_locale_is_unique_per_entity(): void
+    {
+        $catalog = $this->createCatalog();
+
+        $catalog['product']->translations()->create([
+            'locale' => 'km',
+            'name' => 'ឡាតេទឹកកក',
+        ]);
+
+        $this->expectException(QueryException::class);
+
+        $catalog['product']->translations()->create([
+            'locale' => 'km',
+            'name' => 'ឡាតេ',
+        ]);
     }
 
     private function createCatalog(string $shopName = 'Test Cafe'): array

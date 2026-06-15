@@ -28,6 +28,10 @@ const featurePermissions = {
     update: ["super_admin", "shop_owner", "manager"],
     delete: ["super_admin", "shop_owner", "manager"],
   },
+  translations: {
+    view: ["super_admin", "shop_owner", "manager"],
+    update: ["super_admin", "shop_owner", "manager"],
+  },
   tables: {
     view: ["super_admin", "shop_owner", "manager", "waiter"],
     create: ["super_admin", "shop_owner", "manager"],
@@ -92,6 +96,10 @@ export function canManageProducts(user) {
 
 export function canManageShopSettings(user) {
   return canUpdate(user, "shops");
+}
+
+export function canManageTranslations(user) {
+  return canUpdate(user, "translations");
 }
 
 export function canViewSystemHealth(user) {

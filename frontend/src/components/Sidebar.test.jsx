@@ -32,6 +32,7 @@ describe("Sidebar", () => {
     expect(screen.getByRole("link", { name: "Payments" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Staff" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Settings" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Translations" })).toBeInTheDocument();
   });
 
   it("hides catalog and system health links from cashiers", () => {
@@ -47,6 +48,7 @@ describe("Sidebar", () => {
     expect(screen.getByRole("link", { name: "Payments" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Products" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Categories" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Translations" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Staff" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Settings" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "System Health" })).not.toBeInTheDocument();
@@ -63,6 +65,7 @@ describe("Sidebar", () => {
 
     expect(screen.getByRole("link", { name: "Staff" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Settings" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Translations" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "System Health" })).not.toBeInTheDocument();
   });
 });

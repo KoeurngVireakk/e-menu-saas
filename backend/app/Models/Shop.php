@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasLocalizedFields;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Shop extends Model
 {
-    use HasFactory;
+    use HasFactory, HasLocalizedFields;
 
     protected $fillable = [
         'owner_id',
@@ -65,5 +66,10 @@ class Shop extends Model
     public function settings(): HasMany
     {
         return $this->hasMany(ShopSetting::class);
+    }
+
+    public function translations(): HasMany
+    {
+        return $this->hasMany(ShopTranslation::class);
     }
 }

@@ -13,6 +13,7 @@ const ShopsPage = lazy(() => import("../pages/admin/shops/ShopsPage"));
 const BranchesPage = lazy(() => import("../pages/admin/branches/BranchesPage"));
 const CategoriesPage = lazy(() => import("../pages/admin/categories/CategoriesPage"));
 const ProductsPage = lazy(() => import("../pages/admin/products/ProductsPage"));
+const TranslationsPage = lazy(() => import("../pages/admin/translations/TranslationsPage"));
 const TablesPage = lazy(() => import("../pages/admin/tables/TablesPage"));
 const OrdersPage = lazy(() => import("../pages/admin/orders/OrdersPage"));
 const PaymentsPage = lazy(() => import("../pages/admin/payments/PaymentsPage"));
@@ -48,6 +49,7 @@ export default function AppRoutes() {
             <Route path="branches" element={<PermissionRoute feature="branches"><BranchesPage /></PermissionRoute>} />
             <Route path="categories" element={<PermissionRoute feature="categories"><CategoriesPage /></PermissionRoute>} />
             <Route path="products" element={<PermissionRoute feature="products"><ProductsPage /></PermissionRoute>} />
+            <Route path="translations" element={<PermissionRoute feature="translations"><TranslationsPage /></PermissionRoute>} />
             <Route path="tables" element={<PermissionRoute feature="tables"><TablesPage /></PermissionRoute>} />
             <Route path="orders" element={<PermissionRoute feature="orders"><OrdersPage /></PermissionRoute>} />
             <Route path="payments" element={<PermissionRoute feature="payments"><PaymentsPage /></PermissionRoute>} />

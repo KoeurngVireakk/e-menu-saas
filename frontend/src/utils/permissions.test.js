@@ -7,6 +7,7 @@ import {
   canManageShopSettings,
   canManageStaff,
   canManageTenantSettings,
+  canManageTranslations,
   canUpdate,
   canView,
   canViewStaff,
@@ -39,6 +40,7 @@ describe("permissions", () => {
     const user = { role: "manager" };
 
     expect(canManageProducts(user)).toBe(true);
+    expect(canManageTranslations(user)).toBe(true);
     expect(canViewStaff(user)).toBe(true);
     expect(canManageStaff(user)).toBe(false);
     expect(canCreate(user, "categories")).toBe(true);
@@ -52,6 +54,8 @@ describe("permissions", () => {
     expect(canManagePayments(user)).toBe(true);
     expect(canView(user, "orders")).toBe(true);
     expect(canView(user, "products")).toBe(false);
+    expect(canView(user, "translations")).toBe(false);
+    expect(canManageTranslations(user)).toBe(false);
     expect(canDelete(user, "products")).toBe(false);
   });
 

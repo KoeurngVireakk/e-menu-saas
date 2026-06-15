@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import { cartTotal, itemTotal, money, optionSummary, unitPrice } from "../utils/cart";
+import { getPreferredLocale, t } from "../utils/localization";
 import { Button, Drawer, EmptyState } from "./ui";
 
-export default function CartDrawer({ cart, onQuantity, onRemove, onCheckout }) {
+export default function CartDrawer({ cart, onQuantity, onRemove, onCheckout, locale = getPreferredLocale() }) {
   const total = cartTotal(cart);
 
   return (
@@ -10,10 +11,10 @@ export default function CartDrawer({ cart, onQuantity, onRemove, onCheckout }) {
       <div className="mx-auto max-w-3xl">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-orange-600">{cart.length} item types</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-orange-600">{cart.length} {t(locale, "itemTypes")}</p>
             <p className="text-xl font-black text-slate-950">{money(total)} KHR</p>
           </div>
-          <Button type="button" variant="dark" disabled={!cart.length} onClick={onCheckout}>Checkout</Button>
+          <Button type="button" variant="dark" disabled={!cart.length} onClick={onCheckout}>{t(locale, "checkout")}</Button>
         </div>
         {cart.length ? (
           <div className="mt-3 grid max-h-56 gap-2 overflow-y-auto">
@@ -30,7 +31,7 @@ export default function CartDrawer({ cart, onQuantity, onRemove, onCheckout }) {
                   <div className="min-w-0">
                     <p className="font-bold text-slate-900">{item.name}</p>
                     {optionSummary(item) ? <p className="mt-0.5 text-xs text-slate-500">{optionSummary(item)}</p> : null}
-                    <p className="mt-1 text-xs text-slate-500">{money(unitPrice(item))} KHR each</p>
+                    <p className="mt-1 text-xs text-slate-500">{money(unitPrice(item))} KHR {t(locale, "each")}</p>
                   </div>
                   <p className="shrink-0 font-semibold text-orange-700">{money(itemTotal(item))} KHR</p>
                 </div>
@@ -40,14 +41,14 @@ export default function CartDrawer({ cart, onQuantity, onRemove, onCheckout }) {
                     <span className="w-8 text-center font-bold">{item.quantity}</span>
                     <Button type="button" variant="secondary" size="icon" aria-label={`Increase quantity for ${item.name}`} onClick={() => onQuantity(item.key, item.quantity + 1)}>+</Button>
                   </div>
-                  <Button type="button" variant="ghost" size="sm" className="text-rose-700 hover:bg-rose-50" onClick={() => onRemove(item.key)}>Remove</Button>
+                  <Button type="button" variant="ghost" size="sm" className="text-rose-700 hover:bg-rose-50" onClick={() => onRemove(item.key)}>{t(locale, "remove")}</Button>
                 </div>
               </motion.div>
             ))}
           </div>
         ) : (
           <div className="mt-3">
-            <EmptyState title="Cart is empty" message="Choose a product to start an order." />
+            <EmptyState title={t(locale, "cartEmpty")} message={t(locale, "chooseProduct")} />
           </div>
         )}
       </div>
