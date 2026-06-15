@@ -4,6 +4,8 @@ import ConfirmButton from "../../../components/ConfirmButton";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
 import { alertError, toastError, toastSuccess } from "../../../components/ui";
+import { useAuth } from "../../../context/AuthContext";
+import { canCreate, canDelete, canUpdate } from "../../../utils/permissions";
 
 const initial = {
   name: "",
@@ -21,6 +23,10 @@ const initial = {
 };
 
 export default function ProductsPage() {
+  const { user } = useAuth();
+  const allowCreate = canCreate(user, "products");
+  const allowUpdate = canUpdate(user, "products");
+  const allowDelete = canDelete(user, "products");
   const [shops, setShops] = useState([]);
   const [branches, setBranches] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -123,8 +129,8 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[430px_1fr]">
-      <form onSubmit={submit} className="rounded-md border border-slate-200 bg-white p-4">
+    <div className={`grid gap-6 ${allowCreate || allowUpdate ? "xl:grid-cols-[430px_1fr]" : ""}`}>
+      {allowCreate || allowUpdate ? <form onSubmit={submit} className="rounded-md border border-slate-200 bg-white p-4">
         <h2 className="text-lg font-semibold text-slate-950">{editing ? "Edit product" : "Add product"}</h2>
         <Select label="Shop" value={shopId} onChange={setShopId} disabled={Boolean(editing)} options={shops.map((shop) => [shop.id, shop.name])} />
         <Input label="Name" value={form.name} required onChange={(value) => setForm({ ...form, name: value })} />
@@ -152,8 +158,8 @@ export default function ProductsPage() {
           Options JSON
           <textarea className="mt-1 h-24 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-xs" value={form.options_json} onChange={(event) => setForm({ ...form, options_json: event.target.value })} placeholder='[{"name":"Size","type":"single","values":[{"name":"Large","extra_price":2000}]}]' />
         </label>
-        <button disabled={!shopId} className="mt-5 rounded-md bg-orange-600 px-4 py-2 font-semibold text-white hover:bg-orange-700 disabled:opacity-60">{editing ? "Update product" : "Create product"}</button>
-      </form>
+        <button disabled={!shopId || (editing ? !allowUpdate : !allowCreate)} className="mt-5 rounded-md bg-orange-600 px-4 py-2 font-semibold text-white hover:bg-orange-700 disabled:opacity-60">{editing ? "Update product" : "Create product"}</button>
+      </form> : null}
       <div className="grid gap-4">
         <div className="rounded-md border border-slate-200 bg-white p-4">
           <h2 className="text-lg font-semibold text-slate-950">Product detail preview</h2>
@@ -175,12 +181,12 @@ export default function ProductsPage() {
           loading={loading}
           error={loadError}
           emptyMessage="No products yet."
-          renderActions={(product) => (
+          renderActions={allowUpdate || allowDelete ? (product) => (
             <div className="flex gap-2">
-              <button onClick={() => edit(product)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button>
-              <ConfirmButton onConfirm={() => remove(product)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Delete</ConfirmButton>
+              {allowUpdate ? <button onClick={() => edit(product)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button> : null}
+              {allowDelete ? <ConfirmButton onConfirm={() => remove(product)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Delete</ConfirmButton> : null}
             </div>
-          )}
+          ) : undefined}
         />
       </div>
     </div>

@@ -31,6 +31,7 @@ class ProductController extends Controller
     public function store(Request $request, Shop $shop)
     {
         $this->authorizeShop($request, $shop);
+        abort_unless($request->user()->canManageCatalog(), 403);
 
         $validated = $this->validateProduct($request, $shop);
         $this->authorizeScopedWrite($request, $shop, $validated['branch_id'] ?? null);
@@ -66,6 +67,7 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $this->authorizeShopAccess($request, $product->shop, $product->branch_id);
+        abort_unless($request->user()->canManageCatalog(), 403);
 
         $validated = $this->validateProduct($request, $product->shop);
         $this->authorizeScopedWrite($request, $product->shop, $validated['branch_id'] ?? null);
@@ -98,6 +100,7 @@ class ProductController extends Controller
     public function destroy(Request $request, Product $product)
     {
         $this->authorizeShopAccess($request, $product->shop, $product->branch_id);
+        abort_unless($request->user()->canManageCatalog(), 403);
         $productId = $product->id;
         $shopId = $product->shop_id;
         $productName = $product->name;

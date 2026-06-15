@@ -3,11 +3,13 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
 import PublicMenuLayout from "../layouts/PublicMenuLayout";
 import { LoadingState } from "../components/ui/States";
+import PermissionRoute from "./PermissionRoute";
 import ProtectedRoute from "./ProtectedRoute";
 
 const Login = lazy(() => import("../pages/auth/Login"));
 const Register = lazy(() => import("../pages/auth/Register"));
 const Dashboard = lazy(() => import("../pages/admin/Dashboard"));
+const ForbiddenPage = lazy(() => import("../pages/admin/ForbiddenPage"));
 const ShopsPage = lazy(() => import("../pages/admin/shops/ShopsPage"));
 const BranchesPage = lazy(() => import("../pages/admin/branches/BranchesPage"));
 const CategoriesPage = lazy(() => import("../pages/admin/categories/CategoriesPage"));
@@ -41,14 +43,15 @@ export default function AppRoutes() {
         <Route element={<ProtectedRoute />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
-            <Route path="shops" element={<ShopsPage />} />
-            <Route path="branches" element={<BranchesPage />} />
-            <Route path="categories" element={<CategoriesPage />} />
-            <Route path="products" element={<ProductsPage />} />
-            <Route path="tables" element={<TablesPage />} />
-            <Route path="orders" element={<OrdersPage />} />
-            <Route path="payments" element={<PaymentsPage />} />
-            <Route path="system-health" element={<SystemHealthPage />} />
+            <Route path="shops" element={<PermissionRoute feature="shops"><ShopsPage /></PermissionRoute>} />
+            <Route path="branches" element={<PermissionRoute feature="branches"><BranchesPage /></PermissionRoute>} />
+            <Route path="categories" element={<PermissionRoute feature="categories"><CategoriesPage /></PermissionRoute>} />
+            <Route path="products" element={<PermissionRoute feature="products"><ProductsPage /></PermissionRoute>} />
+            <Route path="tables" element={<PermissionRoute feature="tables"><TablesPage /></PermissionRoute>} />
+            <Route path="orders" element={<PermissionRoute feature="orders"><OrdersPage /></PermissionRoute>} />
+            <Route path="payments" element={<PermissionRoute feature="payments"><PaymentsPage /></PermissionRoute>} />
+            <Route path="system-health" element={<PermissionRoute feature="systemHealth"><SystemHealthPage /></PermissionRoute>} />
+            <Route path="forbidden" element={<ForbiddenPage />} />
           </Route>
         </Route>
         <Route element={<PublicMenuLayout />}>

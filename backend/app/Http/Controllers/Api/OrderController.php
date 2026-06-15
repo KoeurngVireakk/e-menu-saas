@@ -67,6 +67,7 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $this->authorizeOrder($request, $order);
+        abort_unless($request->user()->canManageOrders(), 403);
 
         $validated = $request->validate([
             'order_status' => ['required', Rule::in(['pending', 'accepted', 'preparing', 'ready', 'completed', 'cancelled'])],

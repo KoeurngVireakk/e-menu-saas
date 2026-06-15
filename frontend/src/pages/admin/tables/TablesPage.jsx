@@ -4,10 +4,16 @@ import ConfirmButton from "../../../components/ConfirmButton";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
 import { alertError, toastSuccess } from "../../../components/ui";
+import { useAuth } from "../../../context/AuthContext";
+import { canCreate, canDelete, canUpdate } from "../../../utils/permissions";
 
 const initial = { table_name: "", table_code: "", status: "active" };
 
 export default function TablesPage() {
+  const { user } = useAuth();
+  const allowCreate = canCreate(user, "tables");
+  const allowUpdate = canUpdate(user, "tables");
+  const allowDelete = canDelete(user, "tables");
   const [shops, setShops] = useState([]);
   const [branches, setBranches] = useState([]);
   const [tables, setTables] = useState([]);
@@ -84,16 +90,16 @@ export default function TablesPage() {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
-      <form onSubmit={submit} className="rounded-md border border-slate-200 bg-white p-4">
+    <div className={`grid gap-6 ${allowCreate || allowUpdate ? "lg:grid-cols-[360px_1fr]" : ""}`}>
+      {allowCreate || allowUpdate ? <form onSubmit={submit} className="rounded-md border border-slate-200 bg-white p-4">
         <h2 className="text-lg font-semibold text-slate-950">{editing ? "Edit table" : "Add table"}</h2>
         <Select label="Shop" value={shopId} onChange={setShopId} disabled={Boolean(editing)} options={shops.map((shop) => [shop.id, shop.name])} />
         <Select label="Branch" value={branchId} onChange={setBranchId} disabled={Boolean(editing)} options={branches.map((branch) => [branch.id, branch.name])} />
         <Input label="Table name" value={form.table_name} required onChange={(value) => setForm({ ...form, table_name: value })} />
         <Input label="Table code" value={form.table_code} required onChange={(value) => setForm({ ...form, table_code: value })} />
         <Select label="Status" value={form.status || "active"} onChange={(value) => setForm({ ...form, status: value })} options={[["active", "Active"], ["inactive", "Inactive"]]} />
-        <button disabled={!branchId} className="mt-5 rounded-md bg-orange-600 px-4 py-2 font-semibold text-white hover:bg-orange-700 disabled:opacity-60">{editing ? "Update table" : "Create table"}</button>
-      </form>
+        <button disabled={!branchId || (editing ? !allowUpdate : !allowCreate)} className="mt-5 rounded-md bg-orange-600 px-4 py-2 font-semibold text-white hover:bg-orange-700 disabled:opacity-60">{editing ? "Update table" : "Create table"}</button>
+      </form> : null}
       <div className="grid gap-4">
         {qr ? (
           <div className="rounded-md border border-slate-200 bg-white p-4">
@@ -123,9 +129,9 @@ export default function TablesPage() {
           emptyMessage="No tables yet."
           renderActions={(table) => (
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => { setEditing(table); setForm({ ...initial, ...table }); }} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button>
+              {allowUpdate ? <button onClick={() => { setEditing(table); setForm({ ...initial, ...table }); }} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button> : null}
               <button onClick={() => showQr(table)} className="rounded-md bg-slate-900 px-3 py-1 text-sm text-white">QR</button>
-              <ConfirmButton onConfirm={() => remove(table)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Delete</ConfirmButton>
+              {allowDelete ? <ConfirmButton onConfirm={() => remove(table)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Delete</ConfirmButton> : null}
             </div>
           )}
         />

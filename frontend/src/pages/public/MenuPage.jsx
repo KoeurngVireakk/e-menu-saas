@@ -108,7 +108,7 @@ export default function MenuPage() {
   return (
     <div className="mx-auto min-h-screen max-w-3xl bg-slate-50 pb-64">
       {!online ? <OfflineBanner cached={offlineCached} /> : null}
-      <section className="relative overflow-hidden rounded-b-[2rem] bg-slate-950 text-white shadow-sm" style={{ backgroundColor: menu.shop.primary_color || "#0f172a" }}>
+      <section className="relative overflow-hidden rounded-b-4xl bg-slate-950 text-white shadow-sm" style={{ backgroundColor: menu.shop.primary_color || "#0f172a" }}>
         {coverUrl ? <img className="absolute inset-0 h-full w-full object-cover opacity-35" src={coverUrl} alt={menu.shop.name} /> : null}
         <div className="relative px-4 pb-7 pt-10">
           <div className="flex items-end gap-4">

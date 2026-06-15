@@ -1,18 +1,23 @@
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { canView } from "../utils/permissions";
 
 const links = [
-  ["Overview", "/admin"],
-  ["Shops", "/admin/shops"],
-  ["Branches", "/admin/branches"],
-  ["Categories", "/admin/categories"],
-  ["Products", "/admin/products"],
-  ["Table QR", "/admin/tables"],
-  ["Orders", "/admin/orders"],
-  ["Payments", "/admin/payments"],
-  ["System Health", "/admin/system-health"],
+  { label: "Overview", to: "/admin", feature: "dashboard" },
+  { label: "Shops", to: "/admin/shops", feature: "shops" },
+  { label: "Branches", to: "/admin/branches", feature: "branches" },
+  { label: "Categories", to: "/admin/categories", feature: "categories" },
+  { label: "Products", to: "/admin/products", feature: "products" },
+  { label: "Table QR", to: "/admin/tables", feature: "tables" },
+  { label: "Orders", to: "/admin/orders", feature: "orders" },
+  { label: "Payments", to: "/admin/payments", feature: "payments" },
+  { label: "System Health", to: "/admin/system-health", feature: "systemHealth" },
 ];
 
 export default function Sidebar() {
+  const { user } = useAuth();
+  const visibleLinks = links.filter((link) => canView(user, link.feature));
+
   return (
     <aside className="border-b border-slate-200 bg-white/95 p-4 shadow-sm lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r">
       <div className="flex items-center gap-3 lg:mb-8">
@@ -23,7 +28,7 @@ export default function Sidebar() {
         </div>
       </div>
       <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:mt-0 lg:grid lg:gap-1 lg:overflow-visible lg:pb-0">
-        {links.map(([label, to]) => (
+        {visibleLinks.map(({ label, to }) => (
           <NavLink
             key={to}
             to={to}

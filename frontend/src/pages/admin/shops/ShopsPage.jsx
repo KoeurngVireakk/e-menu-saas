@@ -4,6 +4,8 @@ import ConfirmButton from "../../../components/ConfirmButton";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
 import { alertError, toastSuccess } from "../../../components/ui";
+import { useAuth } from "../../../context/AuthContext";
+import { canCreate, canDelete, canUpdate } from "../../../utils/permissions";
 
 const initial = {
   name: "",
@@ -18,6 +20,10 @@ const initial = {
 };
 
 export default function ShopsPage() {
+  const { user } = useAuth();
+  const allowCreate = canCreate(user, "shops");
+  const allowUpdate = canUpdate(user, "shops");
+  const allowDelete = canDelete(user, "shops");
   const [shops, setShops] = useState([]);
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
@@ -74,8 +80,8 @@ export default function ShopsPage() {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[420px_1fr]">
-      <form onSubmit={submit} className="rounded-md border border-slate-200 bg-white p-4">
+    <div className={`grid gap-6 ${allowCreate || allowUpdate ? "lg:grid-cols-[420px_1fr]" : ""}`}>
+      {allowCreate || allowUpdate ? <form onSubmit={submit} className="rounded-md border border-slate-200 bg-white p-4">
         <h2 className="text-lg font-semibold text-slate-950">{editing ? "Edit shop" : "Create shop"}</h2>
         <Input label="Name" value={form.name} onChange={(value) => setForm({ ...form, name: value })} required />
         <div className="grid gap-3 sm:grid-cols-2">
@@ -106,9 +112,9 @@ export default function ShopsPage() {
           <File label="Logo" onChange={(file) => setForm({ ...form, logo: file })} />
           <File label="Cover" onChange={(file) => setForm({ ...form, cover: file })} />
         </div>
-        <button className="mt-5 rounded-md bg-orange-600 px-4 py-2 font-semibold text-white hover:bg-orange-700">{editing ? "Update shop" : "Create shop"}</button>
+        <button disabled={editing ? !allowUpdate : !allowCreate} className="mt-5 rounded-md bg-orange-600 px-4 py-2 font-semibold text-white hover:bg-orange-700 disabled:opacity-60">{editing ? "Update shop" : "Create shop"}</button>
         {editing ? <button type="button" onClick={() => { setEditing(null); setForm(initial); }} className="ml-2 rounded-md border border-slate-300 px-4 py-2 font-semibold text-slate-700">Cancel</button> : null}
-      </form>
+      </form> : null}
       <div className="grid gap-4">
         <div className="rounded-md border border-slate-200 bg-white p-4">
           <h2 className="text-lg font-semibold text-slate-950">Preview</h2>
@@ -129,12 +135,12 @@ export default function ShopsPage() {
           loading={loading}
           error={loadError}
           emptyMessage="No shops yet."
-          renderActions={(shop) => (
+          renderActions={allowUpdate || allowDelete ? (shop) => (
             <div className="flex gap-2">
-              <button onClick={() => edit(shop)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button>
-              <ConfirmButton onConfirm={() => remove(shop)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Delete</ConfirmButton>
+              {allowUpdate ? <button onClick={() => edit(shop)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button> : null}
+              {allowDelete ? <ConfirmButton onConfirm={() => remove(shop)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Delete</ConfirmButton> : null}
             </div>
-          )}
+          ) : undefined}
         />
       </div>
     </div>

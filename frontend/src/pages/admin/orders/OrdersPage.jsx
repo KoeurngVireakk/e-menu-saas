@@ -3,10 +3,14 @@ import api, { getApiErrorMessage } from "../../../api/axios";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
 import { confirmAction, toastSuccess } from "../../../components/ui";
+import { useAuth } from "../../../context/AuthContext";
+import { canManageOrders } from "../../../utils/permissions";
 
 const statuses = ["accepted", "preparing", "ready", "completed", "cancelled"];
 
 export default function OrdersPage() {
+  const { user } = useAuth();
+  const allowStatusUpdate = canManageOrders(user);
   const [orders, setOrders] = useState([]);
   const [summary, setSummary] = useState({ new_count: 0, pending_count: 0, today_revenue: 0 });
   const [selected, setSelected] = useState(null);
@@ -97,9 +101,9 @@ export default function OrdersPage() {
         renderActions={(order) => (
           <div className="flex flex-wrap gap-2">
             <button onClick={() => setSelected(order)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">View</button>
-            {statuses.map((status) => (
+            {allowStatusUpdate ? statuses.map((status) => (
               <button key={status} onClick={() => update(order, status)} className="rounded-md bg-slate-900 px-3 py-1 text-sm text-white">{status}</button>
-            ))}
+            )) : null}
           </div>
         )}
       />

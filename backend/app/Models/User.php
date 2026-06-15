@@ -55,6 +55,31 @@ class User extends Authenticatable
         return in_array($this->role, ['super_admin', 'shop_owner'], true);
     }
 
+    public function canManageCatalog(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
+    }
+
+    public function canManageBranches(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
+    }
+
+    public function canManageTables(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
+    }
+
+    public function canManagePayments(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier'], true);
+    }
+
+    public function canManageOrders(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier', 'waiter'], true);
+    }
+
     public function accessibleShopIds(): array
     {
         if ($this->isSuperAdmin()) {

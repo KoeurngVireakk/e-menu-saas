@@ -286,6 +286,59 @@ class ApiCriticalFlowsTest extends TestCase
         $this->getJson("/api/shops/{$catalog['shop']->id}")->assertForbidden();
     }
 
+    public function test_staff_write_permissions_are_role_limited(): void
+    {
+        $catalog = $this->createCatalog();
+        $manager = User::factory()->create(['role' => 'manager']);
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $waiter = User::factory()->create(['role' => 'waiter']);
+
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => null,
+            'user_id' => $manager->id,
+            'role' => 'manager',
+            'status' => 'active',
+        ]);
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => $catalog['branch']->id,
+            'user_id' => $cashier->id,
+            'role' => 'cashier',
+            'status' => 'active',
+        ]);
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => $catalog['branch']->id,
+            'user_id' => $waiter->id,
+            'role' => 'waiter',
+            'status' => 'active',
+        ]);
+
+        Sanctum::actingAs($cashier);
+        $this->deleteJson("/api/products/{$catalog['product']->id}")
+            ->assertForbidden();
+
+        Sanctum::actingAs($manager);
+        $this->putJson("/api/products/{$catalog['product']->id}", [
+            'category_id' => $catalog['category']->id,
+            'name' => 'Manager Latte',
+            'price' => 11000,
+            'is_featured' => true,
+            'is_available' => true,
+            'status' => 'active',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.product.name', 'Manager Latte');
+
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $this->postJson("/api/public/orders/{$order['order_number']}/payment", [
+            'payment_method' => 'cash',
+        ])->assertCreated();
+        $payment = Payment::where('order_id', $order['id'])->firstOrFail();
+
+        Sanctum::actingAs($waiter);
+        $this->putJson("/api/payments/{$payment->id}/confirm")
+            ->assertForbidden();
+    }
+
     private function createCatalog(string $shopName = 'Test Cafe'): array
     {
         $owner = User::factory()->create(['role' => 'shop_owner']);

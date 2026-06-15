@@ -1,13 +1,19 @@
-import { useCallback, useEffect, useState } from "react";
+  import { useCallback, useEffect, useState } from "react";
 import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
 import { alertError, toastSuccess } from "../../../components/ui";
+import { useAuth } from "../../../context/AuthContext";
+import { canCreate, canDelete, canUpdate } from "../../../utils/permissions";
 
 const initial = { name: "", phone: "", address: "", google_map_url: "", opening_time: "", closing_time: "", status: "active" };
 
 export default function BranchesPage() {
+  const { user } = useAuth();
+  const allowCreate = canCreate(user, "branches");
+  const allowUpdate = canUpdate(user, "branches");
+  const allowDelete = canDelete(user, "branches");
   const [shops, setShops] = useState([]);
   const [shopId, setShopId] = useState("");
   const [branches, setBranches] = useState([]);
@@ -73,8 +79,8 @@ export default function BranchesPage() {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[390px_1fr]">
-      <form onSubmit={submit} className="rounded-md border border-slate-200 bg-white p-4">
+    <div className={`grid gap-6 ${allowCreate || allowUpdate ? "lg:grid-cols-[390px_1fr]" : ""}`}>
+      {allowCreate || allowUpdate ? <form onSubmit={submit} className="rounded-md border border-slate-200 bg-white p-4">
         <h2 className="text-lg font-semibold text-slate-950">{editing ? "Edit branch" : "Add branch"}</h2>
         <ShopSelect shops={shops} value={shopId} onChange={setShopId} disabled={Boolean(editing)} />
         <Input label="Name" value={form.name} required onChange={(value) => setForm({ ...form, name: value })} />
@@ -92,9 +98,9 @@ export default function BranchesPage() {
             <option value="inactive">Inactive</option>
           </select>
         </label>
-        <button disabled={!shopId} className="mt-5 rounded-md bg-orange-600 px-4 py-2 font-semibold text-white hover:bg-orange-700 disabled:opacity-60">{editing ? "Update branch" : "Create branch"}</button>
+        <button disabled={!shopId || (editing ? !allowUpdate : !allowCreate)} className="mt-5 rounded-md bg-orange-600 px-4 py-2 font-semibold text-white hover:bg-orange-700 disabled:opacity-60">{editing ? "Update branch" : "Create branch"}</button>
         {editing ? <button type="button" onClick={() => { setEditing(null); setForm(initial); }} className="ml-2 rounded-md border border-slate-300 px-4 py-2 font-semibold">Cancel</button> : null}
-      </form>
+      </form> : null}
       <DataTable
         columns={[
           { key: "name", label: "Name" },
@@ -106,12 +112,12 @@ export default function BranchesPage() {
         loading={loading}
         error={loadError}
         emptyMessage="No branches yet."
-        renderActions={(branch) => (
+        renderActions={allowUpdate || allowDelete ? (branch) => (
           <div className="flex gap-2">
-            <button onClick={() => edit(branch)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button>
-            <ConfirmButton onConfirm={() => remove(branch)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Delete</ConfirmButton>
+            {allowUpdate ? <button onClick={() => edit(branch)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button> : null}
+            {allowDelete ? <ConfirmButton onConfirm={() => remove(branch)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Delete</ConfirmButton> : null}
           </div>
-        )}
+        ) : undefined}
       />
     </div>
   );

@@ -23,6 +23,7 @@ class BranchController extends Controller
     public function store(Request $request, Shop $shop)
     {
         $this->authorizeShop($request, $shop);
+        abort_unless($request->user()->canManageBranches(), 403);
 
         $branch = $shop->branches()->create($this->validateBranch($request));
 
@@ -44,6 +45,7 @@ class BranchController extends Controller
     public function update(Request $request, Branch $branch)
     {
         $this->authorizeBranchAccess($request, $branch);
+        abort_unless($request->user()->canManageBranches(), 403);
         $branch->update($this->validateBranch($request));
 
         $this->audit($request, 'branch.updated', $branch->shop_id, 'branch', $branch->id, [
@@ -57,6 +59,7 @@ class BranchController extends Controller
     public function destroy(Request $request, Branch $branch)
     {
         $this->authorizeBranchAccess($request, $branch);
+        abort_unless($request->user()->canManageBranches(), 403);
         $branchId = $branch->id;
         $shopId = $branch->shop_id;
         $branchName = $branch->name;

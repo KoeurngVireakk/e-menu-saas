@@ -47,6 +47,7 @@ class PaymentController extends Controller
     public function confirm(Request $request, Payment $payment)
     {
         $this->authorizePayment($request, $payment);
+        abort_unless($request->user()->canManagePayments(), 403);
 
         DB::transaction(function () use ($request, $payment) {
             $payment->update([
@@ -76,6 +77,7 @@ class PaymentController extends Controller
     public function reject(Request $request, Payment $payment)
     {
         $this->authorizePayment($request, $payment);
+        abort_unless($request->user()->canManagePayments(), 403);
 
         $validated = $request->validate([
             'reason' => ['nullable', 'string', 'max:500'],

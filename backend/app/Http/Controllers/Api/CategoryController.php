@@ -30,6 +30,7 @@ class CategoryController extends Controller
     public function store(Request $request, Shop $shop)
     {
         $this->authorizeShop($request, $shop);
+        abort_unless($request->user()->canManageCatalog(), 403);
 
         $validated = $this->validateCategory($request, $shop);
         $this->authorizeScopedWrite($request, $shop, $validated['branch_id'] ?? null);
@@ -58,6 +59,7 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         $this->authorizeShopAccess($request, $category->shop, $category->branch_id);
+        abort_unless($request->user()->canManageCatalog(), 403);
 
         $validated = $this->validateCategory($request, $category->shop);
         $this->authorizeScopedWrite($request, $category->shop, $validated['branch_id'] ?? null);
@@ -79,6 +81,7 @@ class CategoryController extends Controller
     public function destroy(Request $request, Category $category)
     {
         $this->authorizeShopAccess($request, $category->shop, $category->branch_id);
+        abort_unless($request->user()->canManageCatalog(), 403);
         $categoryId = $category->id;
         $shopId = $category->shop_id;
         $categoryName = $category->name;

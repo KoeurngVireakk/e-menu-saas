@@ -24,6 +24,7 @@ class DiningTableController extends Controller
     public function store(Request $request, Branch $branch)
     {
         $this->authorizeBranchAccess($request, $branch);
+        abort_unless($request->user()->canManageTables(), 403);
 
         $validated = $this->validateTable($request, $branch);
         $validated['shop_id'] = $branch->shop_id;
@@ -46,6 +47,7 @@ class DiningTableController extends Controller
     public function update(Request $request, DiningTable $table)
     {
         $this->authorizeShopAccess($request, $table->shop, $table->branch_id);
+        abort_unless($request->user()->canManageTables(), 403);
 
         $validated = $this->validateTable($request, $table->branch, $table->id);
         $validated['qr_url'] = $this->menuUrl($table->branch, $validated['table_code']);
@@ -57,6 +59,7 @@ class DiningTableController extends Controller
     public function destroy(Request $request, DiningTable $table)
     {
         $this->authorizeShopAccess($request, $table->shop, $table->branch_id);
+        abort_unless($request->user()->canManageTables(), 403);
         $table->delete();
 
         return $this->success('Table deleted successfully');

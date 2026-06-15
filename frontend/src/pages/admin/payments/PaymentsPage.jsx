@@ -3,8 +3,12 @@ import api, { getApiErrorMessage } from "../../../api/axios";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
 import { Card, confirmAction, promptText, toastSuccess } from "../../../components/ui";
+import { useAuth } from "../../../context/AuthContext";
+import { canManagePayments } from "../../../utils/permissions";
 
 export default function PaymentsPage() {
+  const { user } = useAuth();
+  const allowPaymentActions = canManagePayments(user);
   const [payments, setPayments] = useState([]);
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -100,8 +104,8 @@ export default function PaymentsPage() {
           <div className="flex flex-wrap gap-2">
             <button onClick={() => setSelected(payment)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">View</button>
             {payment.proof_image_path ? <a href={`${import.meta.env.VITE_STORAGE_URL || "http://127.0.0.1:8000/storage"}/${payment.proof_image_path}`} target="_blank" rel="noreferrer" className="rounded-md border border-slate-300 px-3 py-1 text-sm">Proof</a> : null}
-            <button onClick={() => confirm(payment)} className="rounded-md bg-emerald-600 px-3 py-1 text-sm text-white">Confirm</button>
-            <button onClick={() => reject(payment)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Reject</button>
+            {allowPaymentActions ? <button onClick={() => confirm(payment)} className="rounded-md bg-emerald-600 px-3 py-1 text-sm text-white">Confirm</button> : null}
+            {allowPaymentActions ? <button onClick={() => reject(payment)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Reject</button> : null}
           </div>
         )}
       />
