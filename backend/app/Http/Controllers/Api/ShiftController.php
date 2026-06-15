@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\CashDrawerShift;
 use App\Models\Payment;
+use App\Services\CashLedgerService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -15,6 +16,10 @@ use Illuminate\Validation\Rule;
 
 class ShiftController extends Controller
 {
+    public function __construct(private readonly CashLedgerService $ledger)
+    {
+    }
+
     public function index(Request $request)
     {
         abort_unless($request->user()->canViewShifts(), 403);
@@ -105,6 +110,7 @@ class ShiftController extends Controller
             'status' => 'open',
             'opened_at' => now(),
         ]);
+        $this->ledger->recordShiftOpening($shift->load('shop'));
 
         $this->audit($request, 'shift.opened', $shift->shop_id, 'cash_drawer_shift', $shift->id, [
             'branch_id' => $shift->branch_id,
@@ -150,6 +156,7 @@ class ShiftController extends Controller
 
             $field = $movement->type === 'cash_in' ? 'cash_in_total' : 'cash_out_total';
             $shift->increment($field, $movement->amount);
+            $this->ledger->recordCashMovement($movement->load('shop'));
 
             $this->audit($request, 'shift.'.$movement->type, $shift->shop_id, 'cash_drawer_shift', $shift->id, [
                 'movement_id' => $movement->id,
@@ -192,6 +199,7 @@ class ShiftController extends Controller
             'status' => 'closed',
             'note' => $validated['note'] ?? $shift->note,
         ]);
+        $this->ledger->recordClosingDifference($shift->fresh('shop'), $counted - $expected, $request->user()->id);
 
         $this->audit($request, 'shift.closed', $shift->shop_id, 'cash_drawer_shift', $shift->id, [
             'branch_id' => $shift->branch_id,

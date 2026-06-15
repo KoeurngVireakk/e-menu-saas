@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CashLedgerEntry;
 use App\Models\CashDrawerShift;
 use App\Models\DailyClosing;
+use App\Models\Expense;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Shop;
+use App\Services\CashLedgerService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -17,6 +20,10 @@ use Illuminate\Validation\Rule;
 
 class ReportController extends Controller
 {
+    public function __construct(private readonly CashLedgerService $ledger)
+    {
+    }
+
     public function salesSummary(Request $request)
     {
         $filters = $this->filters($request);
@@ -69,6 +76,7 @@ class ReportController extends Controller
             'summary' => $filters['shop_id'] ? $this->salesSummaryData($request, $filters) : null,
             'payment_methods' => $filters['shop_id'] ? $this->paymentMethodData($request, $filters) : null,
             'shift_summary' => $filters['shop_id'] ? $this->shiftSummaryData($request, $filters) : null,
+            'ledger_summary' => $filters['shop_id'] ? $this->ledgerSummaryData($request, $filters) : null,
         ]);
     }
 
@@ -130,6 +138,7 @@ class ReportController extends Controller
                 'closed_at' => now(),
             ],
         );
+        $this->ledger->recordClosingDifference($closing->fresh('shop'), (float) ($closing->cash_difference ?? 0), $request->user()->id);
 
         $this->audit($request, 'daily_closing.closed', $closing->shop_id, 'daily_closing', $closing->id, [
             'branch_id' => $closing->branch_id,
@@ -216,6 +225,9 @@ class ReportController extends Controller
             ->where('order_status', '!=', 'cancelled');
 
         $currency = $this->currencyCode($filters, $allOrders->first()?->shop);
+        $expenseSummary = $this->expenseSummaryData($request, $filters);
+        $ledgerSummary = $this->ledgerSummaryData($request, $filters);
+        $netSales = $this->money($financialOrders->sum('grand_total'));
 
         return [
             'total_orders' => $allOrders->count(),
@@ -225,9 +237,15 @@ class ReportController extends Controller
             'discount_total' => $this->money($financialOrders->sum('discount_total')),
             'service_charge_total' => $this->money($financialOrders->sum('service_charge')),
             'tax_total' => $this->money($financialOrders->sum('tax_total')),
-            'net_sales' => $this->money($financialOrders->sum('grand_total')),
+            'net_sales' => $netSales,
             'paid_total' => $this->money($openFinancialOrders->where('payment_status', 'paid')->sum('grand_total')),
             'unpaid_total' => $this->money($openFinancialOrders->where('payment_status', '!=', 'paid')->sum('grand_total')),
+            'total_expenses' => $expenseSummary['paid_total'],
+            'net_after_expenses' => $this->money($netSales - $expenseSummary['paid_total']),
+            'cash_ledger_in_total' => $ledgerSummary['in_total'],
+            'cash_ledger_out_total' => $ledgerSummary['out_total'],
+            'cash_ledger_net_total' => $ledgerSummary['net_total'],
+            'cash_out_expenses' => $ledgerSummary['cash_out_expenses'],
             'secondary_currency_total' => $this->money($financialOrders->sum('secondary_currency_total')),
             'currency_code' => $currency,
             'date_from' => $filters['date_from']->toDateString(),
@@ -333,6 +351,37 @@ class ReportController extends Controller
         ];
     }
 
+    private function expenseSummaryData(Request $request, array $filters): array
+    {
+        $expenses = $this->expenseQuery($request, $filters)->get();
+
+        return [
+            'paid_total' => $this->money($expenses->where('status', 'paid')->sum('amount')),
+            'pending_total' => $this->money($expenses->whereIn('status', ['draft', 'pending', 'approved'])->sum('amount')),
+            'count' => $expenses->count(),
+        ];
+    }
+
+    private function ledgerSummaryData(Request $request, array $filters): array
+    {
+        $entries = $this->ledgerQuery($request, $filters)->get();
+        $inTotal = $this->money($entries->where('direction', 'in')->sum('amount'));
+        $outTotal = $this->money($entries->where('direction', 'out')->sum('amount'));
+
+        return [
+            'in_total' => $inTotal,
+            'out_total' => $outTotal,
+            'net_total' => $this->money($inTotal - $outTotal),
+            'cash_out_expenses' => $this->money($entries
+                ->where('entry_type', 'expense')
+                ->where('direction', 'out')
+                ->where('metadata_json.payment_method', 'cash')
+                ->sum('amount')),
+            'cash_in_movements' => $this->money($entries->where('entry_type', 'cash_in')->sum('amount')),
+            'cash_out_movements' => $this->money($entries->where('entry_type', 'cash_out')->sum('amount')),
+        ];
+    }
+
     private function orderQuery(Request $request, array $filters): Builder
     {
         $orders = Order::with('shop')
@@ -370,6 +419,42 @@ class ReportController extends Controller
         });
 
         return $shifts;
+    }
+
+    private function expenseQuery(Request $request, array $filters): Builder
+    {
+        $expenses = Expense::whereIn('shop_id', $filters['shop_ids'])
+            ->whereBetween('expense_date', [$filters['date_from']->toDateString(), $filters['date_to']->toDateString()])
+            ->when($filters['has_branch_filter'], fn ($query) => $query->where('branch_id', $filters['branch_id']));
+
+        $expenses->where(function (Builder $query) use ($request, $filters) {
+            foreach ($filters['shop_ids'] as $shopId) {
+                $query->orWhere(function (Builder $shopQuery) use ($request, $shopId) {
+                    $shopQuery->where('shop_id', $shopId);
+                    $this->scopeBranchAccess($request, $shopQuery, $shopId, includeGlobal: true);
+                });
+            }
+        });
+
+        return $expenses;
+    }
+
+    private function ledgerQuery(Request $request, array $filters): Builder
+    {
+        $entries = CashLedgerEntry::whereIn('shop_id', $filters['shop_ids'])
+            ->whereBetween('entry_date', [$filters['date_from']->toDateString(), $filters['date_to']->toDateString()])
+            ->when($filters['has_branch_filter'], fn ($query) => $query->where('branch_id', $filters['branch_id']));
+
+        $entries->where(function (Builder $query) use ($request, $filters) {
+            foreach ($filters['shop_ids'] as $shopId) {
+                $query->orWhere(function (Builder $shopQuery) use ($request, $shopId) {
+                    $shopQuery->where('shop_id', $shopId);
+                    $this->scopeBranchAccess($request, $shopQuery, $shopId, includeGlobal: true);
+                });
+            }
+        });
+
+        return $entries;
     }
 
     private function currencyCode(array $filters, mixed $fallbackShop = null): string

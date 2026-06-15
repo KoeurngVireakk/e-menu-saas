@@ -88,6 +88,21 @@ class Shop extends Model
         return $this->hasMany(CashDrawerShift::class);
     }
 
+    public function expenseCategories(): HasMany
+    {
+        return $this->hasMany(ExpenseCategory::class);
+    }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    public function cashLedgerEntries(): HasMany
+    {
+        return $this->hasMany(CashLedgerEntry::class);
+    }
+
     public function staffAssignments(): HasMany
     {
         return $this->hasMany(ShopStaff::class);

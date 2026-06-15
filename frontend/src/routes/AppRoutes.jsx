@@ -21,6 +21,8 @@ const InvoicesPage = lazy(() => import("../pages/admin/invoices/InvoicesPage"));
 const ReportsPage = lazy(() => import("../pages/admin/reports/ReportsPage"));
 const DailyClosingPage = lazy(() => import("../pages/admin/reports/DailyClosingPage"));
 const ShiftsPage = lazy(() => import("../pages/admin/shifts/ShiftsPage"));
+const ExpensesPage = lazy(() => import("../pages/admin/expenses/ExpensesPage"));
+const CashLedgerPage = lazy(() => import("../pages/admin/cash-ledger/CashLedgerPage"));
 const PrintStationsPage = lazy(() => import("../pages/admin/print-stations/PrintStationsPage"));
 const StaffPage = lazy(() => import("../pages/admin/staff/StaffPage"));
 const SettingsPage = lazy(() => import("../pages/admin/settings/SettingsPage"));
@@ -62,6 +64,8 @@ export default function AppRoutes() {
             <Route path="reports" element={<PermissionRoute feature="reports"><ReportsPage /></PermissionRoute>} />
             <Route path="daily-closing" element={<PermissionRoute feature="dailyClosing"><DailyClosingPage /></PermissionRoute>} />
             <Route path="shifts" element={<PermissionRoute feature="shifts"><ShiftsPage /></PermissionRoute>} />
+            <Route path="expenses" element={<PermissionRoute feature="expenses"><ExpensesPage /></PermissionRoute>} />
+            <Route path="cash-ledger" element={<PermissionRoute feature="cashLedger"><CashLedgerPage /></PermissionRoute>} />
             <Route path="print-stations" element={<PermissionRoute feature="printStations"><PrintStationsPage /></PermissionRoute>} />
             <Route path="staff" element={<PermissionRoute feature="staff"><StaffPage /></PermissionRoute>} />
             <Route path="settings" element={<PermissionRoute feature="settings"><SettingsPage /></PermissionRoute>} />

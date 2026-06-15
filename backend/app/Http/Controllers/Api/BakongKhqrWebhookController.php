@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Services\CashLedgerService;
 use App\Services\Notifications\TelegramNotificationService;
 use App\Services\Payments\PaymentStatusSync;
 use Illuminate\Http\Request;
@@ -14,6 +15,7 @@ class BakongKhqrWebhookController extends Controller
     public function __construct(
         private readonly PaymentStatusSync $paymentStatusSync,
         private readonly TelegramNotificationService $telegram,
+        private readonly CashLedgerService $ledger,
     ) {
     }
 
@@ -77,6 +79,8 @@ class BakongKhqrWebhookController extends Controller
                 }
 
                 $this->paymentStatusSync->markPaid($payment, ['webhook_verified_at' => now()]);
+                $payment->refresh();
+                $this->ledger->recordPayment($payment);
                 $payment->logs()->create([
                     'action' => 'bakong_paid',
                     'payload_json' => $this->safePayload($payload),

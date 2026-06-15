@@ -4,7 +4,10 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BakongKhqrWebhookController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\CashLedgerController;
 use App\Http\Controllers\Api\DiningTableController;
+use App\Http\Controllers\Api\ExpenseCategoryController;
+use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\OrderController;
@@ -61,6 +64,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/reports/payment-methods', [ReportController::class, 'paymentMethods']);
     Route::get('/reports/daily-closing', [ReportController::class, 'dailyClosing']);
     Route::post('/reports/daily-closing', [ReportController::class, 'storeDailyClosing']);
+
+    Route::get('/expense-categories', [ExpenseCategoryController::class, 'index']);
+    Route::post('/expense-categories', [ExpenseCategoryController::class, 'store']);
+    Route::put('/expense-categories/{category}', [ExpenseCategoryController::class, 'update']);
+    Route::delete('/expense-categories/{category}', [ExpenseCategoryController::class, 'destroy']);
+
+    Route::get('/expenses', [ExpenseController::class, 'index']);
+    Route::post('/expenses', [ExpenseController::class, 'store']);
+    Route::get('/expenses/{expense}', [ExpenseController::class, 'show']);
+    Route::put('/expenses/{expense}', [ExpenseController::class, 'update']);
+    Route::put('/expenses/{expense}/approve', [ExpenseController::class, 'approve']);
+    Route::put('/expenses/{expense}/reject', [ExpenseController::class, 'reject']);
+    Route::put('/expenses/{expense}/mark-paid', [ExpenseController::class, 'markPaid']);
+    Route::put('/expenses/{expense}/cancel', [ExpenseController::class, 'cancel']);
+
+    Route::get('/cash-ledger', [CashLedgerController::class, 'index']);
+    Route::get('/cash-ledger/export', [CashLedgerController::class, 'export']);
 
     Route::get('/shifts', [ShiftController::class, 'index']);
     Route::post('/shifts/open', [ShiftController::class, 'open']);

@@ -136,7 +136,7 @@ describe("print components", () => {
 
     expect(screen.getByText("Shift Report")).toBeInTheDocument();
     expect(screen.getByText("SHIFT-1")).toBeInTheDocument();
-    expect(screen.getByText("Expected cash")).toBeInTheDocument();
+    expect(screen.getAllByText("Expected cash").length).toBeGreaterThan(0);
     expect(screen.getByText("-500 KHR")).toBeInTheDocument();
   });
 });

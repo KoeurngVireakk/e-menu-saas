@@ -50,6 +50,11 @@ class User extends Authenticatable
         return $this->hasMany(CashDrawerShift::class);
     }
 
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class, 'created_by');
+    }
+
     public function isSuperAdmin(): bool
     {
         return $this->role === 'super_admin';
@@ -143,6 +148,31 @@ class User extends Authenticatable
     public function canAddCashMovement(): bool
     {
         return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier'], true);
+    }
+
+    public function canViewExpenses(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier'], true);
+    }
+
+    public function canManageExpenses(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier'], true);
+    }
+
+    public function canApproveExpenses(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
+    }
+
+    public function canViewCashLedger(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier'], true);
+    }
+
+    public function canExportCashLedger(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
     }
 
     public function canViewStaff(): bool

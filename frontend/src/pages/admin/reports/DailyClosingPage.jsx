@@ -18,6 +18,7 @@ export default function DailyClosingPage() {
   const [summary, setSummary] = useState(null);
   const [payments, setPayments] = useState(null);
   const [shiftSummary, setShiftSummary] = useState(null);
+  const [ledgerSummary, setLedgerSummary] = useState(null);
   const [selectedClosing, setSelectedClosing] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -64,6 +65,7 @@ export default function DailyClosingPage() {
         setSummary(response.data.data.summary);
         setPayments(response.data.data.payment_methods);
         setShiftSummary(response.data.data.shift_summary);
+        setLedgerSummary(response.data.data.ledger_summary);
       })
       .catch((error) => setLoadError(getApiErrorMessage(error, "Unable to load daily closing.")))
       .finally(() => setLoading(false));
@@ -120,6 +122,9 @@ export default function DailyClosingPage() {
             <StatCard label="Expected cash" value={formatCurrency(expectedCash, currency)} tone="green" />
             <StatCard label="Net sales" value={formatCurrency(summary.net_sales, currency)} tone="blue" />
             <StatCard label="Open balance" value={formatCurrency(summary.unpaid_total, currency)} />
+            <StatCard label="Expenses paid" value={formatCurrency(summary.total_expenses, currency)} />
+            <StatCard label="Net after expenses" value={formatCurrency(summary.net_after_expenses, currency)} tone="green" />
+            <StatCard label="Ledger net" value={formatCurrency(ledgerSummary?.net_total || 0, currency)} />
           </div>
 
           {shiftSummary?.open_shifts ? (

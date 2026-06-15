@@ -75,4 +75,9 @@ class CashDrawerShift extends Model
     {
         return $this->hasMany(Payment::class, 'cash_drawer_shift_id');
     }
+
+    public function ledgerEntries(): HasMany
+    {
+        return $this->hasMany(CashLedgerEntry::class, 'shift_id');
+    }
 }

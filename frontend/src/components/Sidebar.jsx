@@ -16,6 +16,8 @@ const links = [
   { label: "Reports", to: "/admin/reports", feature: "reports" },
   { label: "Daily Closing", to: "/admin/daily-closing", feature: "dailyClosing" },
   { label: "Shifts", to: "/admin/shifts", feature: "shifts" },
+  { label: "Expenses", to: "/admin/expenses", feature: "expenses" },
+  { label: "Cash Ledger", to: "/admin/cash-ledger", feature: "cashLedger" },
   { label: "Print Stations", to: "/admin/print-stations", feature: "printStations" },
   { label: "Staff", to: "/admin/staff", feature: "staff" },
   { label: "Settings", to: "/admin/settings", feature: "settings" },

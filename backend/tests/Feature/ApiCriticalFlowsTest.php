@@ -5,8 +5,11 @@ namespace Tests\Feature;
 use App\Models\AuditLog;
 use App\Models\Branch;
 use App\Models\CashDrawerShift;
+use App\Models\CashLedgerEntry;
 use App\Models\Category;
 use App\Models\DailyClosing;
+use App\Models\Expense;
+use App\Models\ExpenseCategory;
 use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\Payment;
@@ -1520,6 +1523,199 @@ class ApiCriticalFlowsTest extends TestCase
         ])
             ->assertStatus(409)
             ->assertJsonPath('success', false);
+    }
+
+    public function test_owner_can_create_expense_category_and_cashier_cannot_approve_expense(): void
+    {
+        $catalog = $this->createCatalog();
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => $catalog['branch']->id,
+            'user_id' => $cashier->id,
+            'role' => 'cashier',
+            'status' => 'active',
+        ]);
+
+        Sanctum::actingAs($catalog['owner']);
+        $category = $this->postJson('/api/expense-categories', [
+            'shop_id' => $catalog['shop']->id,
+            'name' => 'Supplies',
+            'description' => 'Restaurant supplies',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.category.name', 'Supplies')
+            ->json('data.category');
+
+        $expense = $this->postJson('/api/expenses', [
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'expense_category_id' => $category['id'],
+            'vendor_name' => 'Local Market',
+            'amount' => 12000,
+            'currency_code' => 'KHR',
+            'payment_method' => 'cash',
+            'expense_date' => now()->toDateString(),
+            'status' => 'pending',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.expense.status', 'pending')
+            ->json('data.expense');
+
+        Sanctum::actingAs($cashier);
+        $this->putJson("/api/expenses/{$expense['id']}/approve")
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('audit_logs', ['action' => 'expense_category.created']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'expense.created']);
+    }
+
+    public function test_manager_can_approve_branch_expense_and_paid_expense_creates_ledger_out_entry(): void
+    {
+        $catalog = $this->createCatalog();
+        $manager = User::factory()->create(['role' => 'manager']);
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => $catalog['branch']->id,
+            'user_id' => $manager->id,
+            'role' => 'manager',
+            'status' => 'active',
+        ]);
+        $category = ExpenseCategory::create([
+            'shop_id' => $catalog['shop']->id,
+            'name' => 'Utilities',
+            'status' => 'active',
+        ]);
+        $expense = Expense::create([
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'expense_category_id' => $category->id,
+            'created_by' => $catalog['owner']->id,
+            'expense_number' => 'EXP-TEST-001',
+            'vendor_name' => 'Electricity Company',
+            'amount' => 25000,
+            'currency_code' => 'KHR',
+            'payment_method' => 'cash',
+            'expense_date' => now()->toDateString(),
+            'status' => 'pending',
+        ]);
+
+        Sanctum::actingAs($manager);
+        $this->putJson("/api/expenses/{$expense->id}/approve")
+            ->assertOk()
+            ->assertJsonPath('data.expense.status', 'approved');
+
+        $this->putJson("/api/expenses/{$expense->id}/mark-paid")
+            ->assertOk()
+            ->assertJsonPath('data.expense.status', 'paid');
+
+        $this->assertDatabaseHas('cash_ledger_entries', [
+            'source_type' => Expense::class,
+            'source_id' => $expense->id,
+            'entry_type' => 'expense',
+            'direction' => 'out',
+            'amount' => 25000,
+        ]);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'expense.approved']);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'expense.paid']);
+    }
+
+    public function test_payment_confirmation_shift_movements_and_cash_ledger_export_create_safe_entries(): void
+    {
+        $catalog = $this->createCatalog();
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => $catalog['branch']->id,
+            'user_id' => $cashier->id,
+            'role' => 'cashier',
+            'status' => 'active',
+        ]);
+
+        Sanctum::actingAs($cashier);
+        $shift = $this->postJson('/api/shifts/open', [
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'opening_float' => 10000,
+        ])->assertCreated()->json('data.shift');
+
+        $this->postJson("/api/shifts/{$shift['id']}/cash-movement", [
+            'type' => 'cash_out',
+            'amount' => 1500,
+            'reason' => 'Supplier deposit',
+        ])->assertCreated();
+
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $this->postJson("/api/public/orders/{$order['order_number']}/payment", [
+            'payment_method' => 'cash',
+        ])->assertCreated();
+        $payment = Payment::where('order_id', $order['id'])->firstOrFail();
+
+        $this->putJson("/api/payments/{$payment->id}/confirm")
+            ->assertOk()
+            ->assertJsonPath('data.payment.status', 'paid');
+
+        $this->assertDatabaseHas('cash_ledger_entries', [
+            'source_type' => CashDrawerShift::class,
+            'source_id' => $shift['id'],
+            'entry_type' => 'opening_float',
+            'direction' => 'in',
+        ]);
+        $this->assertDatabaseHas('cash_ledger_entries', [
+            'source_type' => Payment::class,
+            'source_id' => $payment->id,
+            'entry_type' => 'payment',
+            'direction' => 'in',
+            'amount' => 14500,
+        ]);
+        $this->assertDatabaseHas('cash_ledger_entries', [
+            'entry_type' => 'cash_out',
+            'direction' => 'out',
+            'amount' => 1500,
+        ]);
+
+        Sanctum::actingAs($catalog['owner']);
+        $this->getJson("/api/cash-ledger/export?shop_id={$catalog['shop']->id}&branch_id={$catalog['branch']->id}&date=".now()->toDateString())
+            ->assertOk()
+            ->assertHeader('content-type', 'text/csv; charset=UTF-8')
+            ->assertSee('payment', false)
+            ->assertDontSee('proof_image_path', false);
+
+        $this->assertDatabaseHas('audit_logs', ['action' => 'cash_ledger.exported']);
+    }
+
+    public function test_waiter_cannot_access_cash_ledger_and_daily_report_includes_expenses(): void
+    {
+        $catalog = $this->createCatalog();
+        $waiter = User::factory()->create(['role' => 'waiter']);
+        $catalog['shop']->staffAssignments()->create([
+            'branch_id' => $catalog['branch']->id,
+            'user_id' => $waiter->id,
+            'role' => 'waiter',
+            'status' => 'active',
+        ]);
+        Expense::create([
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'created_by' => $catalog['owner']->id,
+            'expense_number' => 'EXP-TEST-002',
+            'vendor_name' => 'Ice Supplier',
+            'amount' => 4000,
+            'currency_code' => 'KHR',
+            'payment_method' => 'cash',
+            'expense_date' => now()->toDateString(),
+            'status' => 'paid',
+            'paid_at' => now(),
+        ]);
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $this->markCompletedPaid($order['id'], 'cash');
+
+        Sanctum::actingAs($waiter);
+        $this->getJson("/api/cash-ledger?shop_id={$catalog['shop']->id}&branch_id={$catalog['branch']->id}&date=".now()->toDateString())
+            ->assertForbidden();
+
+        Sanctum::actingAs($catalog['owner']);
+        $this->getJson("/api/reports/sales-summary?shop_id={$catalog['shop']->id}&branch_id={$catalog['branch']->id}&date=".now()->toDateString())
+            ->assertOk()
+            ->assertJsonPath('data.summary.total_expenses', 4000)
+            ->assertJsonPath('data.summary.net_after_expenses', 10500);
     }
 
     private function createCatalog(string $shopName = 'Test Cafe'): array

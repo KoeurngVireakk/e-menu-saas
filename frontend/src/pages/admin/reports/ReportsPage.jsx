@@ -114,6 +114,8 @@ export default function ReportsPage() {
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 no-print">
             <StatCard label="Net sales" value={formatCurrency(summary.net_sales, currency)} tone="green" />
+            <StatCard label="Net after expenses" value={formatCurrency(summary.net_after_expenses, currency)} tone="blue" />
+            <StatCard label="Expenses" value={formatCurrency(summary.total_expenses, currency)} />
             <StatCard label="Paid total" value={formatCurrency(summary.paid_total, currency)} tone="blue" />
             <StatCard label="Unpaid total" value={formatCurrency(summary.unpaid_total, currency)} />
             <StatCard label="Completed orders" value={summary.completed_orders} note={`${summary.cancelled_orders} cancelled`} />

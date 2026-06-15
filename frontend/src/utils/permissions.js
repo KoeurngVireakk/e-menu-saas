@@ -72,6 +72,16 @@ const featurePermissions = {
     update: ["super_admin", "shop_owner", "manager", "cashier"],
     manage: ["super_admin", "shop_owner", "manager"],
   },
+  expenses: {
+    view: ["super_admin", "shop_owner", "manager", "cashier"],
+    create: ["super_admin", "shop_owner", "manager", "cashier"],
+    update: ["super_admin", "shop_owner", "manager", "cashier"],
+    approve: ["super_admin", "shop_owner", "manager"],
+  },
+  cashLedger: {
+    view: ["super_admin", "shop_owner", "manager", "cashier"],
+    export: ["super_admin", "shop_owner", "manager"],
+  },
   staff: {
     view: ["super_admin", "shop_owner", "manager"],
     create: ["super_admin", "shop_owner"],
@@ -162,6 +172,26 @@ export function canCloseShift(user) {
 
 export function canAddCashMovement(user) {
   return canUpdate(user, "shifts");
+}
+
+export function canViewExpenses(user) {
+  return canView(user, "expenses");
+}
+
+export function canManageExpenses(user) {
+  return canCreate(user, "expenses") && canUpdate(user, "expenses");
+}
+
+export function canApproveExpenses(user) {
+  return hasPermission(user, "expenses", "approve");
+}
+
+export function canViewCashLedger(user) {
+  return canView(user, "cashLedger");
+}
+
+export function canExportCashLedger(user) {
+  return hasPermission(user, "cashLedger", "export");
 }
 
 export function canManageOrders(user) {
