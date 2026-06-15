@@ -13,9 +13,12 @@ use App\Models\Product;
 use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Tests\TestCase;
 
 class RealtimeOperationsTest extends TestCase
@@ -56,22 +59,11 @@ class RealtimeOperationsTest extends TestCase
             'status' => 'active',
         ]);
 
-        Sanctum::actingAs($manager, [], 'sanctum');
-        $this->postJson('/api/broadcasting/auth', [
-            'socket_id' => '123.456',
-            'channel_name' => 'private-branch.'.$catalog['branch']->id,
-        ])->assertOk()->assertJsonStructure(['auth']);
+        require base_path('routes/channels.php');
 
-        $this->postJson('/api/broadcasting/auth', [
-            'socket_id' => '123.456',
-            'channel_name' => 'private-admin.restaurant.'.$catalog['shop']->id,
-        ])->assertOk()->assertJsonStructure(['auth']);
-
-        Sanctum::actingAs($unrelatedOwner, [], 'sanctum');
-        $this->postJson('/api/broadcasting/auth', [
-            'socket_id' => '123.456',
-            'channel_name' => 'private-branch.'.$catalog['branch']->id,
-        ])->assertForbidden();
+        $this->assertBroadcastAuthAllowed($manager, 'private-branch.'.$catalog['branch']->id);
+        $this->assertBroadcastAuthAllowed($manager, 'private-admin.restaurant.'.$catalog['shop']->id);
+        $this->assertBroadcastAuthForbidden($unrelatedOwner, 'private-branch.'.$catalog['branch']->id);
     }
 
     public function test_order_and_payment_flows_dispatch_realtime_events(): void
@@ -151,5 +143,31 @@ class RealtimeOperationsTest extends TestCase
                 ],
             ],
         ]);
+    }
+
+    private function assertBroadcastAuthAllowed(User $user, string $channelName): void
+    {
+        $request = Request::create('/api/broadcasting/auth', 'POST', [
+            'socket_id' => '123.456',
+            'channel_name' => $channelName,
+        ]);
+        $request->setUserResolver(fn () => $user);
+
+        $response = Broadcast::auth($request);
+
+        $this->assertArrayHasKey('auth', $response);
+    }
+
+    private function assertBroadcastAuthForbidden(User $user, string $channelName): void
+    {
+        $request = Request::create('/api/broadcasting/auth', 'POST', [
+            'socket_id' => '123.456',
+            'channel_name' => $channelName,
+        ]);
+        $request->setUserResolver(fn () => $user);
+
+        $this->expectException(AccessDeniedHttpException::class);
+
+        Broadcast::auth($request);
     }
 }
