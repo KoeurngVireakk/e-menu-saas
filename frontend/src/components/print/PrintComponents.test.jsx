@@ -1,8 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import DailyClosingPrint from "./DailyClosingPrint";
 import InvoicePrint from "./InvoicePrint";
 import KitchenTicketPrint from "./KitchenTicketPrint";
 import ReceiptPrint from "./ReceiptPrint";
+import SalesReportPrint from "./SalesReportPrint";
 
 const basePrint = {
   paper_size: "80mm",
@@ -69,5 +71,45 @@ describe("print components", () => {
     expect(screen.getByText("Invoice")).toBeInTheDocument();
     expect(screen.getByText("INV-1")).toBeInTheDocument();
     expect(screen.getByText("Balance")).toBeInTheDocument();
+  });
+
+  it("renders sales report currency totals", () => {
+    render(
+      <SalesReportPrint
+        report={{
+          shop: { name: "QA Cafe" },
+          summary: { ...basePrint.totals, total_orders: 2, completed_orders: 1, net_sales: 24000, paid_total: 24000, unpaid_total: 0, date_from: "2026-06-15", date_to: "2026-06-15" },
+          payment_methods: { methods: { cash: { paid_total: 24000 } } },
+          products: [{ product_id: 1, product_name: "Iced Latte", quantity_sold: 2, net_total: 24000 }],
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Sales Report")).toBeInTheDocument();
+    expect(screen.getAllByText("QA Cafe").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/24,000 KHR/).length).toBeGreaterThan(0);
+  });
+
+  it("renders daily closing cash fields", () => {
+    render(
+      <DailyClosingPrint
+        closing={{
+          shop: { name: "QA Cafe" },
+          branch: { name: "Main Branch" },
+          closer: { name: "Owner" },
+          closing_date: "2026-06-15",
+          currency_code: "KHR",
+          expected_cash_total: 24000,
+          counted_cash_total: 23000,
+          cash_difference: -1000,
+          sales_summary_json: { net_sales: 24000, paid_total: 24000 },
+          payment_totals_json: { methods: { cash: { paid_total: 24000 } } },
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Daily Closing")).toBeInTheDocument();
+    expect(screen.getByText("Expected cash")).toBeInTheDocument();
+    expect(screen.getByText("-1,000 KHR")).toBeInTheDocument();
   });
 });

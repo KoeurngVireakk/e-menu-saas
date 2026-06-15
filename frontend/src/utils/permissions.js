@@ -57,6 +57,15 @@ const featurePermissions = {
     update: ["super_admin", "shop_owner", "manager"],
     delete: ["super_admin", "shop_owner", "manager"],
   },
+  reports: {
+    view: ["super_admin", "shop_owner", "manager", "cashier"],
+    export: ["super_admin", "shop_owner", "manager"],
+  },
+  dailyClosing: {
+    view: ["super_admin", "shop_owner", "manager", "cashier"],
+    create: ["super_admin", "shop_owner", "manager", "cashier"],
+    update: ["super_admin", "shop_owner", "manager", "cashier"],
+  },
   staff: {
     view: ["super_admin", "shop_owner", "manager"],
     create: ["super_admin", "shop_owner"],
@@ -115,6 +124,18 @@ export function canPrintKitchenTicket(user) {
 
 export function canPrintReceipt(user) {
   return hasRole(user, ["super_admin", "shop_owner", "manager", "cashier"]);
+}
+
+export function canViewReports(user) {
+  return canView(user, "reports");
+}
+
+export function canManageDailyClosing(user) {
+  return canCreate(user, "dailyClosing") && canUpdate(user, "dailyClosing");
+}
+
+export function canExportReports(user) {
+  return hasPermission(user, "reports", "export");
 }
 
 export function canManageOrders(user) {

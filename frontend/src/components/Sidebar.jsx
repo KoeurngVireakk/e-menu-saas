@@ -13,6 +13,8 @@ const links = [
   { label: "Orders", to: "/admin/orders", feature: "orders" },
   { label: "Payments", to: "/admin/payments", feature: "payments" },
   { label: "Invoices", to: "/admin/invoices", feature: "invoices" },
+  { label: "Reports", to: "/admin/reports", feature: "reports" },
+  { label: "Daily Closing", to: "/admin/daily-closing", feature: "dailyClosing" },
   { label: "Print Stations", to: "/admin/print-stations", feature: "printStations" },
   { label: "Staff", to: "/admin/staff", feature: "staff" },
   { label: "Settings", to: "/admin/settings", feature: "settings" },

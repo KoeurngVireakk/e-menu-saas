@@ -52,6 +52,11 @@ class Branch extends Model
         return $this->hasMany(PrintStation::class);
     }
 
+    public function dailyClosings(): HasMany
+    {
+        return $this->hasMany(DailyClosing::class);
+    }
+
     public function staffAssignments(): HasMany
     {
         return $this->hasMany(ShopStaff::class);

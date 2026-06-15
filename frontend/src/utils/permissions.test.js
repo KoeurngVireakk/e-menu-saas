@@ -3,6 +3,7 @@ import {
   canCreate,
   canDelete,
   canManageInvoices,
+  canManageDailyClosing,
   canManagePayments,
   canManageProducts,
   canManagePrintStations,
@@ -10,11 +11,13 @@ import {
   canManageStaff,
   canManageTenantSettings,
   canManageTranslations,
+  canExportReports,
   canPrintKitchenTicket,
   canPrintReceipt,
   canUpdate,
   canView,
   canViewPrintStations,
+  canViewReports,
   canViewStaff,
   canViewSystemHealth,
   canViewTenantSettings,
@@ -47,6 +50,9 @@ describe("permissions", () => {
     expect(canManageProducts(user)).toBe(true);
     expect(canManageInvoices(user)).toBe(true);
     expect(canManagePrintStations(user)).toBe(true);
+    expect(canViewReports(user)).toBe(true);
+    expect(canManageDailyClosing(user)).toBe(true);
+    expect(canExportReports(user)).toBe(true);
     expect(canPrintKitchenTicket(user)).toBe(true);
     expect(canPrintReceipt(user)).toBe(true);
     expect(canManageTranslations(user)).toBe(true);
@@ -64,6 +70,9 @@ describe("permissions", () => {
     expect(canManageInvoices(user)).toBe(true);
     expect(canViewPrintStations(user)).toBe(true);
     expect(canManagePrintStations(user)).toBe(false);
+    expect(canViewReports(user)).toBe(true);
+    expect(canManageDailyClosing(user)).toBe(true);
+    expect(canExportReports(user)).toBe(false);
     expect(canPrintReceipt(user)).toBe(true);
     expect(canPrintKitchenTicket(user)).toBe(false);
     expect(canView(user, "orders")).toBe(true);
@@ -81,6 +90,9 @@ describe("permissions", () => {
     expect(canCreate(user, "tables")).toBe(false);
     expect(canViewPrintStations(user)).toBe(true);
     expect(canManagePrintStations(user)).toBe(false);
+    expect(canViewReports(user)).toBe(false);
+    expect(canManageDailyClosing(user)).toBe(false);
+    expect(canExportReports(user)).toBe(false);
     expect(canPrintKitchenTicket(user)).toBe(true);
     expect(canPrintReceipt(user)).toBe(false);
     expect(canView(user, "payments")).toBe(false);

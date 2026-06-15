@@ -100,6 +100,21 @@ class User extends Authenticatable
         return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier'], true);
     }
 
+    public function canViewReports(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier'], true);
+    }
+
+    public function canManageDailyClosing(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager', 'cashier'], true);
+    }
+
+    public function canExportReports(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
+    }
+
     public function canViewStaff(): bool
     {
         return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);

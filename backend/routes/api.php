@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\PrintStationController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\PublicMenuController;
 use App\Http\Controllers\Api\PublicOrderController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\ShopSettingsController;
 use App\Http\Controllers\Api\ShopStaffController;
@@ -53,6 +54,12 @@ Route::post('/webhooks/bakong-khqr', BakongKhqrWebhookController::class);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/system/health', [HealthController::class, 'index']);
+
+    Route::get('/reports/sales-summary', [ReportController::class, 'salesSummary']);
+    Route::get('/reports/product-sales', [ReportController::class, 'productSales']);
+    Route::get('/reports/payment-methods', [ReportController::class, 'paymentMethods']);
+    Route::get('/reports/daily-closing', [ReportController::class, 'dailyClosing']);
+    Route::post('/reports/daily-closing', [ReportController::class, 'storeDailyClosing']);
 
     Route::apiResource('shops', ShopController::class);
     Route::get('/shops/{shop}/settings', [ShopSettingsController::class, 'show']);

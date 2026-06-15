@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\AuditLog;
 use App\Models\Branch;
 use App\Models\Category;
+use App\Models\DailyClosing;
 use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\Payment;
@@ -1211,6 +1212,143 @@ class ApiCriticalFlowsTest extends TestCase
         ]);
     }
 
+    public function test_owner_can_view_sales_summary_with_completed_paid_totals(): void
+    {
+        $catalog = $this->createCatalog();
+        $paidOrder = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $cancelledOrder = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $this->markCompletedPaid($paidOrder['id'], 'cash');
+        Order::whereKey($cancelledOrder['id'])->update(['order_status' => 'cancelled']);
+
+        Sanctum::actingAs($catalog['owner']);
+
+        $this->getJson("/api/reports/sales-summary?shop_id={$catalog['shop']->id}&date=".now()->toDateString())
+            ->assertOk()
+            ->assertJsonPath('data.summary.total_orders', 2)
+            ->assertJsonPath('data.summary.completed_orders', 1)
+            ->assertJsonPath('data.summary.cancelled_orders', 1)
+            ->assertJsonPath('data.summary.net_sales', 14500)
+            ->assertJsonPath('data.summary.paid_total', 14500);
+    }
+
+    public function test_manager_can_view_assigned_branch_summary_and_waiter_cannot(): void
+    {
+        $catalog = $this->createCatalog();
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $this->markCompletedPaid($order['id'], 'cash');
+        $manager = User::factory()->create(['role' => 'manager']);
+        $waiter = User::factory()->create(['role' => 'waiter']);
+        foreach ([$manager, $waiter] as $staffUser) {
+            $catalog['shop']->staffAssignments()->create([
+                'branch_id' => $catalog['branch']->id,
+                'user_id' => $staffUser->id,
+                'role' => $staffUser->role,
+                'status' => 'active',
+            ]);
+        }
+
+        Sanctum::actingAs($manager);
+        $this->getJson("/api/reports/sales-summary?shop_id={$catalog['shop']->id}&branch_id={$catalog['branch']->id}&date=".now()->toDateString())
+            ->assertOk()
+            ->assertJsonPath('data.summary.net_sales', 14500);
+
+        Sanctum::actingAs($waiter);
+        $this->getJson("/api/reports/sales-summary?shop_id={$catalog['shop']->id}&branch_id={$catalog['branch']->id}&date=".now()->toDateString())
+            ->assertForbidden();
+    }
+
+    public function test_payment_method_totals_separate_cash_manual_khqr_and_bakong(): void
+    {
+        $catalog = $this->createCatalog();
+        foreach (['cash', 'khqr_manual', 'bakong_khqr'] as $method) {
+            $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+            $this->markCompletedPaid($order['id'], $method);
+        }
+
+        Sanctum::actingAs($catalog['owner']);
+
+        $this->getJson("/api/reports/payment-methods?shop_id={$catalog['shop']->id}&date=".now()->toDateString())
+            ->assertOk()
+            ->assertJsonPath('data.payment_methods.methods.cash.paid_total', 14500)
+            ->assertJsonPath('data.payment_methods.methods.khqr_manual.paid_total', 14500)
+            ->assertJsonPath('data.payment_methods.methods.bakong_khqr.paid_total', 14500)
+            ->assertJsonPath('data.payment_methods.paid_total', 43500);
+    }
+
+    public function test_product_sales_report_calculates_best_sellers(): void
+    {
+        $catalog = $this->createCatalog();
+        $first = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $second = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $this->markCompletedPaid($first['id'], 'cash');
+        $this->markCompletedPaid($second['id'], 'cash');
+
+        Sanctum::actingAs($catalog['owner']);
+
+        $this->getJson("/api/reports/product-sales?shop_id={$catalog['shop']->id}&date=".now()->toDateString())
+            ->assertOk()
+            ->assertJsonPath('data.products.0.product_name', 'Iced Latte')
+            ->assertJsonPath('data.products.0.quantity_sold', 2)
+            ->assertJsonPath('data.products.0.net_total', 29000);
+    }
+
+    public function test_daily_closing_creates_record_calculates_cash_difference_and_audit_log(): void
+    {
+        $catalog = $this->createCatalog();
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $this->markCompletedPaid($order['id'], 'cash');
+
+        Sanctum::actingAs($catalog['owner']);
+
+        $closing = $this->postJson('/api/reports/daily-closing', [
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'closing_date' => now()->toDateString(),
+            'counted_cash_total' => 14000,
+            'note' => 'Drawer short',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.daily_closing.expected_cash_total', '14500.00')
+            ->assertJsonPath('data.daily_closing.counted_cash_total', '14000.00')
+            ->assertJsonPath('data.daily_closing.cash_difference', '-500.00')
+            ->json('data.daily_closing');
+
+        $this->assertDatabaseHas('daily_closings', [
+            'id' => $closing['id'],
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'status' => 'closed',
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'daily_closing.closed',
+            'entity_type' => 'daily_closing',
+            'entity_id' => $closing['id'],
+        ]);
+    }
+
+    public function test_duplicate_daily_closing_is_handled_safely(): void
+    {
+        $catalog = $this->createCatalog();
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+        $this->markCompletedPaid($order['id'], 'cash');
+
+        Sanctum::actingAs($catalog['owner']);
+
+        $payload = [
+            'shop_id' => $catalog['shop']->id,
+            'branch_id' => $catalog['branch']->id,
+            'closing_date' => now()->toDateString(),
+            'counted_cash_total' => 14500,
+        ];
+
+        $this->postJson('/api/reports/daily-closing', $payload)->assertCreated();
+        $this->postJson('/api/reports/daily-closing', $payload)
+            ->assertStatus(409)
+            ->assertJsonPath('success', false);
+
+        $this->assertSame(1, DailyClosing::where('shop_id', $catalog['shop']->id)->where('branch_id', $catalog['branch']->id)->count());
+    }
+
     private function createCatalog(string $shopName = 'Test Cafe'): array
     {
         $owner = User::factory()->create(['role' => 'shop_owner']);
@@ -1284,6 +1422,30 @@ class ApiCriticalFlowsTest extends TestCase
                 ],
             ],
         ]);
+    }
+
+    private function markCompletedPaid(int $orderId, string $method = 'cash'): void
+    {
+        $order = Order::findOrFail($orderId);
+        $order->update([
+            'order_status' => 'completed',
+            'payment_status' => 'paid',
+        ]);
+
+        Payment::updateOrCreate(
+            ['order_id' => $order->id],
+            [
+                'shop_id' => $order->shop_id,
+                'branch_id' => $order->branch_id,
+                'payment_method' => $method,
+                'provider' => $method === 'bakong_khqr' ? 'bakong_khqr' : ($method === 'khqr_manual' ? 'manual' : null),
+                'amount' => $order->grand_total,
+                'currency_code' => $order->currency_code,
+                'status' => 'paid',
+                'confirmed_by' => null,
+                'confirmed_at' => now(),
+            ]
+        );
     }
 
     private function fakeProofImage(): UploadedFile
