@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { alertError } from "../../components/ui";
+import AppLogo from "../../components/common/AppLogo";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -28,6 +29,9 @@ export default function Register() {
   return (
     <div className="grid min-h-screen place-items-center bg-slate-100 p-4 text-left">
       <form onSubmit={submit} className="w-full max-w-lg rounded-md border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-6 flex justify-center">
+          <AppLogo size="lg" to="/register" ariaLabel="Go to home" />
+        </div>
         <h1 className="text-2xl font-bold text-slate-950">Create shop owner account</h1>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <label className="block text-sm font-medium text-slate-700">

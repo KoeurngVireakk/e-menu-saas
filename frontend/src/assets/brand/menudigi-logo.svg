@@ -1,0 +1,14 @@
+<svg width="320" height="72" viewBox="0 0 320 72" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title">
+  <title id="title">MenuDIGI Logo</title>
+  <rect width="320" height="72" fill="transparent"/>
+  <g transform="translate(8 8)">
+    <rect width="56" height="56" rx="14" fill="#0F172A"/>
+    <path d="M17 18H39C42.3137 18 45 20.6863 45 24V25H11V24C11 20.6863 13.6863 18 17 18Z" fill="#38BDF8"/>
+    <path d="M14 28H42V37C42 42.5228 37.5228 47 32 47H24C18.4772 47 14 42.5228 14 37V28Z" fill="white"/>
+    <path d="M21 34H35" stroke="#0F172A" stroke-width="3" stroke-linecap="round"/>
+    <path d="M22 40H34" stroke="#0F172A" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <text x="78" y="45" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="0">
+    <tspan fill="#0F172A">Menu</tspan><tspan fill="#2563EB">DIGI</tspan>
+  </text>
+</svg>

@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import api from "../../api/axios";
 import StatusBadge from "../../components/StatusBadge";
 import { Card, ErrorState, LoadingState, PageHeader, StatCard } from "../../components/ui";
+import { toastSuccess } from "../../components/ui";
+import RealtimeStatusBadge from "../../components/realtime/RealtimeStatusBadge";
+import useOperationsRealtime from "../../hooks/useOperationsRealtime";
 
 export default function Dashboard() {
   const [shops, setShops] = useState([]);
@@ -10,6 +13,46 @@ export default function Dashboard() {
   const [summary, setSummary] = useState({ new_count: 0, pending_count: 0, today_revenue: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const shopIds = useMemo(() => shops.map((shop) => shop.id), [shops]);
+
+  const handleOrderCreated = useCallback((payload) => {
+    setOrders((current) => [
+      {
+        id: payload.order_id,
+        order_number: payload.order_number,
+        branch: { name: `Branch #${payload.branch_id}` },
+        grand_total: payload.total_amount,
+        order_status: payload.status,
+      },
+      ...current.filter((order) => order.id !== payload.order_id),
+    ].slice(0, 6));
+    setSummary((current) => ({
+      ...current,
+      new_count: Number(current.new_count || 0) + 1,
+      pending_count: Number(current.pending_count || 0) + 1,
+    }));
+    toastSuccess(`New order ${payload.order_number}`);
+  }, []);
+
+  const handleOrderStatusChanged = useCallback((payload) => {
+    setOrders((current) => current.map((order) => (
+      order.id === payload.order_id ? { ...order, order_status: payload.new_status } : order
+    )));
+  }, []);
+
+  const handlePaymentConfirmed = useCallback((payload) => {
+    setOrders((current) => current.map((order) => (
+      order.id === payload.order_id ? { ...order, payment_status: "paid" } : order
+    )));
+  }, []);
+
+  const realtimeStatus = useOperationsRealtime({
+    restaurantId: shopIds,
+    enabled: shopIds.length > 0,
+    onOrderCreated: handleOrderCreated,
+    onOrderStatusChanged: handleOrderStatusChanged,
+    onPaymentConfirmed: handlePaymentConfirmed,
+  });
 
   useEffect(() => {
     Promise.all([api.get("/shops"), api.get("/orders")])
@@ -32,6 +75,9 @@ export default function Dashboard() {
         title="Dashboard"
         description="Monitor restaurants, live order volume, pending work, and today revenue from one workspace."
       />
+      <div className="flex justify-end">
+        <RealtimeStatusBadge status={realtimeStatus} />
+      </div>
 
       <section className="grid gap-4 sm:grid-cols-3">
         <StatCard label="New orders" value={summary.new_count} note="Orders waiting for action" tone="orange" />

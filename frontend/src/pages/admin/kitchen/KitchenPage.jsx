@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import api, { getApiErrorMessage } from "../../../api/axios";
 import StatusBadge from "../../../components/StatusBadge";
+import RealtimeStatusBadge from "../../../components/realtime/RealtimeStatusBadge";
 import { Badge, Button, Card, ErrorState, Input, LoadingState, Modal, Select, alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import useOperationsRealtime from "../../../hooks/useOperationsRealtime";
 import { getKitchenSoundMuted, playKitchenBeep, setKitchenSoundMuted } from "../../../utils/kitchenSound";
 import { canManageKitchenStations, canUpdateKitchenOrder } from "../../../utils/permissions";
 
@@ -95,6 +97,21 @@ export default function KitchenPage() {
         if (!silent) setLoading(false);
       });
   }, [detectNewOrders, filters, user?.role]);
+
+  const handleRealtimeOrder = useCallback(() => {
+    load(true);
+    if (!muted) {
+      playKitchenBeep().catch(() => setSoundBlocked(true));
+    }
+  }, [load, muted]);
+
+  const realtimeStatus = useOperationsRealtime({
+    kitchenBranchId: filters.branch_id,
+    enabled: Boolean(filters.branch_id),
+    onOrderCreated: handleRealtimeOrder,
+    onKitchenOrderUpdated: () => load(true),
+    onOrderStatusChanged: () => load(true),
+  });
 
   useEffect(() => {
     const timer = window.setTimeout(() => load(), 0);
@@ -206,6 +223,7 @@ export default function KitchenPage() {
             <p className="text-sm text-slate-500">{summary?.active_count || 0} active orders · auto-refresh every 7 seconds</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <RealtimeStatusBadge status={realtimeStatus} />
             <Button type="button" variant="secondary" onClick={() => load()}>Refresh</Button>
             <Button type="button" variant={muted ? "secondary" : "primary"} onClick={toggleMute}>{muted ? "Sound muted" : "Sound on"}</Button>
             {soundBlocked ? <Button type="button" onClick={enableSound}>Enable sound</Button> : null}

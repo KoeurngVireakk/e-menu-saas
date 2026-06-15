@@ -8,6 +8,7 @@ use App\Models\KitchenEvent;
 use App\Models\KitchenStation;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Services\OperationsEventService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -16,6 +17,10 @@ use Illuminate\Validation\Rule;
 
 class KitchenController extends Controller
 {
+    public function __construct(private readonly OperationsEventService $operationsEvents)
+    {
+    }
+
     public function index(Request $request)
     {
         abort_unless($request->user()->canViewKitchen(), 403);
@@ -57,8 +62,8 @@ class KitchenController extends Controller
             'order_status' => ['required', Rule::in(['pending', 'accepted', 'preparing', 'ready', 'completed', 'cancelled'])],
         ]);
 
-        $order = DB::transaction(function () use ($request, $order, $validated) {
-            $previous = $order->order_status;
+        $previous = $order->order_status;
+        $order = DB::transaction(function () use ($request, $order, $validated, $previous) {
             $order->update(['order_status' => $validated['order_status']]);
 
             if ($validated['order_status'] === 'preparing') {
@@ -96,6 +101,7 @@ class KitchenController extends Controller
 
             return $order->fresh($this->orderRelations());
         });
+        $this->operationsEvents->broadcastOrderStatusChanged($order, $previous);
 
         return $this->success('Kitchen order updated', ['order' => $this->orderPayload($order)]);
     }
@@ -110,6 +116,7 @@ class KitchenController extends Controller
             'kitchen_status' => ['required', Rule::in(['pending', 'preparing', 'ready', 'served', 'cancelled'])],
         ]);
 
+        $previousOrderStatus = $orderItem->order->order_status;
         $order = DB::transaction(function () use ($request, $orderItem, $validated) {
             $previous = $orderItem->kitchen_status;
             $attributes = ['kitchen_status' => $validated['kitchen_status']];
@@ -139,6 +146,11 @@ class KitchenController extends Controller
 
             return $order->fresh($this->orderRelations());
         });
+        if ($order->order_status !== $previousOrderStatus) {
+            $this->operationsEvents->broadcastOrderStatusChanged($order, $previousOrderStatus);
+        } else {
+            $this->operationsEvents->broadcastKitchenOrderUpdated($order);
+        }
 
         return $this->success('Kitchen item updated', ['order' => $this->orderPayload($order)]);
     }

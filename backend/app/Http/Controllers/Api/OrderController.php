@@ -5,12 +5,16 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Services\BillingCalculator;
+use App\Services\OperationsEventService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
-    public function __construct(private readonly BillingCalculator $billing)
+    public function __construct(
+        private readonly BillingCalculator $billing,
+        private readonly OperationsEventService $operationsEvents,
+    )
     {
     }
 
@@ -107,6 +111,7 @@ class OrderController extends Controller
 
         $previousStatus = $order->order_status;
         $order->update($validated);
+        $this->operationsEvents->broadcastOrderStatusChanged($order, $previousStatus);
 
         $this->audit($request, 'order.status_changed', $order->shop_id, 'order', $order->id, [
             'order_number' => $order->order_number,

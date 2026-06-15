@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Shop;
 use App\Services\BillingCalculator;
 use App\Services\Notifications\TelegramNotificationService;
+use App\Services\OperationsEventService;
 use App\Services\Payments\PaymentManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,7 @@ class PublicOrderController extends Controller
         private readonly BillingCalculator $billing,
         private readonly PaymentManager $payments,
         private readonly TelegramNotificationService $telegram,
+        private readonly OperationsEventService $operationsEvents,
     ) {
     }
 
@@ -115,6 +117,7 @@ class PublicOrderController extends Controller
         });
 
         $this->telegram->notifyOrderCreated($order);
+        $this->operationsEvents->broadcastOrderCreated($order);
 
         return $this->success('Order submitted successfully', ['order' => $order], 201);
     }

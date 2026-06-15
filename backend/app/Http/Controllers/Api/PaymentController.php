@@ -7,6 +7,7 @@ use App\Models\CashDrawerShift;
 use App\Models\Payment;
 use App\Services\CashLedgerService;
 use App\Services\Notifications\TelegramNotificationService;
+use App\Services\OperationsEventService;
 use App\Services\Payments\PaymentStatusSync;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,7 @@ class PaymentController extends Controller
         private readonly PaymentStatusSync $paymentStatusSync,
         private readonly TelegramNotificationService $telegram,
         private readonly CashLedgerService $ledger,
+        private readonly OperationsEventService $operationsEvents,
     ) {
     }
 
@@ -94,6 +96,7 @@ class PaymentController extends Controller
                 $this->telegram->notifyInvoicePaid($payment->order->invoice);
             }
         });
+        $this->operationsEvents->broadcastPaymentConfirmed($payment->fresh(['order']));
 
         return $this->success('Payment confirmed', ['payment' => $payment->fresh()->load('order.invoice')]);
     }

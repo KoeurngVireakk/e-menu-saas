@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
-import Navbar from "../components/Navbar";
+import Navbar from "../components/layout/Navbar";
 import Sidebar from "../components/Sidebar";
 
 export default function AdminLayout() {

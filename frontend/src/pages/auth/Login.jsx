@@ -2,6 +2,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { alertError } from "../../components/ui";
+import AppLogo from "../../components/common/AppLogo";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -28,6 +29,9 @@ export default function Login() {
   return (
     <div className="grid min-h-screen place-items-center bg-slate-100 p-4 text-left">
       <form onSubmit={submit} className="w-full max-w-md rounded-md border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-6 flex justify-center">
+          <AppLogo size="lg" to="/login" ariaLabel="Go to home" />
+        </div>
         <h1 className="text-2xl font-bold text-slate-950">Sign in</h1>
         <p className="mt-1 text-sm text-slate-500">Manage shops, menus, orders, and payments.</p>
         <label className="mt-6 block text-sm font-medium text-slate-700">

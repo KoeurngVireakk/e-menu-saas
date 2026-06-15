@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import api from "../../api/axios";
+import LiveOrderStatus from "../../components/orders/LiveOrderStatus";
 import StatusBadge from "../../components/StatusBadge";
 import { Button, Card, ErrorState, LoadingState } from "../../components/ui";
 import { formatCurrency, formatDualCurrency } from "../../utils/currency";
@@ -24,6 +25,14 @@ export default function OrderSuccess() {
   if (error) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4"><ErrorState message={error} /></div>;
   if (!order) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4"><LoadingState message="Loading order..." /></div>;
 
+  const updateOrderStatus = (payload) => {
+    setOrder((current) => current ? { ...current, order_status: payload.new_status } : current);
+  };
+
+  const updatePaymentStatus = () => {
+    setOrder((current) => current ? { ...current, payment_status: "paid" } : current);
+  };
+
   return (
     <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4 text-center" lang={locale}>
       <Card className="mt-10 p-6">
@@ -33,6 +42,9 @@ export default function OrderSuccess() {
         <div className="mt-4 flex justify-center gap-2">
           <StatusBadge value={order.order_status} />
           <StatusBadge value={order.payment_status} />
+        </div>
+        <div className="mt-3 flex justify-center">
+          <LiveOrderStatus order={order} onStatusChanged={updateOrderStatus} onPaymentConfirmed={updatePaymentStatus} />
         </div>
         <p className="mt-6 text-4xl font-black text-orange-700">
           {formatDualCurrency(order.grand_total, order.currency_code, order.secondary_currency_total, order.secondary_currency_code)}
