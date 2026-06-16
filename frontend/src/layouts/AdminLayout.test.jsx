@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
+import { LanguageProvider } from "../i18n";
 import AdminLayout from "./AdminLayout";
 
 vi.mock("react-router-dom", async () => {
@@ -19,7 +20,9 @@ describe("AdminLayout", () => {
   it("renders protected admin layout content", () => {
     render(
       <MemoryRouter>
-        <AdminLayout />
+        <LanguageProvider>
+          <AdminLayout />
+        </LanguageProvider>
       </MemoryRouter>,
     );
 

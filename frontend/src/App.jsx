@@ -5,6 +5,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import InstallPrompt from "./components/InstallPrompt";
 import PwaUpdatePrompt from "./components/PwaUpdatePrompt";
 import ToastProvider from "./components/ui/ToastProvider";
+import { LanguageProvider } from "./i18n";
 import { queryClient } from "./lib/queryClient";
 import AppRoutes from "./routes/AppRoutes";
 
@@ -13,12 +14,14 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <ErrorBoundary>
-            <AppRoutes />
-          </ErrorBoundary>
-          <ToastProvider />
-          <InstallPrompt />
-          <PwaUpdatePrompt />
+          <LanguageProvider>
+            <ErrorBoundary>
+              <AppRoutes />
+            </ErrorBoundary>
+            <ToastProvider />
+            <InstallPrompt />
+            <PwaUpdatePrompt />
+          </LanguageProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

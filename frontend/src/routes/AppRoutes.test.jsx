@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
+import { LanguageProvider } from "../i18n";
 import AppRoutes from "./AppRoutes";
 
 vi.mock("../context/AuthContext", () => ({
@@ -11,7 +12,9 @@ describe("AppRoutes", () => {
   it("renders the landing page at root", async () => {
     render(
       <MemoryRouter initialEntries={["/"]}>
-        <AppRoutes />
+        <LanguageProvider>
+          <AppRoutes />
+        </LanguageProvider>
       </MemoryRouter>,
     );
 

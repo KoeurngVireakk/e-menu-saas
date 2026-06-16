@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { LanguageProvider } from "../i18n";
 import Sidebar from "./Sidebar";
 
 const authState = vi.hoisted(() => ({
@@ -20,12 +21,16 @@ describe("Sidebar", () => {
     cleanup();
   });
 
-  it("shows owner-only navigation for shop owners", () => {
-    render(
-      <MemoryRouter>
+  const renderSidebar = () => render(
+    <MemoryRouter>
+      <LanguageProvider>
         <Sidebar />
-      </MemoryRouter>,
-    );
+      </LanguageProvider>
+    </MemoryRouter>,
+  );
+
+  it("shows owner-only navigation for shop owners", () => {
+    renderSidebar();
 
     expect(screen.getByRole("link", { name: "Shops" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "System Health" })).toBeInTheDocument();
@@ -46,11 +51,7 @@ describe("Sidebar", () => {
   it("hides catalog and system health links from cashiers", () => {
     authState.user = { role: "cashier" };
 
-    render(
-      <MemoryRouter>
-        <Sidebar />
-      </MemoryRouter>,
-    );
+    renderSidebar();
 
     expect(screen.getByRole("link", { name: "Orders" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Payments" })).toBeInTheDocument();
@@ -74,11 +75,7 @@ describe("Sidebar", () => {
   it("shows staff and settings but not system health for managers", () => {
     authState.user = { role: "manager" };
 
-    render(
-      <MemoryRouter>
-        <Sidebar />
-      </MemoryRouter>,
-    );
+    renderSidebar();
 
     expect(screen.getByRole("link", { name: "Staff" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Settings" })).toBeInTheDocument();
@@ -96,11 +93,7 @@ describe("Sidebar", () => {
   it("shows print stations but hides payment pages for waiters", () => {
     authState.user = { role: "waiter" };
 
-    render(
-      <MemoryRouter>
-        <Sidebar />
-      </MemoryRouter>,
-    );
+    renderSidebar();
 
     expect(screen.getByRole("link", { name: "Orders" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Kitchen" })).toBeInTheDocument();
