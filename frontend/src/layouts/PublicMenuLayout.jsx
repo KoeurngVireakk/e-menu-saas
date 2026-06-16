@@ -7,11 +7,15 @@ export default function PublicMenuLayout() {
 
   return (
     <div className="min-h-screen bg-slate-100 text-left text-slate-900">
-      <header className="sticky top-0 z-20 flex items-center justify-end border-b border-slate-200 bg-white/90 px-4 py-2 backdrop-blur">
-        <AppLogo size="sm" to={currentMenuPath} ariaLabel="Go to home" className="hidden sm:inline-flex" />
-        <AppLogo size="sm" iconOnly to={currentMenuPath} ariaLabel="Go to home" className="sm:hidden" />
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 px-4 py-2 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center justify-end">
+          <AppLogo size="sm" to={currentMenuPath} ariaLabel="Go to home" className="hidden sm:inline-flex" />
+          <AppLogo size="sm" iconOnly to={currentMenuPath} ariaLabel="Go to home" className="sm:hidden" />
+        </div>
       </header>
-      <Outlet />
+      <main className="pb-[env(safe-area-inset-bottom)]">
+        <Outlet />
+      </main>
     </div>
   );
 }

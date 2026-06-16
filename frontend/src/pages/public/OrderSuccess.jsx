@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
+import { CheckCircle2, CreditCard, Printer, ReceiptText } from "lucide-react";
 import api from "../../api/axios";
 import LiveOrderStatus from "../../components/orders/LiveOrderStatus";
-import StatusBadge from "../../components/StatusBadge";
-import { Button, Card, ErrorState, LoadingState } from "../../components/ui";
+import OrderStatusTimeline from "../../components/public/OrderStatusTimeline";
+import PaymentStatusCard from "../../components/public/PaymentStatusCard";
+import { PublicPageSkeleton } from "../../components/public/PublicSkeletons";
+import { AppBadge, AppButton, AppCard } from "../../design-system/components";
+import { ErrorState } from "../../components/ui";
 import { formatCurrency, formatDualCurrency } from "../../utils/currency";
 import { getPreferredLocale, normalizeLocale, t } from "../../utils/localization";
 
@@ -23,7 +27,7 @@ export default function OrderSuccess() {
   }, [orderNumber]);
 
   if (error) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4"><ErrorState message={error} /></div>;
-  if (!order) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4"><LoadingState message="Loading order..." /></div>;
+  if (!order) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4"><PublicPageSkeleton label="Loading order..." /></div>;
 
   const updateOrderStatus = (payload) => {
     setOrder((current) => current ? { ...current, order_status: payload.new_status } : current);
@@ -34,32 +38,42 @@ export default function OrderSuccess() {
   };
 
   return (
-    <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4 text-center" lang={locale}>
-      <Card className="mt-10 p-6">
-        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-100 text-2xl font-black text-emerald-700">OK</div>
+    <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4 pb-24 text-center" lang={locale}>
+      <AppCard className="mt-6" bodyClassName="p-6">
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+          <CheckCircle2 className="h-9 w-9" aria-hidden="true" />
+        </div>
         <h1 className="mt-5 text-3xl font-black text-slate-950">{t(locale, "orderSubmitted")}</h1>
-        <p className="mt-2 text-slate-500">{order.order_number}</p>
+        <p className="mt-2 text-slate-500">Your order has been sent to the restaurant. Please wait while the kitchen prepares your food.</p>
+        <p className="mt-3 text-lg font-black text-slate-950">{order.order_number}</p>
         <div className="mt-4 flex justify-center gap-2">
-          <StatusBadge value={order.order_status} />
-          <StatusBadge value={order.payment_status} />
+          <AppBadge status={order.order_status}>{order.order_status}</AppBadge>
+          <AppBadge status={order.payment_status === "confirmed" ? "paid" : order.payment_status}>{order.payment_status}</AppBadge>
         </div>
         <div className="mt-3 flex justify-center">
           <LiveOrderStatus order={order} onStatusChanged={updateOrderStatus} onPaymentConfirmed={updatePaymentStatus} />
         </div>
-        <p className="mt-6 text-4xl font-black text-orange-700">
+        <p className="mt-6 text-4xl font-black text-blue-700">
           {formatDualCurrency(order.grand_total, order.currency_code, order.secondary_currency_total, order.secondary_currency_code)}
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
-          <Button type="button" variant="secondary" onClick={() => setShowReceipt((value) => !value)}>
+          <AppButton type="button" variant="secondary" iconLeft={<ReceiptText className="h-4 w-4" />} onClick={() => setShowReceipt((value) => !value)}>
             {showReceipt ? "Hide receipt" : "View receipt"}
-          </Button>
-          <Button type="button" variant="secondary" onClick={() => window.print()}>Print/Save</Button>
+          </AppButton>
+          <AppButton type="button" variant="secondary" iconLeft={<Printer className="h-4 w-4" />} onClick={() => window.print()}>Print/Save</AppButton>
         </div>
         {showReceipt ? <CustomerReceipt order={order} /> : null}
-        <Button as={Link} variant="dark" size="lg" className="mt-6" to={`/payment/${order.order_number}?locale=${locale}`}>
-          Continue to payment
-        </Button>
-      </Card>
+        {order.payment_status !== "paid" && order.payment_status !== "confirmed" ? (
+          <AppButton as={Link} size="lg" className="mt-6" iconLeft={<CreditCard className="h-4 w-4" />} to={`/payment/${order.order_number}?locale=${locale}`}>
+            Continue to payment
+          </AppButton>
+        ) : null}
+      </AppCard>
+
+      <div className="mt-4 grid gap-4">
+        <OrderStatusTimeline status={order.order_status} />
+        <PaymentStatusCard order={order} />
+      </div>
     </div>
   );
 }

@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
+import { UploadCloud } from "lucide-react";
 import api from "../../api/axios";
 import OfflineBanner from "../../components/OfflineBanner";
-import StatusBadge from "../../components/StatusBadge";
-import { Button, Card, ErrorState, Input, LoadingState, Select, alertError, alertWarning, toastSuccess } from "../../components/ui";
+import PaymentStatusCard from "../../components/public/PaymentStatusCard";
+import { PublicPageSkeleton } from "../../components/public/PublicSkeletons";
+import { AppButton, AppCard } from "../../design-system/components";
+import { ErrorState, Input, Select, alertError, alertWarning, toastSuccess } from "../../components/ui";
 import useOnlineStatus from "../../hooks/useOnlineStatus";
-import { formatCurrency } from "../../utils/currency";
 import { getPreferredLocale, normalizeLocale, t } from "../../utils/localization";
 
 export default function PaymentPage() {
@@ -19,6 +21,9 @@ export default function PaymentPage() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const online = useOnlineStatus();
+  const proofPreview = useMemo(() => (
+    form.proof_image ? URL.createObjectURL(form.proof_image) : ""
+  ), [form.proof_image]);
 
   useEffect(() => {
     api
@@ -32,6 +37,12 @@ export default function PaymentPage() {
       })
       .catch((requestError) => setError(requestError.response?.data?.message || "Payment page could not be loaded."));
   }, [orderNumber]);
+
+  useEffect(() => {
+    return () => {
+      if (proofPreview) URL.revokeObjectURL(proofPreview);
+    };
+  }, [proofPreview]);
 
   const submit = async (event) => {
     event.preventDefault();
@@ -60,54 +71,50 @@ export default function PaymentPage() {
   };
 
   if (error) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4">{!online ? <OfflineBanner /> : null}<ErrorState message={error} /></div>;
-  if (!order) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4">{!online ? <OfflineBanner /> : null}<LoadingState message="Loading payment..." /></div>;
+  if (!order) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4">{!online ? <OfflineBanner /> : null}<PublicPageSkeleton label="Loading payment..." /></div>;
 
   return (
-    <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4" lang={locale}>
+    <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4 pb-24" lang={locale}>
       {!online ? <OfflineBanner locale={locale} /> : null}
-      <p className="text-xs font-bold uppercase tracking-wide text-orange-600">{t(locale, "payment")}</p>
+      <p className="text-xs font-black uppercase tracking-wide text-blue-600">{t(locale, "payment")}</p>
       <h1 className="mt-1 text-3xl font-black text-slate-950">Complete payment</h1>
-      <p className="mt-1 text-slate-500">{order.order_number}</p>
-      <Card className="mt-5 p-4">
-        <div className="flex items-center justify-between">
-          <span className="font-semibold text-slate-600">Amount</span>
-          <span className="text-xl font-black text-orange-700">{formatCurrency(order.grand_total, order.currency_code || order.shop.currency_code)}</span>
-        </div>
-        {order.payment ? (
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <StatusBadge value={order.payment.status} />
-            {order.payment.provider === "bakong_khqr" ? <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">Bakong KHQR</span> : null}
-          </div>
-        ) : null}
-      </Card>
+      <p className="mt-2 text-sm text-slate-500">Choose a payment method and submit proof if the restaurant requires manual review.</p>
+
+      <div className="mt-5">
+        <PaymentStatusCard order={order} />
+      </div>
+
       <form onSubmit={submit} className="mt-6 grid gap-3">
-        <Select label="Payment method" value={form.payment_method} onChange={(event) => setForm({ ...form, payment_method: event.target.value })}>
-          {methods.map((method) => (
-            <option key={method.value} value={method.value}>{method.label}</option>
-          ))}
-        </Select>
-        {form.payment_method === "khqr_manual" ? (
-          <>
-            <Input label="Transaction reference" placeholder="Reference number" value={form.transaction_reference} onChange={(event) => setForm({ ...form, transaction_reference: event.target.value })} />
-            <Input label="Proof image" type="file" accept="image/*" onChange={(event) => setForm({ ...form, proof_image: event.target.files?.[0] || null })} />
-          </>
-        ) : null}
-        {form.payment_method === "bakong_khqr" ? (
-          <p className="rounded-md bg-blue-50 p-3 text-sm text-blue-800">Submit to generate a Bakong KHQR code for this order total.</p>
-        ) : null}
-        <Button type="submit" disabled={saving || !online} size="lg">
-          {saving ? "Submitting..." : "Submit payment"}
-        </Button>
+        <AppCard title="Payment method" description="No provider secrets or raw gateway data are shown here." bodyClassName="grid gap-3 p-4">
+          <Select label="Payment method" value={form.payment_method} onChange={(event) => setForm({ ...form, payment_method: event.target.value })}>
+            {methods.map((method) => (
+              <option key={method.value} value={method.value}>{method.label}</option>
+            ))}
+          </Select>
+          {form.payment_method === "khqr_manual" ? (
+            <>
+              <Input label="Transaction reference" placeholder="Reference number" value={form.transaction_reference} onChange={(event) => setForm({ ...form, transaction_reference: event.target.value })} />
+              <Input label="Proof image" type="file" accept="image/*" onChange={(event) => setForm({ ...form, proof_image: event.target.files?.[0] || null })} />
+              {proofPreview ? <img className="max-h-80 w-full rounded-2xl border border-slate-200 object-contain" src={proofPreview} alt="Selected payment proof preview" /> : null}
+            </>
+          ) : null}
+          {form.payment_method === "bakong_khqr" ? (
+            <p className="rounded-2xl bg-blue-50 p-3 text-sm font-semibold text-blue-800">Submit to generate a Bakong KHQR code for this order total.</p>
+          ) : null}
+          <AppButton type="submit" disabled={saving || !online} iconLeft={<UploadCloud className="h-4 w-4" />}>
+            {saving ? "Submitting..." : "Submit payment"}
+          </AppButton>
+        </AppCard>
       </form>
       {paymentResult?.next_action === "show_qr" ? (
-        <Card className="mt-5 p-4">
+        <AppCard className="mt-5" bodyClassName="p-4">
           <p className="text-sm font-bold text-slate-950">Bakong KHQR</p>
           <p className="mt-1 text-sm text-slate-500">Scan this QR payload with a Bakong-compatible banking app.</p>
-          {paymentResult.qr_image_url ? <img className="mt-4 w-full rounded-md border border-slate-200" src={paymentResult.qr_image_url} alt="Bakong KHQR" /> : null}
+          {paymentResult.qr_image_url ? <img className="mt-4 w-full rounded-2xl border border-slate-200" src={paymentResult.qr_image_url} alt="Bakong KHQR" /> : null}
           {paymentResult.qr_payload ? (
-            <pre className="mt-4 overflow-x-auto rounded-md bg-slate-950 p-3 text-xs text-white">{paymentResult.qr_payload}</pre>
+            <pre className="mt-4 overflow-x-auto rounded-2xl bg-slate-950 p-3 text-xs text-white">{paymentResult.qr_payload}</pre>
           ) : null}
-        </Card>
+        </AppCard>
       ) : null}
     </div>
   );

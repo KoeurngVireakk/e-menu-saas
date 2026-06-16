@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
+import { ArrowLeft, ReceiptText } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
 import api from "../../api/axios";
 import OfflineBanner from "../../components/OfflineBanner";
-import { Button, Card, EmptyState, Input, Select, Textarea, alertError, alertWarning, toastSuccess } from "../../components/ui";
+import PublicCartSummary from "../../components/public/PublicCartSummary";
+import PublicEmptyState from "../../components/public/PublicEmptyState";
+import { AppButton, AppCard } from "../../design-system/components";
+import { Input, Select, Textarea, alertError, alertWarning, toastSuccess } from "../../components/ui";
 import useOnlineStatus from "../../hooks/useOnlineStatus";
-import { cartTotal, clearCart, itemTotal, money, optionSummary, readCart, unitPrice, writeCart } from "../../utils/cart";
+import { cartTotal, clearCart, itemTotal, money, readCart, writeCart } from "../../utils/cart";
 import { getPreferredLocale, normalizeLocale, t } from "../../utils/localization";
 
 export default function CartPage() {
@@ -17,6 +20,7 @@ export default function CartPage() {
   const [saving, setSaving] = useState(false);
   const online = useOnlineStatus();
   const total = cartTotal(cart);
+  const itemCount = cart.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
 
   useEffect(() => {
     writeCart(cart);
@@ -69,53 +73,55 @@ export default function CartPage() {
   };
 
   return (
-    <div className="mx-auto min-h-screen max-w-2xl bg-slate-50 p-4 pb-28" lang={locale}>
+    <div className="mx-auto min-h-screen max-w-2xl bg-slate-50 p-4 pb-32" lang={locale}>
       {!online ? <OfflineBanner locale={locale} /> : null}
-      <div className="mb-5">
-        <p className="text-xs font-bold uppercase tracking-wide text-orange-600">{t(locale, "checkout")}</p>
+      <header className="mb-5">
+        <AppButton type="button" variant="ghost" size="sm" iconLeft={<ArrowLeft className="h-4 w-4" />} onClick={() => navigate(-1)}>Back to menu</AppButton>
+        <p className="mt-4 text-xs font-black uppercase tracking-wide text-blue-600">{t(locale, "checkout")}</p>
         <h1 className="mt-1 text-3xl font-black text-slate-950">{t(locale, "cart")}</h1>
-      </div>
-      <div className="mt-4 grid gap-3">
-        {!cart.length ? <EmptyState title={t(locale, "cartEmpty")} message={t(locale, "emptyCartMessage")} /> : null}
-        {cart.map((item) => (
-          <motion.div key={item.key} className="rounded-2xl bg-white p-3 shadow-sm" layout>
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="font-bold text-slate-950">{item.name}</p>
-                {optionSummary(item) ? <p className="mt-1 text-sm text-slate-500">{optionSummary(item)}</p> : null}
-                <p className="mt-1 text-sm text-slate-500">{money(unitPrice(item))} KHR {t(locale, "each")}</p>
-              </div>
-              <p className="shrink-0 font-bold text-orange-700">{money(itemTotal(item))} KHR</p>
-            </div>
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Button type="button" variant="secondary" size="icon" aria-label={`Decrease quantity for ${item.name}`} onClick={() => changeQuantity(item.key, item.quantity - 1)}>-</Button>
-                <span className="w-8 text-center font-semibold">{item.quantity}</span>
-                <Button type="button" variant="secondary" size="icon" aria-label={`Increase quantity for ${item.name}`} onClick={() => changeQuantity(item.key, item.quantity + 1)}>+</Button>
-              </div>
-              <Button type="button" variant="ghost" size="sm" className="text-rose-700 hover:bg-rose-50" onClick={() => remove(item.key)}>{t(locale, "remove")}</Button>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+        <p className="mt-2 text-sm text-slate-500">Review your items, add customer details, and submit your order to the restaurant.</p>
+      </header>
+
+      {!cart.length ? <PublicEmptyState title={t(locale, "cartEmpty")} description={t(locale, "emptyCartMessage")} actionLabel="Return to menu" onAction={() => navigate(-1)} /> : null}
+      {cart.length ? <PublicCartSummary cart={cart} locale={locale} onQuantity={changeQuantity} onRemove={remove} /> : null}
+
+      {cart.length ? (
       <form onSubmit={submit} className="mt-6 grid gap-3">
-        <Card className="grid gap-3 p-4">
-          <Input aria-label={t(locale, "customerName")} placeholder={t(locale, "customerName")} value={form.customer_name} onChange={(event) => setForm({ ...form, customer_name: event.target.value })} />
-          <Input aria-label={t(locale, "customerPhone")} placeholder={t(locale, "customerPhone")} value={form.customer_phone} onChange={(event) => setForm({ ...form, customer_phone: event.target.value })} />
-          <Select aria-label={t(locale, "orderType")} value={form.order_type} onChange={(event) => setForm({ ...form, order_type: event.target.value })}>
+        <AppCard title="Customer details" description="These details help the restaurant confirm and prepare your order." bodyClassName="grid gap-3 p-4">
+          <Input label={t(locale, "customerName")} placeholder={t(locale, "customerName")} value={form.customer_name} onChange={(event) => setForm({ ...form, customer_name: event.target.value })} />
+          <Input label={t(locale, "customerPhone")} placeholder={t(locale, "customerPhone")} value={form.customer_phone} onChange={(event) => setForm({ ...form, customer_phone: event.target.value })} />
+          <Select label={t(locale, "orderType")} value={form.order_type} onChange={(event) => setForm({ ...form, order_type: event.target.value })}>
             <option value="dine_in">{t(locale, "dineIn")}</option>
             <option value="takeaway">{t(locale, "takeaway")}</option>
           </Select>
-          <Textarea aria-label={t(locale, "orderNote")} placeholder={t(locale, "orderNote")} value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
-        </Card>
-        <div className="sticky bottom-4 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-3 shadow-lg">
-          <span className="font-semibold">{t(locale, "total")}</span>
-          <span className="font-bold text-orange-700">{money(total)} KHR</span>
-          <Button type="submit" disabled={!cart.length || saving || !online || !searchParams.get("shop") || !searchParams.get("branch")}>
+          <Textarea label={t(locale, "orderNote")} placeholder={t(locale, "orderNote")} value={form.note} onChange={(event) => setForm({ ...form, note: event.target.value })} />
+        </AppCard>
+
+        <AppCard bodyClassName="grid gap-2 p-4">
+          <SummaryRow label={`${itemCount} item${itemCount === 1 ? "" : "s"}`} value={`${money(total)} KHR`} />
+          <SummaryRow label={t(locale, "total")} value={`${money(total)} KHR`} strong />
+        </AppCard>
+
+        <div className="sticky bottom-4 flex items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-white p-3 shadow-2xl">
+          <div>
+            <p className="text-xs font-black uppercase tracking-wide text-blue-600">{t(locale, "total")}</p>
+            <p className="text-xl font-black text-slate-950">{money(total)} KHR</p>
+          </div>
+          <AppButton type="submit" disabled={!cart.length || saving || !online || !searchParams.get("shop") || !searchParams.get("branch")} iconLeft={<ReceiptText className="h-4 w-4" />}>
             {saving ? t(locale, "submitting") : t(locale, "submitOrder")}
-          </Button>
+          </AppButton>
         </div>
       </form>
+      ) : null}
+    </div>
+  );
+}
+
+function SummaryRow({ label, value, strong = false }) {
+  return (
+    <div className={`flex items-center justify-between gap-3 ${strong ? "text-lg font-black text-slate-950" : "text-sm font-semibold text-slate-600"}`}>
+      <span>{label}</span>
+      <span>{value}</span>
     </div>
   );
 }
