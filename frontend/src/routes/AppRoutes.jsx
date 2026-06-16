@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
 import PublicMenuLayout from "../layouts/PublicMenuLayout";
 import { LoadingState } from "../components/ui/States";
@@ -8,6 +8,7 @@ import ProtectedRoute from "./ProtectedRoute";
 
 const Login = lazy(() => import("../pages/auth/Login"));
 const Register = lazy(() => import("../pages/auth/Register"));
+const LandingPage = lazy(() => import("../pages/landing/LandingPage"));
 const Dashboard = lazy(() => import("../pages/admin/Dashboard"));
 const ShopsPage = lazy(() => import("../pages/admin/shops/ShopsPage"));
 const BranchesPage = lazy(() => import("../pages/admin/branches/BranchesPage"));
@@ -47,7 +48,7 @@ export default function AppRoutes() {
   return (
     <Suspense fallback={<RouteFallback />}>
       <Routes>
-        <Route path="/" element={<Navigate to="/admin" replace />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route element={<ProtectedRoute />}>
