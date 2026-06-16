@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import api from "../../api/axios";
+import { publicMenuCacheKey, savePublicMenuCache } from "../../services/publicMenuCache";
 import MenuPage from "./MenuPage";
 
 vi.mock("../../hooks/useOnlineStatus", () => ({
@@ -66,5 +67,24 @@ describe("MenuPage", () => {
 
     expect(screen.getByRole("complementary", { name: "Cart summary" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Checkout" })).toBeInTheDocument();
+  });
+
+  it("renders cached menu data when the public menu API fails", async () => {
+    api.get.mockRejectedValue(new Error("Network failed"));
+    savePublicMenuCache(
+      publicMenuCacheKey({ shopSlug: "menudigi-cafe", locale: "en", search: "locale=en" }),
+      menuResponse,
+    );
+
+    render(
+      <MemoryRouter initialEntries={["/menu/menudigi-cafe?locale=en"]}>
+        <Routes>
+          <Route path="/menu/:shopSlug" element={<MenuPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(screen.getByText("MenuDIGI Cafe")).toBeInTheDocument());
+    expect(screen.getByText(/Showing the last saved menu/i)).toBeInTheDocument();
   });
 });

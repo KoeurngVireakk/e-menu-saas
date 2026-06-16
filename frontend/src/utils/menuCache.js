@@ -1,22 +1,20 @@
-const MENU_CACHE_PREFIX = "emenu_public_menu_cache";
+import {
+  getPublicMenuCache,
+  legacyMenuCacheKey,
+  publicMenuCacheKey,
+  savePublicMenuCache,
+} from "../services/publicMenuCache";
 
 export function menuCacheKey(shopSlug, search, locale = "en") {
-  return `${MENU_CACHE_PREFIX}:${shopSlug}:${locale}:${search || ""}`;
+  return publicMenuCacheKey({ shopSlug, locale, search });
 }
 
 export function readMenuCache(key) {
-  try {
-    const cached = JSON.parse(localStorage.getItem(key) || "null");
-    return cached?.data ? cached : null;
-  } catch {
-    localStorage.removeItem(key);
-    return null;
-  }
+  return getPublicMenuCache(key) || getPublicMenuCache(key.replace("menudigi_public_menu_cache", "emenu_public_menu_cache"));
 }
 
 export function writeMenuCache(key, data) {
-  localStorage.setItem(key, JSON.stringify({
-    data,
-    cachedAt: new Date().toISOString(),
-  }));
+  savePublicMenuCache(key, data);
 }
+
+export { legacyMenuCacheKey };

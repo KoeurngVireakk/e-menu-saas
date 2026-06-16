@@ -13,7 +13,7 @@ import { ErrorState, SectionTitle, toastError, toastSuccess } from "../../compon
 import useOnlineStatus from "../../hooks/useOnlineStatus";
 import { mergeCartItem, readCart, writeCart } from "../../utils/cart";
 import { getPreferredLocale, normalizeLocale, setPreferredLocale, t } from "../../utils/localization";
-import { menuCacheKey, readMenuCache, writeMenuCache } from "../../utils/menuCache";
+import { getPublicMenuCache, getPublicMenuCacheAge, publicMenuCacheKey, savePublicMenuCache } from "../../services/publicMenuCache";
 
 export default function MenuPage() {
   const { shopSlug } = useParams();
@@ -27,13 +27,19 @@ export default function MenuPage() {
   }, [searchParams, selectedLocale]);
   const online = useOnlineStatus();
   const navigate = useNavigate();
+  const cartContext = useMemo(() => ({
+    shopSlug,
+    branchId: searchParams.get("branch") || "",
+    tableCode: searchParams.get("table") || "",
+  }), [shopSlug, searchParams]);
   const [menu, setMenu] = useState(null);
   const [active, setActive] = useState("");
   const [query, setQuery] = useState("");
-  const [cart, setCart] = useState(readCart);
+  const [cart, setCart] = useState(() => readCart(cartContext));
   const [selected, setSelected] = useState(null);
   const [error, setError] = useState("");
   const [offlineCached, setOfflineCached] = useState(false);
+  const [cacheAge, setCacheAge] = useState(null);
 
   useEffect(() => {
     if (searchParams.get("locale") !== selectedLocale) {
@@ -46,7 +52,13 @@ export default function MenuPage() {
   }, [searchParams, selectedLocale, setSearchParams]);
 
   useEffect(() => {
-    const cacheKey = menuCacheKey(shopSlug, search, selectedLocale);
+    const cacheKey = publicMenuCacheKey({
+      shopSlug,
+      branchId: searchParams.get("branch") || "",
+      tableCode: searchParams.get("table") || "",
+      locale: selectedLocale,
+      search,
+    });
 
     api
       .get(`/public/shops/${shopSlug}/menu?${search}`)
@@ -54,17 +66,19 @@ export default function MenuPage() {
         const data = response.data.data;
         setMenu(data);
         setActive(data.categories[0]?.id || "");
-        writeMenuCache(cacheKey, data);
-        setOfflineCached(!online);
+        savePublicMenuCache(cacheKey, data);
+        setOfflineCached(false);
+        setCacheAge(null);
         setError("");
       })
       .catch((requestError) => {
-        const cached = readMenuCache(cacheKey);
+        const cached = getPublicMenuCache(cacheKey);
 
-        if (!online && cached) {
+        if (cached) {
           setMenu(cached.data);
           setActive(cached.data.categories[0]?.id || "");
           setOfflineCached(true);
+          setCacheAge(getPublicMenuCacheAge(cacheKey));
           setError("");
           return;
         }
@@ -73,11 +87,11 @@ export default function MenuPage() {
           ? t(selectedLocale, "offlineMissing")
           : requestError.response?.data?.message || "Menu is not available right now.");
       });
-  }, [shopSlug, search, online, selectedLocale]);
+  }, [shopSlug, search, online, selectedLocale, searchParams]);
 
   useEffect(() => {
-    writeCart(cart);
-  }, [cart]);
+    writeCart(cart, cartContext);
+  }, [cart, cartContext]);
 
   const visibleCategories = useMemo(() => {
     if (!menu) return [];
@@ -159,7 +173,12 @@ export default function MenuPage() {
 
   return (
     <div className="mx-auto min-h-screen max-w-5xl bg-slate-50 px-4 pb-32 sm:px-6" lang={selectedLocale}>
-      {!online ? <OfflineBanner cached={offlineCached} locale={selectedLocale} /> : null}
+      {!online || offlineCached ? <OfflineBanner cached={offlineCached} locale={selectedLocale} /> : null}
+      {offlineCached && cacheAge ? (
+        <p className="mx-auto mt-2 max-w-3xl px-4 text-xs font-semibold text-amber-800">
+          Showing saved menu from {Math.max(1, Math.round(cacheAge / 60000))} minute{Math.round(cacheAge / 60000) === 1 ? "" : "s"} ago.
+        </p>
+      ) : null}
       <PublicShopHeader menu={menu} locale={selectedLocale} query={query} onQuery={setQuery} onClearQuery={() => setQuery("")} onLocale={changeLocale} />
 
       <CategoryTabs categories={menu.categories} active={active} counts={categoryCounts} onSelect={scrollToCategory} />

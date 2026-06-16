@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ReceiptText } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../api/axios";
@@ -15,7 +15,12 @@ export default function CartPage() {
   const [searchParams] = useSearchParams();
   const locale = normalizeLocale(searchParams.get("locale") || getPreferredLocale());
   const navigate = useNavigate();
-  const [cart, setCart] = useState(readCart);
+  const cartContext = useMemo(() => ({
+    shopSlug: searchParams.get("shop_slug") || searchParams.get("shop") || "public",
+    branchId: searchParams.get("branch") || "",
+    tableCode: searchParams.get("table") || "",
+  }), [searchParams]);
+  const [cart, setCart] = useState(() => readCart(cartContext));
   const [form, setForm] = useState({ customer_name: "", customer_phone: "", note: "", order_type: searchParams.get("table") ? "dine_in" : "takeaway" });
   const [saving, setSaving] = useState(false);
   const online = useOnlineStatus();
@@ -23,8 +28,8 @@ export default function CartPage() {
   const itemCount = cart.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
 
   useEffect(() => {
-    writeCart(cart);
-  }, [cart]);
+    writeCart(cart, cartContext);
+  }, [cart, cartContext]);
 
   const changeQuantity = (key, quantity) => {
     setCart((items) => (
@@ -100,6 +105,11 @@ export default function CartPage() {
         <AppCard bodyClassName="grid gap-2 p-4">
           <SummaryRow label={`${itemCount} item${itemCount === 1 ? "" : "s"}`} value={`${money(total)} KHR`} />
           <SummaryRow label={t(locale, "total")} value={`${money(total)} KHR`} strong />
+          {!online ? (
+            <p className="rounded-2xl bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900" role="status">
+              Ordering requires internet connection.
+            </p>
+          ) : null}
         </AppCard>
 
         <div className="sticky bottom-4 flex items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-white p-3 shadow-2xl">
@@ -107,7 +117,7 @@ export default function CartPage() {
             <p className="text-xs font-black uppercase tracking-wide text-blue-600">{t(locale, "total")}</p>
             <p className="text-xl font-black text-slate-950">{money(total)} KHR</p>
           </div>
-          <AppButton type="submit" disabled={!cart.length || saving || !online || !searchParams.get("shop") || !searchParams.get("branch")} iconLeft={<ReceiptText className="h-4 w-4" />}>
+          <AppButton type="submit" disabled={!cart.length || saving || !online || !searchParams.get("shop") || !searchParams.get("branch")} title={!online ? "Ordering requires internet connection." : undefined} iconLeft={<ReceiptText className="h-4 w-4" />}>
             {saving ? t(locale, "submitting") : t(locale, "submitOrder")}
           </AppButton>
         </div>

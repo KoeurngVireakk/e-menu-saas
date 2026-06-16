@@ -21,7 +21,7 @@ export default function PublicProductCard({ product, onAdd, onView }) {
     >
       <button type="button" onClick={() => onView(product)} className="h-28 overflow-hidden rounded-2xl bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:h-32" aria-label={`View ${product.name}`}>
         {imageUrl ? (
-          <img className="h-full w-full object-cover transition duration-300 hover:scale-105" src={imageUrl} alt={product.name} />
+          <img className="h-full w-full object-cover transition duration-300 hover:scale-105" src={imageUrl} alt={product.name} loading="lazy" decoding="async" />
         ) : (
           <span className="grid h-full place-items-center text-xs font-semibold text-slate-400">Image</span>
         )}

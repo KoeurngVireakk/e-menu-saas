@@ -1,4 +1,17 @@
 const CART_KEY = "emenu_cart";
+const CART_KEY_PREFIX = "menudigi_cart";
+
+export function cartStorageKey(context = {}) {
+  if (typeof context === "string") {
+    return context ? `${CART_KEY_PREFIX}:${context}` : CART_KEY;
+  }
+
+  const shop = context.shopSlug || context.shopId || context.shop || "public";
+  const branch = context.branchId || context.branch || "default-branch";
+  const table = context.tableCode || context.table || "default-table";
+
+  return `${CART_KEY_PREFIX}:${shop}:${branch}:${table}`;
+}
 
 export function money(value) {
   return Number(value || 0).toLocaleString();
@@ -61,9 +74,11 @@ export function mergeCartItem(items = [], cartItem) {
   });
 }
 
-export function readCart() {
+export function readCart(context) {
   try {
-    const parsed = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
+    const scopedKey = context ? cartStorageKey(context) : CART_KEY;
+    const stored = localStorage.getItem(scopedKey) || (context ? localStorage.getItem(CART_KEY) : null) || "[]";
+    const parsed = JSON.parse(stored);
     if (!Array.isArray(parsed)) {
       return [];
     }
@@ -83,15 +98,15 @@ export function readCart() {
         };
       });
   } catch {
-    localStorage.removeItem(CART_KEY);
+    localStorage.removeItem(context ? cartStorageKey(context) : CART_KEY);
     return [];
   }
 }
 
-export function writeCart(cart) {
-  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+export function writeCart(cart, context) {
+  localStorage.setItem(context ? cartStorageKey(context) : CART_KEY, JSON.stringify(cart));
 }
 
-export function clearCart() {
-  localStorage.removeItem(CART_KEY);
+export function clearCart(context) {
+  localStorage.removeItem(context ? cartStorageKey(context) : CART_KEY);
 }

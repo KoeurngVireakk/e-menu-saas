@@ -2,14 +2,45 @@ import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { CheckCircle2, CreditCard, Printer, ReceiptText } from "lucide-react";
 import api from "../../api/axios";
+import OfflineBanner from "../../components/OfflineBanner";
 import LiveOrderStatus from "../../components/orders/LiveOrderStatus";
 import OrderStatusTimeline from "../../components/public/OrderStatusTimeline";
 import PaymentStatusCard from "../../components/public/PaymentStatusCard";
 import { PublicPageSkeleton } from "../../components/public/PublicSkeletons";
 import { AppBadge, AppButton, AppCard } from "../../design-system/components";
 import { ErrorState } from "../../components/ui";
+import useOnlineStatus from "../../hooks/useOnlineStatus";
 import { formatCurrency, formatDualCurrency } from "../../utils/currency";
 import { getPreferredLocale, normalizeLocale, t } from "../../utils/localization";
+
+function orderStatusCacheKey(orderNumber) {
+  return `menudigi_order_status:${orderNumber}`;
+}
+
+function safeOrderSnapshot(order) {
+  return {
+    id: order.id,
+    order_number: order.order_number,
+    order_status: order.order_status,
+    payment_status: order.payment_status,
+    grand_total: order.grand_total,
+    currency_code: order.currency_code,
+    secondary_currency_total: order.secondary_currency_total,
+    secondary_currency_code: order.secondary_currency_code,
+    shop: order.shop ? { name: order.shop.name, currency_code: order.shop.currency_code } : null,
+    branch: order.branch ? { name: order.branch.name } : null,
+    items: [],
+  };
+}
+
+function readOrderSnapshot(orderNumber) {
+  try {
+    return JSON.parse(localStorage.getItem(orderStatusCacheKey(orderNumber)) || "null");
+  } catch {
+    localStorage.removeItem(orderStatusCacheKey(orderNumber));
+    return null;
+  }
+}
 
 export default function OrderSuccess() {
   const { orderNumber } = useParams();
@@ -18,16 +49,33 @@ export default function OrderSuccess() {
   const [order, setOrder] = useState(null);
   const [error, setError] = useState("");
   const [showReceipt, setShowReceipt] = useState(false);
+  const [cachedStatus, setCachedStatus] = useState(false);
+  const online = useOnlineStatus();
 
   useEffect(() => {
     api
       .get(`/public/orders/${orderNumber}`)
-      .then((response) => setOrder(response.data.data.order))
-      .catch((requestError) => setError(requestError.response?.data?.message || "Order could not be loaded."));
-  }, [orderNumber]);
+      .then((response) => {
+        const nextOrder = response.data.data.order;
+        setOrder(nextOrder);
+        setCachedStatus(false);
+        localStorage.setItem(orderStatusCacheKey(orderNumber), JSON.stringify(safeOrderSnapshot(nextOrder)));
+      })
+      .catch((requestError) => {
+        const cached = readOrderSnapshot(orderNumber);
+        if (!online && cached) {
+          setOrder(cached);
+          setCachedStatus(true);
+          setError("");
+          return;
+        }
 
-  if (error) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4"><ErrorState message={error} /></div>;
-  if (!order) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4"><PublicPageSkeleton label="Loading order..." /></div>;
+        setError(!online ? "Reconnect to refresh order status." : requestError.response?.data?.message || "Order could not be loaded.");
+      });
+  }, [orderNumber, online]);
+
+  if (error) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4">{!online ? <OfflineBanner locale={locale} /> : null}<ErrorState message={error} /></div>;
+  if (!order) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4">{!online ? <OfflineBanner locale={locale} /> : null}<PublicPageSkeleton label="Loading order..." /></div>;
 
   const updateOrderStatus = (payload) => {
     setOrder((current) => current ? { ...current, order_status: payload.new_status } : current);
@@ -39,6 +87,12 @@ export default function OrderSuccess() {
 
   return (
     <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4 pb-24 text-center" lang={locale}>
+      {!online ? <OfflineBanner locale={locale} /> : null}
+      {cachedStatus ? (
+        <p className="mb-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900" role="status">
+          Showing last known order status. Reconnect to refresh order status.
+        </p>
+      ) : null}
       <AppCard className="mt-6" bodyClassName="p-6">
         <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-100 text-emerald-700">
           <CheckCircle2 className="h-9 w-9" aria-hidden="true" />
@@ -50,9 +104,11 @@ export default function OrderSuccess() {
           <AppBadge status={order.order_status}>{order.order_status}</AppBadge>
           <AppBadge status={order.payment_status === "confirmed" ? "paid" : order.payment_status}>{order.payment_status}</AppBadge>
         </div>
-        <div className="mt-3 flex justify-center">
+        {online ? <div className="mt-3 flex justify-center">
           <LiveOrderStatus order={order} onStatusChanged={updateOrderStatus} onPaymentConfirmed={updatePaymentStatus} />
-        </div>
+        </div> : (
+          <p className="mt-3 text-sm font-semibold text-amber-800">Reconnect to refresh order status.</p>
+        )}
         <p className="mt-6 text-4xl font-black text-blue-700">
           {formatDualCurrency(order.grand_total, order.currency_code, order.secondary_currency_total, order.secondary_currency_code)}
         </p>

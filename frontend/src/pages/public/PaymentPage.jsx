@@ -86,22 +86,27 @@ export default function PaymentPage() {
 
       <form onSubmit={submit} className="mt-6 grid gap-3">
         <AppCard title="Payment method" description="No provider secrets or raw gateway data are shown here." bodyClassName="grid gap-3 p-4">
-          <Select label="Payment method" value={form.payment_method} onChange={(event) => setForm({ ...form, payment_method: event.target.value })}>
+          {!online ? (
+            <p className="rounded-2xl bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900" role="status">
+              Payment submission requires internet. Your selected proof preview stays only in this browser session.
+            </p>
+          ) : null}
+          <Select label="Payment method" value={form.payment_method} disabled={!online} onChange={(event) => setForm({ ...form, payment_method: event.target.value })}>
             {methods.map((method) => (
               <option key={method.value} value={method.value}>{method.label}</option>
             ))}
           </Select>
           {form.payment_method === "khqr_manual" ? (
             <>
-              <Input label="Transaction reference" placeholder="Reference number" value={form.transaction_reference} onChange={(event) => setForm({ ...form, transaction_reference: event.target.value })} />
-              <Input label="Proof image" type="file" accept="image/*" onChange={(event) => setForm({ ...form, proof_image: event.target.files?.[0] || null })} />
+              <Input label="Transaction reference" placeholder="Reference number" disabled={!online} value={form.transaction_reference} onChange={(event) => setForm({ ...form, transaction_reference: event.target.value })} />
+              <Input label="Proof image" type="file" accept="image/*" disabled={!online} onChange={(event) => setForm({ ...form, proof_image: event.target.files?.[0] || null })} />
               {proofPreview ? <img className="max-h-80 w-full rounded-2xl border border-slate-200 object-contain" src={proofPreview} alt="Selected payment proof preview" /> : null}
             </>
           ) : null}
           {form.payment_method === "bakong_khqr" ? (
             <p className="rounded-2xl bg-blue-50 p-3 text-sm font-semibold text-blue-800">Submit to generate a Bakong KHQR code for this order total.</p>
           ) : null}
-          <AppButton type="submit" disabled={saving || !online} iconLeft={<UploadCloud className="h-4 w-4" />}>
+          <AppButton type="submit" disabled={saving || !online} title={!online ? "Payment submission requires internet." : undefined} iconLeft={<UploadCloud className="h-4 w-4" />}>
             {saving ? "Submitting..." : "Submit payment"}
           </AppButton>
         </AppCard>
