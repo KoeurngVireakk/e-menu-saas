@@ -20,7 +20,7 @@ const statusTones = {
 
 export default function AppBadge({ children, status = "info", className = "" }) {
   return (
-    <span className={cn("inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-black capitalize", statusTones[status] || statusTones.info, className)}>
+    <span className={cn("inline-flex items-center rounded-full border px-3 py-1 text-xs font-black capitalize shadow-sm shadow-slate-900/5", statusTones[status] || statusTones.info, className)}>
       {children || String(status).replaceAll("_", " ")}
     </span>
   );

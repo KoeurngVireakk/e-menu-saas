@@ -5,7 +5,7 @@ import Sidebar from "../components/Sidebar";
 
 export default function AdminLayout() {
   return (
-    <div className="min-h-screen bg-slate-50 text-left text-slate-900">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.08),transparent_28%),linear-gradient(180deg,#F8FAFC,#EEF2F7)] text-left text-slate-900">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[260px_1fr]">
         <Sidebar />
         <div className="min-w-0">
