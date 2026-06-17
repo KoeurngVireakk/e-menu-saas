@@ -11,7 +11,7 @@ export default function StickyCartBar({ cart, label = "View cart", onClick }) {
     <AnimatePresence>
       {count ? (
         <motion.div
-          className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3 shadow-2xl backdrop-blur"
+          className="fixed inset-x-0 bottom-0 z-30 px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3"
           initial={{ y: "100%" }}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
@@ -19,7 +19,7 @@ export default function StickyCartBar({ cart, label = "View cart", onClick }) {
           role="complementary"
           aria-label="Cart summary"
         >
-          <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
+          <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 rounded-[1.75rem] border border-white/80 bg-white/95 p-3 shadow-2xl shadow-slate-900/15 ring-1 ring-slate-200/70 backdrop-blur-xl">
             <div>
               <p className="text-xs font-black uppercase tracking-wide text-blue-600">{count} item{count === 1 ? "" : "s"}</p>
               <p className="text-lg font-black text-slate-950">{money(total)} KHR</p>

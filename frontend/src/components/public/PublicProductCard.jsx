@@ -11,19 +11,19 @@ export default function PublicProductCard({ product, onAdd, onView }) {
 
   return (
     <motion.article
-      className={`grid grid-cols-[104px_1fr] gap-3 rounded-3xl border bg-white p-3 shadow-sm transition sm:grid-cols-[120px_1fr] ${
-        available ? "border-slate-200 hover:border-blue-200 hover:shadow-md" : "border-slate-200 opacity-70"
+      className={`grid grid-cols-[104px_1fr] gap-3 rounded-[1.6rem] border bg-white p-3 shadow-sm shadow-slate-900/5 ring-1 ring-white/70 transition sm:grid-cols-[120px_1fr] ${
+        available ? "border-slate-200/80 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-900/10" : "border-slate-200 opacity-70"
       }`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
       whileTap={available ? { scale: 0.99 } : undefined}
     >
-      <button type="button" onClick={() => onView(product)} className="h-28 overflow-hidden rounded-2xl bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:h-32" aria-label={`View ${product.name}`}>
+      <button type="button" onClick={() => onView(product)} className="relative h-28 overflow-hidden rounded-3xl bg-gradient-to-br from-slate-100 to-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:h-32" aria-label={`View ${product.name}`}>
         {imageUrl ? (
           <img className="h-full w-full object-cover transition duration-300 hover:scale-105" src={imageUrl} alt={product.name} loading="lazy" decoding="async" />
         ) : (
-          <span className="grid h-full place-items-center text-xs font-semibold text-slate-400">Image</span>
+          <span className="grid h-full place-items-center text-xs font-black uppercase tracking-wide text-slate-400">Image</span>
         )}
       </button>
       <div className="min-w-0">
@@ -43,7 +43,7 @@ export default function PublicProductCard({ product, onAdd, onView }) {
             <p className="text-lg font-black text-blue-700">{price} KHR</p>
           </div>
           {available ? (
-            <AppButton type="button" size="sm" iconLeft={<Plus className="h-4 w-4" />} onClick={() => onAdd(product)}>Add</AppButton>
+            <AppButton type="button" size="sm" className="min-w-20" iconLeft={<Plus className="h-4 w-4" />} onClick={() => onAdd(product)}>Add</AppButton>
           ) : (
             <AppBadge status="danger">Sold out</AppBadge>
           )}

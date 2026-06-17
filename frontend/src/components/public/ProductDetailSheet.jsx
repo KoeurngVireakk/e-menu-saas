@@ -81,12 +81,12 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
   };
 
   return (
-    <Modal open={open} title={product.name} onClose={onClose} className="overflow-hidden rounded-t-3xl sm:rounded-3xl">
+    <Modal open={open} title={product.name} onClose={onClose} className="overflow-hidden rounded-t-[2rem] border border-white/70 bg-white shadow-2xl shadow-slate-900/15 sm:rounded-[2rem]">
       <div>
         {imageUrl ? (
-          <img className="h-64 w-full object-cover" src={imageUrl} alt={product.name} />
+          <img className="h-64 w-full object-cover" src={imageUrl} alt={product.name} loading="lazy" decoding="async" />
         ) : (
-          <div className="grid h-48 place-items-center bg-slate-100 text-sm font-semibold text-slate-400">{t(locale, "noImage")}</div>
+          <div className="grid h-48 place-items-center bg-gradient-to-br from-slate-100 to-slate-200 text-sm font-black uppercase tracking-wide text-slate-400">{t(locale, "noImage")}</div>
         )}
         <div className="grid gap-5 p-4">
           <div>
@@ -103,7 +103,7 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
           </div>
 
           {(product.options || []).map((option) => (
-            <section key={option.id} className="rounded-2xl border border-slate-200 p-3">
+            <section key={option.id} className="rounded-3xl border border-slate-200 bg-slate-50/70 p-3">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="font-black text-slate-950">{option.name}</h3>
                 {option.is_required ? <AppBadge status="warning">{t(locale, "required")}</AppBadge> : <AppBadge status="info">{t(locale, "optional")}</AppBadge>}
@@ -117,7 +117,7 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
                     : () => setSingle(option.id, value.id);
 
                   return (
-                    <label key={value.id} className={`flex items-center justify-between gap-3 rounded-2xl border px-3 py-3 text-sm transition ${checked ? "border-blue-300 bg-blue-50" : "border-slate-200 bg-white"}`}>
+                    <label key={value.id} className={`flex items-center justify-between gap-3 rounded-2xl border px-3 py-3 text-sm transition ${checked ? "border-blue-300 bg-blue-50 shadow-sm shadow-blue-900/5" : "border-slate-200 bg-white hover:border-slate-300"}`}>
                       <span className="flex items-center gap-2">
                         <input type={inputType} name={`option-${option.id}`} checked={checked} onChange={onChange} />
                         <span className="font-semibold text-slate-800">{value.name}</span>
@@ -132,7 +132,7 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
 
           <Textarea label="Special instructions" placeholder="Less sugar, no spicy, extra ice..." value={note} onChange={(event) => setNote(event.target.value)} />
 
-          <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-3">
+          <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-slate-50 p-3">
             <span className="font-black text-slate-800">{t(locale, "quantity")}</span>
             <div className="flex items-center gap-2">
               <AppButton type="button" variant="secondary" size="sm" aria-label="Decrease quantity" onClick={() => setQuantity((value) => Math.max(1, value - 1))}><Minus className="h-4 w-4" /></AppButton>
@@ -141,7 +141,7 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
             </div>
           </div>
 
-          <div className="sticky bottom-0 -mx-4 -mb-4 flex items-center justify-between border-t border-slate-100 bg-white p-4">
+          <div className="sticky bottom-0 -mx-4 -mb-4 flex items-center justify-between border-t border-slate-100 bg-white/95 p-4 shadow-[0_-16px_40px_rgba(15,23,42,0.08)] backdrop-blur">
             <div>
               <p className="text-xs font-black uppercase tracking-wide text-slate-500">{t(locale, "total")}</p>
               <p className="text-xl font-black text-slate-950">{money(liveTotal)} KHR</p>
