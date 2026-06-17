@@ -1,13 +1,15 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./context/AuthContext";
 import ErrorBoundary from "./components/ErrorBoundary";
-import InstallPrompt from "./components/InstallPrompt";
-import PwaUpdatePrompt from "./components/PwaUpdatePrompt";
 import ToastProvider from "./components/ui/ToastProvider";
 import { LanguageProvider } from "./i18n";
 import { queryClient } from "./lib/queryClient";
 import AppRoutes from "./routes/AppRoutes";
+
+const InstallPrompt = lazy(() => import("./components/InstallPrompt"));
+const PwaUpdatePrompt = lazy(() => import("./components/PwaUpdatePrompt"));
 
 function App() {
   return (
@@ -19,8 +21,10 @@ function App() {
               <AppRoutes />
             </ErrorBoundary>
             <ToastProvider />
-            <InstallPrompt />
-            <PwaUpdatePrompt />
+            <Suspense fallback={null}>
+              <InstallPrompt />
+              <PwaUpdatePrompt />
+            </Suspense>
           </LanguageProvider>
         </AuthProvider>
       </BrowserRouter>

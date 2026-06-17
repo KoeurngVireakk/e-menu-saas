@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Building2, ChefHat, ClipboardList, CreditCard, PackagePlus, QrCode, Store, Utensils } from "lucide-react";
@@ -17,11 +17,12 @@ import {
   AppStatusBadge,
 } from "../../design-system/components";
 import ChartCard from "../../design-system/charts/ChartCard";
-import OrderStatusChart from "../../design-system/charts/OrderStatusChart";
-import SalesLineChart from "../../design-system/charts/SalesLineChart";
-import TopProductsChart from "../../design-system/charts/TopProductsChart";
 import { pageTransition, staggerContainer, staggerItem } from "../../design-system/motion/variants";
 import useOperationsRealtime from "../../hooks/useOperationsRealtime";
+
+const OrderStatusChart = lazy(() => import("../../design-system/charts/OrderStatusChart"));
+const SalesLineChart = lazy(() => import("../../design-system/charts/SalesLineChart"));
+const TopProductsChart = lazy(() => import("../../design-system/charts/TopProductsChart"));
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -167,16 +168,22 @@ export default function Dashboard() {
 
       <section className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <ChartCard title="Sales trend" description="Confirmed order value by hour for the current dashboard sample.">
-          <SalesLineChart data={salesTrend} />
+          <Suspense fallback={<ChartLoadingState />}>
+            <SalesLineChart data={salesTrend} />
+          </Suspense>
         </ChartCard>
         <ChartCard title="Order status" description="Live-ready operational status mix.">
-          <OrderStatusChart data={orderStatusData} />
+          <Suspense fallback={<ChartLoadingState />}>
+            <OrderStatusChart data={orderStatusData} />
+          </Suspense>
         </ChartCard>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <ChartCard title="Top products" description="Products appearing most often in loaded orders.">
-          <TopProductsChart data={topProducts} />
+          <Suspense fallback={<ChartLoadingState />}>
+            <TopProductsChart data={topProducts} />
+          </Suspense>
         </ChartCard>
 
         <AppCard title="Recent orders" description="Live updates appear here without a page refresh.">
@@ -240,5 +247,22 @@ export default function Dashboard() {
         </div>
       </AppCard>
     </motion.div>
+  );
+}
+
+function ChartLoadingState() {
+  return (
+    <div className="grid h-full content-end gap-3 rounded-2xl bg-slate-50 p-4" aria-label="Loading chart">
+      <div className="flex h-32 items-end gap-2">
+        {[52, 70, 44, 82, 64, 76].map((height, index) => (
+          <span
+            key={`${height}-${index}`}
+            className="flex-1 rounded-t-xl bg-slate-200"
+            style={{ height: `${height}%` }}
+          />
+        ))}
+      </div>
+      <div className="h-3 w-2/3 rounded-full bg-slate-200" />
+    </div>
   );
 }

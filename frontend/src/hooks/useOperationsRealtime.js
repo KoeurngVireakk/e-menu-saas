@@ -30,25 +30,50 @@ export default function useOperationsRealtime({
       return undefined;
     }
 
-    const echo = getEcho();
-    if (!echo) {
+    if (!isRealtimeConfigured()) {
       callbacksRef.current.onUnavailable?.();
       return undefined;
     }
 
-    const connection = echo.connector?.pusher?.connection;
+    let cancelled = false;
+    let connection = null;
+
     const setConnected = () => setStatus("connected");
     const setConnecting = () => setStatus("connecting");
     const setDisconnected = () => setStatus("disconnected");
     const setError = () => setStatus("error");
 
-    connection?.bind("connected", setConnected);
-    connection?.bind("connecting", setConnecting);
-    connection?.bind("disconnected", setDisconnected);
-    connection?.bind("error", setError);
-    connection?.bind("unavailable", setError);
+    async function bindConnectionStatus() {
+      try {
+        const echo = await getEcho();
+
+        if (cancelled) {
+          return;
+        }
+
+        if (!echo) {
+          setStatus("unavailable");
+          callbacksRef.current.onUnavailable?.();
+          return;
+        }
+
+        connection = echo.connector?.pusher?.connection;
+        connection?.bind("connected", setConnected);
+        connection?.bind("connecting", setConnecting);
+        connection?.bind("disconnected", setDisconnected);
+        connection?.bind("error", setError);
+        connection?.bind("unavailable", setError);
+      } catch {
+        if (!cancelled) {
+          setStatus("error");
+        }
+      }
+    }
+
+    bindConnectionStatus();
 
     return () => {
+      cancelled = true;
       connection?.unbind("connected", setConnected);
       connection?.unbind("connecting", setConnecting);
       connection?.unbind("disconnected", setDisconnected);
@@ -59,17 +84,39 @@ export default function useOperationsRealtime({
 
   useEffect(() => {
     if (!enabled) return undefined;
+    if (!isRealtimeConfigured()) return undefined;
 
+    let active = true;
+    const unsubscribers = [];
     const wrappedCallbacks = wrapCallbacks(callbacksRef);
-    const unsubscribers = [
-      ...restaurantIds.map((id) => subscribeToRestaurantOperations(id, wrappedCallbacks)),
-      branchId ? subscribeToBranchOperations(branchId, wrappedCallbacks) : null,
-      kitchenBranchId ? subscribeToKitchenOperations(kitchenBranchId, wrappedCallbacks) : null,
-      orderId ? subscribeToOrderTracking(orderId, wrappedCallbacks) : null,
-      tableId ? subscribeToTableOperations(tableId, wrappedCallbacks) : null,
-    ].filter(Boolean);
 
-    return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
+    async function subscribe() {
+      const nextUnsubscribers = await Promise.all([
+        ...restaurantIds.map((id) => subscribeToRestaurantOperations(id, wrappedCallbacks)),
+        branchId ? subscribeToBranchOperations(branchId, wrappedCallbacks) : null,
+        kitchenBranchId ? subscribeToKitchenOperations(kitchenBranchId, wrappedCallbacks) : null,
+        orderId ? subscribeToOrderTracking(orderId, wrappedCallbacks) : null,
+        tableId ? subscribeToTableOperations(tableId, wrappedCallbacks) : null,
+      ].filter(Boolean));
+
+      if (!active) {
+        nextUnsubscribers.forEach((unsubscribe) => unsubscribe());
+        return;
+      }
+
+      unsubscribers.push(...nextUnsubscribers);
+    }
+
+    subscribe().catch(() => {
+      if (active) {
+        setStatus("error");
+      }
+    });
+
+    return () => {
+      active = false;
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
+    };
   }, [branchId, enabled, kitchenBranchId, orderId, restaurantIds, tableId]);
 
   if (!enabled) return "disconnected";

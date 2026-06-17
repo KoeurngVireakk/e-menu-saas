@@ -78,28 +78,66 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (!id.includes("node_modules")) {
+          const normalizedId = id.replaceAll("\\", "/");
+
+          if (!normalizedId.includes("node_modules")) {
             return undefined;
           }
 
-          if (id.includes("react") || id.includes("react-router-dom")) {
+          if (hasPackage(normalizedId, ["react", "react-dom", "scheduler"])) {
             return "vendor-react";
           }
 
-          if (id.includes("framer-motion") || id.includes("motion-dom") || id.includes("motion-utils")) {
+          if (hasPackage(normalizedId, ["react-router", "react-router-dom"])) {
+            return "vendor-router";
+          }
+
+          if (hasPackage(normalizedId, ["@tanstack/react-query"])) {
+            return "vendor-query";
+          }
+
+          if (hasPackage(normalizedId, ["@tanstack/react-table"])) {
+            return "vendor-tables";
+          }
+
+          if (hasPackage(normalizedId, ["recharts"]) || normalizedId.includes("/node_modules/d3-")) {
+            return "vendor-charts";
+          }
+
+          if (hasPackage(normalizedId, ["laravel-echo", "pusher-js"])) {
+            return "vendor-realtime";
+          }
+
+          if (hasPackage(normalizedId, ["framer-motion", "motion-dom", "motion-utils"])) {
             return "vendor-animation";
           }
 
-          if (id.includes("sweetalert2")) {
+          if (hasPackage(normalizedId, ["sweetalert2"])) {
             return "vendor-alerts";
           }
 
-          if (id.includes("datatables.net") || id.includes("jquery")) {
+          if (hasPackage(normalizedId, ["datatables.net", "datatables.net-dt", "jquery"])) {
             return "vendor-datatables";
           }
 
-          if (id.includes("axios")) {
+          if (hasPackage(normalizedId, ["axios"])) {
             return "vendor-http";
+          }
+
+          if (hasPackage(normalizedId, ["lucide-react"])) {
+            return "vendor-icons";
+          }
+
+          if (hasPackage(normalizedId, ["@hookform/resolvers", "react-hook-form", "zod"])) {
+            return "vendor-forms";
+          }
+
+          if (hasPackage(normalizedId, ["date-fns", "react-day-picker"])) {
+            return "vendor-date";
+          }
+
+          if (hasPackage(normalizedId, ["cmdk", "qrcode.react", "sonner"])) {
+            return "vendor-ui";
           }
 
           return "vendor";
@@ -112,3 +150,7 @@ export default defineConfig({
     setupFiles: "./src/test/setup.js",
   },
 });
+
+function hasPackage(id, packageNames) {
+  return packageNames.some((packageName) => id.includes(`/node_modules/${packageName}/`));
+}
