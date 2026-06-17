@@ -4,7 +4,7 @@ import Card from "./Card";
 export function EmptyState({ title = "No records found", message = "There is nothing to show yet.", action }) {
   return (
     <Card className="p-8 text-center">
-      <div className="mx-auto grid h-14 w-14 place-items-center rounded-3xl bg-gradient-to-br from-blue-50 to-slate-100 text-sm font-black text-blue-600">--</div>
+      <div className="mx-auto grid h-14 w-14 place-items-center rounded-3xl bg-linear-to-br from-blue-50 to-slate-100 text-sm font-black text-blue-600">--</div>
       <h3 className="mt-5 text-lg font-black text-slate-950">{title}</h3>
       <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">{message}</p>
       {action ? <div className="mt-5">{action}</div> : null}
@@ -16,9 +16,9 @@ export function LoadingState({ message = "Loading..." }) {
   return (
     <Card className="p-6">
       <div className="animate-pulse space-y-3">
-        <div className="h-4 w-32 rounded-full bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200" />
-        <div className="h-10 rounded-2xl bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100" />
-        <div className="h-10 rounded-2xl bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100" />
+        <div className="h-4 w-32 rounded-full bg-linear-to-r from-slate-200 via-slate-100 to-slate-200" />
+        <div className="h-10 rounded-2xl bg-linear-to-r from-slate-100 via-slate-50 to-slate-100" />
+        <div className="h-10 rounded-2xl bg-linear-to-r from-slate-100 via-slate-50 to-slate-100" />
       </div>
       <p className="mt-4 text-sm font-semibold text-slate-500">{message}</p>
     </Card>

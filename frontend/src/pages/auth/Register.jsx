@@ -35,7 +35,7 @@ export default function Register() {
 
   return (
     <div className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.16),transparent_30%),linear-gradient(135deg,#F8FAFC,#EEF2F7)] p-4 text-left">
-      <div className="grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-2xl shadow-slate-900/10 lg:grid-cols-[1.05fr_0.95fr]">
+      <div className="grid w-full max-w-5xl overflow-hidden rounded-4xl border border-white/70 bg-white shadow-2xl shadow-slate-900/10 lg:grid-cols-[1.05fr_0.95fr]">
         <form onSubmit={submit} className="p-6 sm:p-8">
           <div className="mb-8 flex items-center justify-between gap-3">
             <AppLogo size="lg" to="/register" ariaLabel="Go to home" />

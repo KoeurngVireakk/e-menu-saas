@@ -19,7 +19,7 @@ export default function PublicProductCard({ product, onAdd, onView }) {
       transition={{ duration: 0.2, ease: "easeOut" }}
       whileTap={available ? { scale: 0.99 } : undefined}
     >
-      <button type="button" onClick={() => onView(product)} className="relative h-28 overflow-hidden rounded-3xl bg-gradient-to-br from-slate-100 to-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:h-32" aria-label={`View ${product.name}`}>
+      <button type="button" onClick={() => onView(product)} className="relative h-28 overflow-hidden rounded-3xl bg-linear-to-br from-slate-100 to-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:h-32" aria-label={`View ${product.name}`}>
         {imageUrl ? (
           <img className="h-full w-full object-cover transition duration-300 hover:scale-105" src={imageUrl} alt={product.name} loading="lazy" decoding="async" />
         ) : (

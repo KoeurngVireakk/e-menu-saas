@@ -81,12 +81,12 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
   };
 
   return (
-    <Modal open={open} title={product.name} onClose={onClose} className="overflow-hidden rounded-t-[2rem] border border-white/70 bg-white shadow-2xl shadow-slate-900/15 sm:rounded-[2rem]">
+    <Modal open={open} title={product.name} onClose={onClose} className="overflow-hidden rounded-t-4xl border border-white/70 bg-white shadow-2xl shadow-slate-900/15 sm:rounded-4xl">
       <div>
         {imageUrl ? (
           <img className="h-64 w-full object-cover" src={imageUrl} alt={product.name} loading="lazy" decoding="async" />
         ) : (
-          <div className="grid h-48 place-items-center bg-gradient-to-br from-slate-100 to-slate-200 text-sm font-black uppercase tracking-wide text-slate-400">{t(locale, "noImage")}</div>
+          <div className="grid h-48 place-items-center bg-linear-to-br from-slate-100 to-slate-200 text-sm font-black uppercase tracking-wide text-slate-400">{t(locale, "noImage")}</div>
         )}
         <div className="grid gap-5 p-4">
           <div>

@@ -34,7 +34,7 @@ export default function Login() {
 
   return (
     <div className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.16),transparent_30%),linear-gradient(135deg,#F8FAFC,#EEF2F7)] p-4 text-left">
-      <div className="grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-2xl shadow-slate-900/10 lg:grid-cols-[0.95fr_1.05fr]">
+      <div className="grid w-full max-w-5xl overflow-hidden rounded-4xl border border-white/70 bg-white shadow-2xl shadow-slate-900/10 lg:grid-cols-[0.95fr_1.05fr]">
         <aside className="hidden bg-slate-950 p-8 text-white lg:block">
           <div className="flex h-full flex-col justify-between">
             <div>

@@ -23,7 +23,7 @@ export default function Modal({ open, title, children, footer, onClose, classNam
       {open ? (
         <motion.div className="fixed inset-0 z-40 grid place-items-end bg-slate-950/60 p-3 backdrop-blur-sm sm:place-items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <motion.div
-            className={`max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-[2rem] border border-white/70 bg-white shadow-2xl shadow-slate-950/20 sm:rounded-[2rem] ${className}`}
+            className={`max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-4xl border border-white/70 bg-white shadow-2xl shadow-slate-950/20 sm:rounded-4xl ${className}`}
             role="dialog"
             aria-modal="true"
             aria-label={title || "Dialog"}
