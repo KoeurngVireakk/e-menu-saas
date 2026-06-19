@@ -17,6 +17,18 @@ vi.mock("../../hooks/useOperationsRealtime", () => ({
   default: () => "connected",
 }));
 
+vi.mock("../../design-system/charts/OrderStatusChart", () => ({
+  default: () => <div data-testid="order-status-chart" />,
+}));
+
+vi.mock("../../design-system/charts/SalesLineChart", () => ({
+  default: () => <div data-testid="sales-line-chart" />,
+}));
+
+vi.mock("../../design-system/charts/TopProductsChart", () => ({
+  default: () => <div data-testid="top-products-chart" />,
+}));
+
 describe("Dashboard", () => {
   beforeEach(() => {
     api.get.mockReset();
