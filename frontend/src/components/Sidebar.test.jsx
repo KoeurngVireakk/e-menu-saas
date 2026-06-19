@@ -32,6 +32,11 @@ describe("Sidebar", () => {
   it("shows owner-only navigation for shop owners", () => {
     renderSidebar();
 
+    expect(screen.getAllByText("Overview").length).toBeGreaterThan(0);
+    expect(screen.getByText("Operations")).toBeInTheDocument();
+    expect(screen.getByText("Catalog")).toBeInTheDocument();
+    expect(screen.getByText("Business")).toBeInTheDocument();
+    expect(screen.getAllByText("Settings").length).toBeGreaterThan(0);
     expect(screen.getByRole("link", { name: "Shops" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "System Health" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Payments" })).toBeInTheDocument();

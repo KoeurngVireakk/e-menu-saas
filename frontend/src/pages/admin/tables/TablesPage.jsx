@@ -13,7 +13,7 @@ import {
   AppStatusBadge,
   AppTable,
 } from "../../../design-system/components";
-import CreateEditDrawer from "../../../design-system/crud/CreateEditDrawer";
+import CrudFormModal from "../../../design-system/crud/CrudFormModal";
 import CrudToolbar from "../../../design-system/crud/CrudToolbar";
 import { Field, SelectInput, TextInput } from "../../../design-system/crud/FormControls";
 import RowActionsMenu from "../../../design-system/crud/RowActionsMenu";
@@ -34,7 +34,7 @@ export default function TablesPage() {
   const [branchId, setBranchId] = useState("");
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [qr, setQr] = useState(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -90,17 +90,17 @@ export default function TablesPage() {
   const openCreate = () => {
     setEditing(null);
     setForm(initial);
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
 
   const openEdit = (table) => {
     setEditing(table);
     setForm({ ...initial, ...table });
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
 
-  const closeDrawer = () => {
-    setDrawerOpen(false);
+  const closeModal = () => {
+    setModalOpen(false);
     setEditing(null);
     setForm(initial);
   };
@@ -116,7 +116,7 @@ export default function TablesPage() {
         await api.post(`/branches/${branchId}/tables`, form);
         toastSuccess("Table created successfully.");
       }
-      closeDrawer();
+      closeModal();
       load();
     } catch (error) {
       alertError(error, "Please review the table.");
@@ -157,7 +157,7 @@ export default function TablesPage() {
       <AppPageHeader
         eyebrow="QR operations"
         title="Tables"
-        description="Create table QR codes from a clean list view. QR previews, downloads, and edits open in focused drawers."
+        description="Create table QR codes from a clean list view. Create and edit forms open in a centered modal while QR previews stay separate."
         primaryAction={allowCreate ? { children: "Add Table", onClick: openCreate, iconLeft: <Plus className="h-4 w-4" /> } : null}
         secondaryActions={<AppButton type="button" variant="secondary" iconLeft={<Printer className="h-4 w-4" />} onClick={() => window.print()}>Bulk print</AppButton>}
       />
@@ -189,6 +189,8 @@ export default function TablesPage() {
             loading={loading}
             emptyTitle="No tables found"
             emptyDescription="Create a table to generate a QR menu link for guests."
+            emptyActionLabel={allowCreate ? "Create first table" : undefined}
+            onEmptyAction={allowCreate ? openCreate : undefined}
             rowActions={(table) => (
               <RowActionsMenu>
                 {allowUpdate ? <IconAction label="Edit table" icon={<Edit3 className="h-4 w-4" />} onClick={() => openEdit(table)}>Edit</IconAction> : null}
@@ -210,15 +212,16 @@ export default function TablesPage() {
         )}
       </AppCard>
 
-      <CreateEditDrawer
-        open={drawerOpen}
+      <CrudFormModal
+        open={modalOpen}
         title={editing ? "Edit table" : "Add table"}
         description="Table codes should be short and easy for staff to recognize."
-        onClose={closeDrawer}
+        onClose={closeModal}
         onSubmit={submit}
         submitLabel={editing ? "Save changes" : "Create table"}
         loading={saving}
         disabled={!branchId || (editing ? !allowUpdate : !allowCreate)}
+        maxWidth="max-w-2xl"
       >
         <Field label="Shop">
           <SelectInput value={shopId} onChange={setShopId} disabled={Boolean(editing)} options={shops.map((shop) => [shop.id, shop.name])} />
@@ -235,7 +238,7 @@ export default function TablesPage() {
         <Field label="Status">
           <SelectInput value={form.status || "active"} onChange={(value) => setForm({ ...form, status: value })} options={[["active", "Active"], ["inactive", "Inactive"]]} />
         </Field>
-      </CreateEditDrawer>
+      </CrudFormModal>
 
       <AppSheet open={qrOpen} title="Table QR preview" onClose={() => setQrOpen(false)}>
         {qr ? (

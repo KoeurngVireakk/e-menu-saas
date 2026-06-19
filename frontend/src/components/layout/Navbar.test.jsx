@@ -20,6 +20,7 @@ describe("Navbar", () => {
 
     expect(screen.getByRole("heading", { name: "Products" })).toBeInTheDocument();
     expect(screen.getByText("Catalog work")).toBeInTheDocument();
-    expect(screen.getByRole("searchbox", { name: "Jump to page or action" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Jump to page or action" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: /Switch language/i }).length).toBeGreaterThan(0);
   });
 });

@@ -20,7 +20,7 @@ describe("ProductsPage", () => {
     api.delete.mockReset();
   });
 
-  it("renders product filters and opens the tabbed add product drawer", async () => {
+  it("renders product filters and opens the tabbed add product modal", async () => {
     api.get.mockImplementation((url) => {
       if (url === "/shops") {
         return Promise.resolve({ data: { data: { shops: [{ id: 1, name: "MenuDIGI Cafe" }] } } });
@@ -60,7 +60,7 @@ describe("ProductsPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /add product/i }));
 
-    await waitFor(() => expect(screen.getByRole("heading", { name: "Add product" })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("dialog", { name: "Add product" })).toBeInTheDocument());
     expect(screen.getByRole("button", { name: "Pricing" })).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Iced Latte")).toBeInTheDocument();
 
@@ -72,5 +72,8 @@ describe("ProductsPage", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Options must be a JSON array.");
     expect(api.post).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog", { name: "Add product" })).not.toBeInTheDocument());
   });
 });

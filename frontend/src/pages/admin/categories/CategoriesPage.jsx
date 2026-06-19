@@ -14,7 +14,7 @@ import {
   AppStatusBadge,
   AppTable,
 } from "../../../design-system/components";
-import CreateEditDrawer from "../../../design-system/crud/CreateEditDrawer";
+import CrudFormModal from "../../../design-system/crud/CrudFormModal";
 import CrudToolbar from "../../../design-system/crud/CrudToolbar";
 import { Field, FileInput, SelectInput, TextInput } from "../../../design-system/crud/FormControls";
 import RowActionsMenu from "../../../design-system/crud/RowActionsMenu";
@@ -42,7 +42,7 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("sort_order");
@@ -83,17 +83,17 @@ export default function CategoriesPage() {
   const openCreate = () => {
     setEditing(null);
     setForm(initial);
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
 
   const openEdit = (category) => {
     setEditing(category);
     setForm({ ...initial, ...category, branch_id: category.branch_id || "", image: null });
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
 
-  const closeDrawer = () => {
-    setDrawerOpen(false);
+  const closeModal = () => {
+    setModalOpen(false);
     setEditing(null);
     setForm(initial);
   };
@@ -115,7 +115,7 @@ export default function CategoriesPage() {
         await api.post(`/shops/${shopId}/categories`, data, { headers: { "Content-Type": "multipart/form-data" } });
         toastSuccess("Category created successfully.");
       }
-      closeDrawer();
+      closeModal();
       load();
     } catch (error) {
       alertError(error, "Please review the category.");
@@ -151,7 +151,7 @@ export default function CategoriesPage() {
       <AppPageHeader
         eyebrow="Menu setup"
         title="Categories"
-        description="Organize menu sections with a list-first workflow. Add or edit categories from a focused drawer without covering the table."
+        description="Organize menu sections with a list-first workflow. Add or edit categories in a focused centered form while the list stays behind it."
         primaryAction={allowCreate ? { children: "Add Category", onClick: openCreate, iconLeft: <Plus className="h-4 w-4" /> } : null}
       />
 
@@ -183,6 +183,12 @@ export default function CategoriesPage() {
             loading={loading}
             emptyTitle="No categories found"
             emptyDescription="Create a category or clear filters to see more menu sections."
+            emptyActionLabel={categories.length ? "Clear filters" : allowCreate ? "Create first category" : undefined}
+            onEmptyAction={categories.length ? () => {
+              setSearch("");
+              setStatusFilter("all");
+              setSortBy("sort_order");
+            } : allowCreate ? openCreate : undefined}
             rowActions={(category) => (
               <RowActionsMenu>
                 {allowUpdate ? <IconAction label="Edit category" icon={<Edit3 className="h-4 w-4" />} onClick={() => openEdit(category)} /> : null}
@@ -204,15 +210,16 @@ export default function CategoriesPage() {
         )}
       </AppCard>
 
-      <CreateEditDrawer
-        open={drawerOpen}
+      <CrudFormModal
+        open={modalOpen}
         title={editing ? "Edit category" : "Add category"}
         description="Keep category names short and easy for customers to scan on mobile menus."
-        onClose={closeDrawer}
+        onClose={closeModal}
         onSubmit={submit}
         submitLabel={editing ? "Save changes" : "Create category"}
         loading={saving}
         disabled={!shopId || (editing ? !allowUpdate : !allowCreate)}
+        maxWidth="max-w-xl"
       >
         <Field label="Shop">
           <SelectInput value={shopId} onChange={setShopId} disabled={Boolean(editing)} options={shops.map((shop) => [shop.id, shop.name])} />
@@ -232,7 +239,7 @@ export default function CategoriesPage() {
         <Field label="Image">
           <FileInput onChange={(image) => setForm({ ...form, image })} />
         </Field>
-      </CreateEditDrawer>
+      </CrudFormModal>
     </div>
   );
 }

@@ -14,7 +14,7 @@ import {
   AppStatusBadge,
   AppTable,
 } from "../../../design-system/components";
-import CreateEditDrawer from "../../../design-system/crud/CreateEditDrawer";
+import CrudFormModal from "../../../design-system/crud/CrudFormModal";
 import CrudToolbar from "../../../design-system/crud/CrudToolbar";
 import { Field, SelectInput, TextInput } from "../../../design-system/crud/FormControls";
 import RowActionsMenu from "../../../design-system/crud/RowActionsMenu";
@@ -45,7 +45,7 @@ export default function BranchesPage() {
 
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [saving, setSaving] = useState(false);
@@ -66,17 +66,17 @@ export default function BranchesPage() {
   const openCreate = () => {
     setEditing(null);
     setForm(initial);
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
 
   const openEdit = (branch) => {
     setEditing(branch);
     setForm({ ...initial, ...branch });
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
 
-  const closeDrawer = () => {
-    setDrawerOpen(false);
+  const closeModal = () => {
+    setModalOpen(false);
     setEditing(null);
     setForm(initial);
   };
@@ -92,7 +92,7 @@ export default function BranchesPage() {
         await api.post(`/shops/${shopId}/branches`, form);
         toastSuccess("Branch created successfully.");
       }
-      closeDrawer();
+      closeModal();
       load();
     } catch (error) {
       alertError(error, "Please review the branch.");
@@ -128,7 +128,7 @@ export default function BranchesPage() {
       <AppPageHeader
         eyebrow="Operations"
         title="Branches"
-        description="Manage restaurant locations from a focused list-first workspace. Branch details open in a drawer so the list remains scannable."
+        description="Manage restaurant locations from a focused list-first workspace. Branch details open in a centered form so the list remains scannable."
         primaryAction={allowCreate ? { children: "Add Branch", onClick: openCreate, iconLeft: <Plus className="h-4 w-4" /> } : null}
       />
 
@@ -158,6 +158,11 @@ export default function BranchesPage() {
             loading={loading}
             emptyTitle="No branches found"
             emptyDescription="Create a branch or clear filters to see more locations."
+            emptyActionLabel={branches.length ? "Clear filters" : allowCreate ? "Create first branch" : undefined}
+            onEmptyAction={branches.length ? () => {
+              setSearch("");
+              setStatusFilter("all");
+            } : allowCreate ? openCreate : undefined}
             rowActions={(branch) => (
               <RowActionsMenu>
                 {allowUpdate ? <IconAction label="Edit branch" icon={<Edit3 className="h-4 w-4" />} onClick={() => openEdit(branch)}>Edit</IconAction> : null}
@@ -179,15 +184,16 @@ export default function BranchesPage() {
         )}
       </AppCard>
 
-      <CreateEditDrawer
-        open={drawerOpen}
+      <CrudFormModal
+        open={modalOpen}
         title={editing ? "Edit branch" : "Add branch"}
         description="Branch details are used for operations, kitchen filtering, reports, and table QR menus."
-        onClose={closeDrawer}
+        onClose={closeModal}
         onSubmit={submit}
         submitLabel={editing ? "Save changes" : "Create branch"}
         loading={saving}
         disabled={!shopId || (editing ? !allowUpdate : !allowCreate)}
+        maxWidth="max-w-xl"
       >
         <Field label="Shop">
           <SelectInput value={shopId} onChange={setShopId} disabled={Boolean(editing)} options={shops.map((shop) => [shop.id, shop.name])} />
@@ -215,7 +221,7 @@ export default function BranchesPage() {
         <Field label="Status">
           <SelectInput value={form.status || "active"} onChange={(value) => setForm({ ...form, status: value })} options={[["active", "Active"], ["inactive", "Inactive"]]} />
         </Field>
-      </CreateEditDrawer>
+      </CrudFormModal>
     </div>
   );
 }

@@ -159,3 +159,14 @@
 - Realtime checklist: connected, reconnecting, paused, unavailable, and error states must show readable text, tooltips, and nonessential motion only.
 - Customer QR checklist: preserve large tap targets, sticky cart visibility, offline submit blocking, payment-proof safety, and simple status copy.
 - Performance checklist: verify route lazy loading, chart lazy loading, dynamic Echo/Pusher, dynamic SweetAlert2, PWA/offline behavior, and no large chunk warning after UI changes.
+
+## Module 49 Landing, Shell, and Centered CRUD QA
+
+- Landing hero checklist: first screen should clearly explain MenuDIGI, show a primary "Get started" action, show a QR menu demo action, keep the language toggle visible, and avoid fake testimonials or fake metrics.
+- Sidebar grouping checklist: verify Overview, Operations, Catalog, Business, and Settings groups remain permission-aware, active links are readable, icons align consistently, and no existing routes are removed.
+- Navbar command checklist: command/search affordance must say "Jump to page or action", behave as a button, stay keyboard accessible, and never imply backend record search.
+- Centered CRUD modal checklist: category, product, branch, and table create/edit should open centered dialogs with accessible titles, descriptions, close buttons, Escape close, sticky footer, and save/cancel hierarchy.
+- Mobile modal checklist: at 375px and 430px, modal body should scroll without hiding footer actions, fields should remain one column, and long Khmer labels should wrap naturally.
+- Form accessibility checklist: every input needs a label, helper/error copy should be readable, required state should be visible, and upload controls should keep clear focus rings.
+- Empty/no-results action checklist: first-time empty states should expose the safe Add action when permissions allow, while filtered no-results should offer Clear filters.
+- Performance checklist: do not add heavy UI libraries, charts, global realtime imports, or global SweetAlert2 imports while polishing landing, shell, or CRUD modal UI.

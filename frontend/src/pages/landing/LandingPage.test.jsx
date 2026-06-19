@@ -24,8 +24,8 @@ describe("LandingPage", () => {
 
     expect(screen.getByRole("heading", { name: /Digital menus, orders, and payments/i })).toBeInTheDocument();
     expect(screen.getByText(/For restaurant owners, cashiers, waiters/i)).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: /Create your QR menu/i }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("link", { name: /See ordering flow/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: /Get started/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: /View QR menu demo/i }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("link", { name: /Sign in/i }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("link", { name: "Features" })[0]).toHaveAttribute("href", "#features");
   });

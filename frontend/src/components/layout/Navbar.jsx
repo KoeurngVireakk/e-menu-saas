@@ -49,29 +49,27 @@ export default function Navbar({ onOpenCommand }) {
           <h1 className="truncate text-lg font-black text-slate-950">{t(titleKey)}</h1>
         </div>
       </div>
-      <label className="hidden min-w-0 flex-1 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500 shadow-sm shadow-slate-900/5 focus-within:border-blue-300 focus-within:ring-4 focus-within:ring-blue-50 lg:flex lg:max-w-sm">
+      <button
+        type="button"
+        className="hidden min-w-0 flex-1 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-500 shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5 hover:border-blue-200 hover:text-slate-700 focus:outline-none focus-visible:border-blue-300 focus-visible:ring-4 focus-visible:ring-blue-50 md:flex lg:max-w-sm"
+        aria-label={t("navbar.searchPlaceholder")}
+        onClick={onOpenCommand}
+      >
         <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
-        <span className="sr-only">{t("navbar.searchPlaceholder")}</span>
-        <input
-          type="search"
-          readOnly
-          className="w-full bg-transparent font-semibold outline-none placeholder:text-slate-400"
-          placeholder={t("navbar.searchPlaceholder")}
-          aria-label={t("navbar.searchPlaceholder")}
-          onClick={onOpenCommand}
-          onFocus={onOpenCommand}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              onOpenCommand?.();
-            }
-          }}
-        />
+        <span className="min-w-0 flex-1 truncate font-semibold">{t("navbar.searchPlaceholder")}</span>
         <kbd className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-black text-slate-500">Ctrl K</kbd>
-      </label>
+      </button>
       <div className="flex shrink-0 items-center gap-2 md:gap-3">
         <RealtimeStatusBadge status="unavailable" className="hidden xl:inline-flex" />
         <LanguageToggle compact className="hidden md:inline-flex" />
+        <button
+          type="button"
+          aria-label={t("navbar.searchPlaceholder")}
+          className="grid h-10 w-10 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:-translate-y-0.5 hover:text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 md:hidden"
+          onClick={onOpenCommand}
+        >
+          <Search className="h-4 w-4" aria-hidden="true" />
+        </button>
         <button type="button" aria-label={t("navbar.notificationsPlaceholder", "Notifications are planned for a future inbox")} title={t("navbar.notificationsPlaceholder", "Notifications are planned for a future inbox")} className="hidden h-10 w-10 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:-translate-y-0.5 hover:text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 lg:grid">
           <Bell className="h-4 w-4" aria-hidden="true" />
         </button>

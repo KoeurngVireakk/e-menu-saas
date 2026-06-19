@@ -84,7 +84,7 @@ export default function Sidebar() {
 
   return (
     <aside className="border-b border-white/70 bg-white/90 p-4 shadow-sm shadow-slate-900/5 backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:border-white/70">
-      <div className="flex items-center gap-3 lg:mb-8">
+      <div className="flex items-center gap-3 rounded-3xl border border-slate-100 bg-white p-2 shadow-sm shadow-slate-900/5 lg:mb-7">
         <AppLogo size="md" to="/admin" ariaLabel="Go to dashboard" />
         <LanguageToggle compact className="ml-auto lg:hidden" />
       </div>
@@ -101,12 +101,12 @@ export default function Sidebar() {
                   className={({ isActive }) =>
                     `inline-flex shrink-0 items-center gap-2 rounded-2xl px-3 py-2.5 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
                       isActive
-                        ? "bg-slate-950 text-white shadow-lg shadow-slate-950/15"
-                        : "text-slate-600 hover:-translate-y-0.5 hover:bg-slate-100 hover:text-slate-950"
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                        : "text-slate-600 hover:-translate-y-0.5 hover:bg-blue-50 hover:text-blue-700"
                     }`
                   }
                 >
-                  <Icon className="h-4 w-4" aria-hidden="true" />
+                  <Icon className="h-5 w-5" aria-hidden="true" />
                   {t(labelKey)}
                 </NavLink>
               ))}
@@ -114,8 +114,9 @@ export default function Sidebar() {
           </div>
         ))}
       </nav>
-      <div className="mt-6 hidden rounded-2xl border border-blue-100 bg-blue-50 p-4 lg:block">
-        <p className="text-sm font-bold text-blue-950">MenuDIGI</p>
+      <div className="mt-6 hidden rounded-3xl border border-blue-100 bg-linear-to-br from-blue-50 to-white p-4 shadow-sm lg:block">
+        <p className="text-xs font-black uppercase tracking-wide text-blue-600">Workspace</p>
+        <p className="mt-1 text-sm font-black text-blue-950">MenuDIGI</p>
         <p className="mt-1 text-xs leading-5 text-blue-800">{t("common.orders")}, {t("common.payments")}, {t("common.products")}, {t("common.kitchen")}, and QR tools are available.</p>
       </div>
     </aside>

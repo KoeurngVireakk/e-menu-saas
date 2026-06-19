@@ -17,7 +17,7 @@ import {
   AppStatusBadge,
   AppTable,
 } from "../../../design-system/components";
-import CreateEditDrawer from "../../../design-system/crud/CreateEditDrawer";
+import CrudFormModal from "../../../design-system/crud/CrudFormModal";
 import CrudToolbar from "../../../design-system/crud/CrudToolbar";
 import DataViewToggle from "../../../design-system/crud/DataViewToggle";
 import { Field, FileInput, SelectInput, TextArea, TextInput, ToggleField } from "../../../design-system/crud/FormControls";
@@ -81,7 +81,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [drawerTab, setDrawerTab] = useState("basic");
   const [view, setView] = useState("table");
   const [search, setSearch] = useState("");
@@ -134,7 +134,7 @@ export default function ProductsPage() {
     setForm(initial);
     setDrawerTab("basic");
     setOptionsError("");
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
 
   const openEdit = (product) => {
@@ -148,7 +148,7 @@ export default function ProductsPage() {
     });
     setDrawerTab("basic");
     setOptionsError("");
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
 
   const duplicate = (product) => {
@@ -163,11 +163,11 @@ export default function ProductsPage() {
     });
     setDrawerTab("basic");
     setOptionsError("");
-    setDrawerOpen(true);
+    setModalOpen(true);
   };
 
-  const closeDrawer = () => {
-    setDrawerOpen(false);
+  const closeModal = () => {
+    setModalOpen(false);
     setEditing(null);
     setForm(initial);
     setOptionsError("");
@@ -213,7 +213,7 @@ export default function ProductsPage() {
         await api.post(`/shops/${shopId}/products`, data, { headers: { "Content-Type": "multipart/form-data" } });
         toastSuccess("Product created successfully.");
       }
-      closeDrawer();
+      closeModal();
       load();
     } catch (error) {
       alertError(error, "Please review the product.");
@@ -255,7 +255,7 @@ export default function ProductsPage() {
       <AppPageHeader
         eyebrow="Menu catalog"
         title="Products"
-        description="Manage menu items in a professional catalog view. Product forms open in a large drawer with focused tabs."
+        description="Manage menu items in a professional catalog view. Product forms open in a large centered modal with focused tabs."
         primaryAction={allowCreate ? { children: "Add Product", onClick: openCreate, iconLeft: <Plus className="h-4 w-4" /> } : null}
       />
 
@@ -318,15 +318,16 @@ export default function ProductsPage() {
         </AppCard>
       )}
 
-      <CreateEditDrawer
-        open={drawerOpen}
+      <CrudFormModal
+        open={modalOpen}
         title={editing ? "Edit product" : "Add product"}
         description="Use tabs to keep product setup focused. Options still accept the existing JSON format for compatibility."
-        onClose={closeDrawer}
+        onClose={closeModal}
         onSubmit={submit}
         submitLabel={editing ? "Save changes" : "Create product"}
         loading={saving}
         disabled={!shopId || (editing ? !allowUpdate : !allowCreate)}
+        maxWidth="max-w-3xl"
       >
         <div className="-mx-1 flex gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1">
           {drawerTabs.map(([value, label]) => (
@@ -437,7 +438,7 @@ export default function ProductsPage() {
             </AppButton>
           </AppCard>
         ) : null}
-      </CreateEditDrawer>
+      </CrudFormModal>
     </div>
   );
 }
