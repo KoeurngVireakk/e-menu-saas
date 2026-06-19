@@ -39,7 +39,7 @@ export default function Login() {
           <div className="flex h-full flex-col justify-between">
             <div>
               <AppLogo size="lg" to="/" ariaLabel="Go to home" />
-              <h2 className="mt-10 text-4xl font-black leading-tight">Run your restaurant from one clean workspace.</h2>
+              <h2 className="mt-10 text-4xl font-black leading-tight">{t("auth.welcomeBack")}</h2>
               <p className="mt-4 text-sm leading-6 text-slate-300">Manage QR menus, customer orders, kitchen activity, and payment confirmation with a premium MenuDIGI dashboard.</p>
             </div>
             <div className="grid gap-3 rounded-3xl border border-white/10 bg-white/5 p-4">
@@ -57,14 +57,14 @@ export default function Login() {
           <h1 className="text-3xl font-black text-slate-950">{t("common.signIn")}</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">Manage shops, menus, orders, and payments.</p>
           <label className="mt-7 block text-sm font-bold text-slate-700">
-            Email
+            {t("auth.email")}
             <span className="mt-2 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 transition focus-within:border-blue-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-50">
               <Mail className="h-4 w-4 text-slate-400" aria-hidden="true" />
               <input className="w-full bg-transparent outline-none" type="email" required value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
             </span>
           </label>
           <label className="mt-4 block text-sm font-bold text-slate-700">
-            Password
+            {t("auth.password")}
             <span className="mt-2 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus-within:border-blue-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-50">
               <LockKeyhole className="h-4 w-4 text-slate-400" aria-hidden="true" />
               <input className="w-full bg-transparent outline-none" type={showPassword ? "text" : "password"} required value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} />
@@ -73,6 +73,7 @@ export default function Login() {
               </button>
             </span>
           </label>
+          <p className="mt-3 text-xs font-semibold text-slate-500">{t("auth.resetUnavailable")}</p>
           <AppButton type="submit" loading={saving} fullWidth className="mt-6">
             {saving ? `${t("common.loading")}...` : t("common.signIn")}
           </AppButton>

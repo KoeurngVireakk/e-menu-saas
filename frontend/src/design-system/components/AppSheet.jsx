@@ -12,7 +12,12 @@ export default function AppSheet({ open, title, children, onClose, side = "right
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/45">
-      <aside className={`absolute top-0 ${position} flex h-full w-full ${widths[size] || widths.md} flex-col bg-white shadow-xl`} aria-label={title}>
+      <aside
+        className={`absolute top-0 ${position} flex h-full w-full ${widths[size] || widths.md} flex-col bg-white shadow-xl`}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+      >
         <header className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <h2 className="text-lg font-black text-slate-950">{title}</h2>
           <button type="button" aria-label="Close panel" className="rounded-xl p-2 text-slate-500 hover:bg-slate-100" onClick={onClose}>

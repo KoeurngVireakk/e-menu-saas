@@ -18,7 +18,7 @@ describe("Register", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("heading", { name: "Register" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Create workspace" })).toBeInTheDocument();
     expect(screen.getByLabelText("Name")).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
     expect(screen.getByLabelText("Phone")).toBeInTheDocument();

@@ -29,7 +29,7 @@ import LanguageToggle from "./common/LanguageToggle";
 
 const groups = [
   {
-    label: "Workspace",
+    labelKey: "nav.groupOverview",
     links: [
       { labelKey: "nav.overview", to: "/admin", feature: "dashboard", icon: Gauge },
       { labelKey: "nav.shops", to: "/admin/shops", feature: "shops", icon: Store },
@@ -37,16 +37,7 @@ const groups = [
     ],
   },
   {
-    label: "Menu",
-    links: [
-      { labelKey: "common.categories", to: "/admin/categories", feature: "categories", icon: BookOpen },
-      { labelKey: "common.products", to: "/admin/products", feature: "products", icon: Package },
-      { labelKey: "nav.translations", to: "/admin/translations", feature: "translations", icon: Languages },
-      { labelKey: "nav.tableQr", to: "/admin/tables", feature: "tables", icon: Table2 },
-    ],
-  },
-  {
-    label: "Operations",
+    labelKey: "nav.groupOperations",
     links: [
       { labelKey: "common.orders", to: "/admin/orders", feature: "orders", icon: ClipboardList },
       { labelKey: "common.kitchen", to: "/admin/kitchen", feature: "kitchen", icon: ChefHat },
@@ -56,7 +47,16 @@ const groups = [
     ],
   },
   {
-    label: "Finance",
+    labelKey: "nav.groupCatalog",
+    links: [
+      { labelKey: "common.categories", to: "/admin/categories", feature: "categories", icon: BookOpen },
+      { labelKey: "common.products", to: "/admin/products", feature: "products", icon: Package },
+      { labelKey: "nav.translations", to: "/admin/translations", feature: "translations", icon: Languages },
+      { labelKey: "nav.tableQr", to: "/admin/tables", feature: "tables", icon: Table2 },
+    ],
+  },
+  {
+    labelKey: "nav.groupBusiness",
     links: [
       { labelKey: "common.reports", to: "/admin/reports", feature: "reports", icon: Activity },
       { labelKey: "nav.dailyClosing", to: "/admin/daily-closing", feature: "dailyClosing", icon: Receipt },
@@ -66,7 +66,7 @@ const groups = [
     ],
   },
   {
-    label: "System",
+    labelKey: "nav.groupSettings",
     links: [
       { labelKey: "nav.staff", to: "/admin/staff", feature: "staff", icon: Users },
       { labelKey: "common.settings", to: "/admin/settings", feature: "settings", icon: Settings },
@@ -90,8 +90,8 @@ export default function Sidebar() {
       </div>
       <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:mt-0 lg:grid lg:gap-5 lg:overflow-visible lg:pb-0">
         {visibleGroups.map((group) => (
-          <div key={group.label} className="contents lg:block">
-            <p className="mb-2 hidden px-3 text-[11px] font-black uppercase tracking-wide text-slate-400 lg:block">{group.label}</p>
+          <div key={group.labelKey} className="contents lg:block">
+            <p className="mb-2 hidden px-3 text-[11px] font-black uppercase tracking-wide text-slate-400 lg:block">{t(group.labelKey)}</p>
             <div className="flex gap-2 lg:grid lg:gap-1">
               {group.links.map(({ labelKey, to, icon: Icon }) => (
                 <NavLink

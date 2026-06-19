@@ -1,3 +1,6 @@
+import { useContext } from "react";
+import { LanguageContext } from "../../i18n/languageContext";
+
 const tones = {
   connected: "border-emerald-200 bg-emerald-50 text-emerald-700",
   connecting: "border-amber-200 bg-amber-50 text-amber-700",
@@ -7,7 +10,16 @@ const tones = {
   error: "border-rose-200 bg-rose-50 text-rose-700",
 };
 
-const labels = {
+const labelKeys = {
+  connected: "realtime.connected",
+  connecting: "realtime.connecting",
+  initialized: "realtime.connecting",
+  disconnected: "realtime.disconnected",
+  unavailable: "realtime.disconnected",
+  error: "realtime.error",
+};
+
+const fallbackLabels = {
   connected: "Live updates on",
   connecting: "Connecting live updates...",
   initialized: "Connecting live updates...",
@@ -17,10 +29,15 @@ const labels = {
 };
 
 export default function RealtimeStatusBadge({ status = "disconnected", className = "" }) {
+  const languageContext = useContext(LanguageContext);
+  const label = languageContext?.t?.(labelKeys[status] || labelKeys.disconnected, fallbackLabels[status] || fallbackLabels.disconnected)
+    || fallbackLabels[status]
+    || fallbackLabels.disconnected;
+
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-black shadow-sm shadow-slate-900/5 ${tones[status] || tones.disconnected} ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-black shadow-sm shadow-slate-900/5 ${tones[status] || tones.disconnected} ${className}`} aria-live="polite">
       <span className={`h-1.5 w-1.5 rounded-full ${status === "connected" ? "bg-emerald-500" : status === "error" ? "bg-rose-500" : "bg-current opacity-60"}`} aria-hidden="true" />
-      {labels[status] || labels.disconnected}
+      {label}
     </span>
   );
 }

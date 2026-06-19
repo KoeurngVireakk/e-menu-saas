@@ -41,16 +41,16 @@ export default function Register() {
             <AppLogo size="lg" to="/register" ariaLabel="Go to home" />
             <LanguageToggle compact />
           </div>
-          <h1 className="text-3xl font-black text-slate-950">{t("common.register")}</h1>
+          <h1 className="text-3xl font-black text-slate-950">{t("auth.createWorkspace")}</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">Create your owner account and start building a QR ordering workspace.</p>
           <div className="mt-7 grid gap-4 sm:grid-cols-2">
             <AuthField icon={UserRound} label="Name" required value={form.name} onChange={(event) => update("name", event.target.value)} />
             <AuthField icon={Phone} label="Phone" value={form.phone} onChange={(event) => update("phone", event.target.value)} />
           </div>
-          <AuthField icon={Mail} className="mt-4" label="Email" type="email" required value={form.email} onChange={(event) => update("email", event.target.value)} />
+          <AuthField icon={Mail} className="mt-4" label={t("auth.email")} type="email" required value={form.email} onChange={(event) => update("email", event.target.value)} />
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <PasswordField label="Password" value={form.password} show={showPassword} onToggle={() => setShowPassword((value) => !value)} onChange={(event) => update("password", event.target.value)} />
-            <PasswordField label="Confirm password" value={form.password_confirmation} show={showConfirm} onToggle={() => setShowConfirm((value) => !value)} onChange={(event) => update("password_confirmation", event.target.value)} />
+            <PasswordField label={t("auth.password")} value={form.password} show={showPassword} onToggle={() => setShowPassword((value) => !value)} onChange={(event) => update("password", event.target.value)} />
+            <PasswordField label={t("auth.confirmPassword")} value={form.password_confirmation} show={showConfirm} onToggle={() => setShowConfirm((value) => !value)} onChange={(event) => update("password_confirmation", event.target.value)} />
           </div>
           <AppButton type="submit" loading={saving} fullWidth className="mt-6">
             {saving ? `${t("common.loading")}...` : t("common.register")}
