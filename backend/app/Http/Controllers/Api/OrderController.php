@@ -30,17 +30,27 @@ class OrderController extends Controller
                     'pending_count' => 0,
                     'today_revenue' => 0,
                 ],
+                'pagination' => [
+                    'current_page' => 1,
+                    'per_page' => $this->paginationLimit($request),
+                    'total' => 0,
+                    'last_page' => 1,
+                    'from' => null,
+                    'to' => null,
+                    'has_more_pages' => false,
+                ],
             ]);
         }
 
-        $orders = Order::with(['items', 'shop', 'branch', 'diningTable', 'payment.logs'])
+        $ordersQuery = Order::with(['items', 'shop', 'branch', 'diningTable', 'payment.logs'])
             ->whereIn('shop_id', $shopIds)
             ->when($request->query('shop_id'), fn ($query, $shopId) => $query->where('shop_id', $shopId))
             ->when($request->query('branch_id'), fn ($query, $branchId) => $query->where('branch_id', $branchId))
             ->when($request->query('status'), fn ($query, $status) => $query->where('order_status', $status))
+            ->when($request->query('payment_status'), fn ($query, $status) => $query->where('payment_status', $status))
             ->when($request->query('date'), fn ($query, $date) => $query->whereDate('created_at', $date));
 
-        $orders->where(function ($query) use ($request, $shopIds) {
+        $ordersQuery->where(function ($query) use ($request, $shopIds) {
             foreach ($shopIds as $shopId) {
                 $query->orWhere(function ($shopQuery) use ($request, $shopId) {
                     $shopQuery->where('shop_id', $shopId);
@@ -49,18 +59,20 @@ class OrderController extends Controller
             }
         });
 
-        $orders = $orders->latest()->get();
+        $summaryQuery = clone $ordersQuery;
+        $paginator = $ordersQuery->latest()->paginate($this->paginationLimit($request));
 
         return $this->success('Orders loaded', [
-            'orders' => $orders,
+            'orders' => $paginator->items(),
             'summary' => [
-                'new_count' => $orders->where('order_status', 'pending')->count(),
-                'pending_count' => $orders->whereIn('order_status', ['pending', 'accepted', 'preparing'])->count(),
-                'today_revenue' => (float) $orders
+                'new_count' => (clone $summaryQuery)->where('order_status', 'pending')->count(),
+                'pending_count' => (clone $summaryQuery)->whereIn('order_status', ['pending', 'accepted', 'preparing'])->count(),
+                'today_revenue' => (float) (clone $summaryQuery)
                     ->where('payment_status', 'paid')
                     ->where('created_at', '>=', now()->startOfDay())
                     ->sum('grand_total'),
             ],
+            'pagination' => $this->paginationMeta($paginator),
         ]);
     }
 

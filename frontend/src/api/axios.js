@@ -1,5 +1,8 @@
 import axios from "axios";
 
+export const API_TIMEOUT_MS = 10_000;
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+
 const statusMessages = {
   400: "The request could not be processed.",
   401: "Your session has expired. Please sign in again.",
@@ -10,15 +13,21 @@ const statusMessages = {
 };
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api",
+  baseURL: API_BASE_URL,
+  timeout: API_TIMEOUT_MS,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
+    "X-Requested-With": "XMLHttpRequest",
   },
 });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("emenu_token");
+
+  config.headers = config.headers || {};
+  config.headers.Accept = "application/json";
+  config.headers["X-Requested-With"] = "XMLHttpRequest";
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -67,7 +76,9 @@ export function normalizeApiError(error) {
   if (!error?.response) {
     return {
       status,
-      message: navigator.onLine ? "The server could not be reached." : "You are offline. Please reconnect and try again.",
+      message: typeof navigator !== "undefined" && navigator.onLine === false
+        ? "You are offline. Please reconnect and try again."
+        : "The server could not be reached.",
       errors,
     };
   }
@@ -90,13 +101,20 @@ export function normalizeApiError(error) {
 
   return {
     status,
-    message: statusMessages[status] || data.message || "Something went wrong. Please try again.",
+    message: statusMessages[status] || safeServerMessage(data.message) || "Something went wrong. Please try again.",
     errors,
   };
 }
 
 export function getApiErrorMessage(error, fallback = "Something went wrong. Please try again.") {
   return error?.userMessage || error?.normalized?.message || error?.response?.data?.message || fallback;
+}
+
+export function withAbortSignal(config = {}, signal) {
+  return {
+    ...config,
+    signal,
+  };
 }
 
 function normalizeValidationErrors(errors) {
@@ -114,6 +132,21 @@ function normalizeValidationErrors(errors) {
 
 function firstValidationMessage(errors) {
   return Object.values(errors).flat().find(Boolean);
+}
+
+function safeServerMessage(message) {
+  if (typeof message !== "string") {
+    return "";
+  }
+
+  const trimmed = message.trim();
+  const unsafePatterns = [/sqlstate/i, /stack trace/i, /exception/i, /vendor[\\/]/i, /\.php:\d+/i];
+
+  if (!trimmed || trimmed.length > 180 || unsafePatterns.some((pattern) => pattern.test(trimmed))) {
+    return "";
+  }
+
+  return trimmed;
 }
 
 export default api;

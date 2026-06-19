@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use App\Models\Branch;
 use App\Models\Shop;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -37,6 +38,26 @@ abstract class Controller
         ];
 
         return response()->json($payload, $status);
+    }
+
+    protected function paginationLimit(Request $request, int $default = 50, int $max = 100): int
+    {
+        $perPage = (int) $request->integer('per_page', $default);
+
+        return max(1, min($perPage, $max));
+    }
+
+    protected function paginationMeta(LengthAwarePaginator $paginator): array
+    {
+        return [
+            'current_page' => $paginator->currentPage(),
+            'per_page' => $paginator->perPage(),
+            'total' => $paginator->total(),
+            'last_page' => $paginator->lastPage(),
+            'from' => $paginator->firstItem(),
+            'to' => $paginator->lastItem(),
+            'has_more_pages' => $paginator->hasMorePages(),
+        ];
     }
 
     protected function audit(

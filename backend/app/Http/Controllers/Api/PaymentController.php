@@ -27,14 +27,27 @@ class PaymentController extends Controller
         $shopIds = $this->accessibleShopIds($request);
 
         if (empty($shopIds)) {
-            return $this->success('Payments loaded', ['payments' => []]);
+            return $this->success('Payments loaded', [
+                'payments' => [],
+                'pagination' => [
+                    'current_page' => 1,
+                    'per_page' => $this->paginationLimit($request),
+                    'total' => 0,
+                    'last_page' => 1,
+                    'from' => null,
+                    'to' => null,
+                    'has_more_pages' => false,
+                ],
+            ]);
         }
 
-        $payments = Payment::with(['order.items', 'shop', 'branch', 'confirmer', 'logs'])
+        $paymentsQuery = Payment::with(['order.items', 'shop', 'branch', 'confirmer', 'logs'])
             ->whereIn('shop_id', $shopIds)
-            ->when($request->query('status'), fn ($query, $status) => $query->where('status', $status));
+            ->when($request->query('status'), fn ($query, $status) => $query->where('status', $status))
+            ->when($request->query('payment_method'), fn ($query, $method) => $query->where('payment_method', $method))
+            ->when($request->query('date'), fn ($query, $date) => $query->whereDate('created_at', $date));
 
-        $payments->where(function ($query) use ($request, $shopIds) {
+        $paymentsQuery->where(function ($query) use ($request, $shopIds) {
             foreach ($shopIds as $shopId) {
                 $query->orWhere(function ($shopQuery) use ($request, $shopId) {
                     $shopQuery->where('shop_id', $shopId);
@@ -43,9 +56,12 @@ class PaymentController extends Controller
             }
         });
 
-        $payments = $payments->latest()->get();
+        $paginator = $paymentsQuery->latest()->paginate($this->paginationLimit($request));
 
-        return $this->success('Payments loaded', ['payments' => $payments]);
+        return $this->success('Payments loaded', [
+            'payments' => $paginator->items(),
+            'pagination' => $this->paginationMeta($paginator),
+        ]);
     }
 
     public function show(Request $request, Payment $payment)

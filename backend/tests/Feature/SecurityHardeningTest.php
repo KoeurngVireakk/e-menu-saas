@@ -14,6 +14,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class SecurityHardeningTest extends TestCase
@@ -153,6 +154,35 @@ class SecurityHardeningTest extends TestCase
         ])
             ->assertUnprocessable()
             ->assertJsonPath('errors.table_code.0', 'The selected table is not available for this branch.');
+    }
+
+    public function test_order_and_payment_lists_are_paginated_with_compatible_arrays(): void
+    {
+        $catalog = $this->createCatalog();
+        $firstOrder = $this->submitOrder($catalog);
+        $secondOrder = $this->submitOrder($catalog);
+
+        foreach ([$firstOrder, $secondOrder] as $order) {
+            $this->postJson("/api/public/orders/{$order->order_number}/payment", [
+                'payment_method' => 'cash',
+            ])->assertCreated();
+        }
+
+        Sanctum::actingAs($catalog['owner']);
+
+        $this->getJson('/api/orders?per_page=1')
+            ->assertOk()
+            ->assertJsonCount(1, 'data.orders')
+            ->assertJsonPath('data.pagination.per_page', 1)
+            ->assertJsonPath('data.pagination.total', 2)
+            ->assertJsonStructure(['data' => ['orders', 'summary', 'pagination']]);
+
+        $this->getJson('/api/payments?per_page=1')
+            ->assertOk()
+            ->assertJsonCount(1, 'data.payments')
+            ->assertJsonPath('data.pagination.per_page', 1)
+            ->assertJsonPath('data.pagination.total', 2)
+            ->assertJsonStructure(['data' => ['payments', 'pagination']]);
     }
 
     public function test_payment_proof_rejects_scripts_and_oversized_files_and_stores_safe_filename(): void

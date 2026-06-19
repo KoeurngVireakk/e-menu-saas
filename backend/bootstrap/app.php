@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\SecurityHeaders;
+use App\Http\Middleware\LogSlowApiRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -26,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->api(append: [
             SecurityHeaders::class,
+            LogSlowApiRequests::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

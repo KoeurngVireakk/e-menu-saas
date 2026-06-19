@@ -19,6 +19,8 @@ return [
 
     'commit' => env('APP_COMMIT'),
 
+    'api_slow_log_ms' => (int) env('API_SLOW_LOG_MS', 500),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment
