@@ -23,12 +23,17 @@ Use this checklist before deploying MenuDIGI to a production tenant.
 - Configure log rotation and retention.
 - Configure backups for database and uploaded media.
 - Configure monitoring for HTTP errors, queue failures, disk usage, and failed payments.
+- Run `php artisan menudigi:production-check --expect-production`.
+- Run `php artisan menudigi:backup-check`.
+- Verify `/api/health/live` and `/api/health/ready`.
+- Keep the rollback plan in `docs/deployment/deployment-runbook.md` current.
 
 ## Security
 
 - Verify API security headers are present.
 - Verify production CORS allows only approved frontend origins.
 - Keep `APP_DEBUG=false` so server exceptions do not leak internals.
+- Confirm rate limits are active on auth, public order, payment proof, admin, webhook, and broadcast routes.
 - Configure Bakong KHQR webhook secrets before enabling real webhooks.
 - Keep Telegram bot tokens server-side only.
 - Confirm payment proof uploads reject scripts and oversized files.
@@ -54,5 +59,7 @@ Use this checklist before deploying MenuDIGI to a production tenant.
 - Frontend lint, tests, and build pass.
 - `git diff --check` passes.
 - CI is green if GitHub Actions are available.
+- Smoke tests in `docs/deployment/smoke-test-checklist.md` pass.
+- Backup and restore plan in `docs/deployment/backup-and-restore.md` has been tested.
 - Seed/demo data policy is confirmed.
 - First production admin account creation policy is confirmed.

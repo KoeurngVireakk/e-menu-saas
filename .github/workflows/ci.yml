@@ -15,6 +15,17 @@ permissions:
   contents: read
 
 jobs:
+  repository:
+    name: Repository checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check whitespace
+        run: git diff --check
+
   backend:
     name: Backend
     runs-on: ubuntu-latest

@@ -27,16 +27,9 @@ use App\Http\Controllers\Api\ShopStaffController;
 use App\Http\Controllers\Api\TranslationController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/health', function () {
-    return response()->json([
-        'success' => true,
-        'message' => 'API connection successful',
-        'data' => [
-            'status' => 'ok',
-            'app' => config('app.name'),
-        ],
-    ]);
-});
+Route::get('/health', [HealthController::class, 'public']);
+Route::get('/health/live', [HealthController::class, 'live']);
+Route::get('/health/ready', [HealthController::class, 'ready']);
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:auth');

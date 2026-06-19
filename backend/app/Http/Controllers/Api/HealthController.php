@@ -10,6 +10,35 @@ use Illuminate\Support\Facades\Storage;
 
 class HealthController extends Controller
 {
+    public function public()
+    {
+        return $this->success('API health loaded', $this->basePayload('ok'));
+    }
+
+    public function live()
+    {
+        return $this->success('Application is alive', $this->basePayload('ok'));
+    }
+
+    public function ready()
+    {
+        $checks = [
+            'database' => $this->databaseStatus(),
+            'cache' => $this->cacheStatus(public: true),
+            'storage' => $this->storageStatus(public: true),
+        ];
+        $ready = collect($checks)->every(fn (array $check) => $check['status'] === 'ok');
+        $status = $ready ? 'ok' : 'not_ready';
+
+        return response()->json([
+            'success' => $ready,
+            'message' => $ready ? 'Application is ready' : 'Application is not ready',
+            'data' => $this->basePayload($status) + [
+                'checks' => $checks,
+            ],
+        ], $ready ? 200 : 503);
+    }
+
     public function index(Request $request)
     {
         abort_unless(in_array($request->user()?->role, ['super_admin', 'shop_owner'], true), 403);
@@ -20,6 +49,7 @@ class HealthController extends Controller
                     'status' => 'ok',
                     'environment' => app()->environment(),
                     'version' => config('app.version'),
+                    'commit' => config('app.commit'),
                 ],
                 'database' => $this->databaseStatus(),
                 'cache' => $this->cacheStatus(),
@@ -28,6 +58,17 @@ class HealthController extends Controller
                 'checked_at' => now()->toISOString(),
             ],
         ]);
+    }
+
+    private function basePayload(string $status): array
+    {
+        return [
+            'status' => $status,
+            'app' => config('app.name'),
+            'timestamp' => now()->toISOString(),
+            'version' => config('app.version'),
+            'commit' => config('app.commit'),
+        ];
     }
 
     private function databaseStatus(): array
@@ -41,18 +82,19 @@ class HealthController extends Controller
         }
     }
 
-    private function cacheStatus(): array
+    private function cacheStatus(bool $public = false): array
     {
         try {
             $key = 'system_health_probe';
             Cache::put($key, 'ok', now()->addSeconds(10));
 
-            return [
-                'status' => Cache::get($key) === 'ok' ? 'ok' : 'warning',
-                'driver' => config('cache.default'),
-            ];
+            $status = Cache::get($key) === 'ok' ? 'ok' : 'warning';
+
+            return $public
+                ? ['status' => $status]
+                : ['status' => $status, 'driver' => config('cache.default')];
         } catch (\Throwable $exception) {
-            return [
+            return $public ? ['status' => 'error', 'message' => 'Cache probe failed'] : [
                 'status' => 'error',
                 'driver' => config('cache.default'),
                 'message' => 'Cache probe failed',
@@ -68,7 +110,7 @@ class HealthController extends Controller
         ];
     }
 
-    private function storageStatus(): array
+    private function storageStatus(bool $public = false): array
     {
         try {
             $disk = Storage::disk('public');
@@ -77,14 +119,23 @@ class HealthController extends Controller
             $readable = $disk->get($probePath) === 'ok';
             $disk->delete($probePath);
 
-            return [
+            return $public ? [
+                'status' => $readable ? 'ok' : 'warning',
+                'readable' => $readable,
+                'writable' => true,
+            ] : [
                 'status' => $readable ? 'ok' : 'warning',
                 'disk' => 'public',
                 'readable' => $readable,
                 'writable' => true,
             ];
         } catch (\Throwable $exception) {
-            return [
+            return $public ? [
+                'status' => 'error',
+                'readable' => false,
+                'writable' => false,
+                'message' => 'Public storage probe failed',
+            ] : [
                 'status' => 'error',
                 'disk' => 'public',
                 'readable' => false,

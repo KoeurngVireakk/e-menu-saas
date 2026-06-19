@@ -17,6 +17,8 @@ return [
 
     'version' => env('APP_VERSION'),
 
+    'commit' => env('APP_COMMIT'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment
