@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import api from "../../api/axios";
+import api, { createAbortController, isRequestCanceled, withAbortSignal } from "../../api/axios";
 import OfflineBanner from "../../components/OfflineBanner";
 import CategoryTabs from "../../components/public/CategoryTabs";
 import ProductDetailSheet from "../../components/public/ProductDetailSheet";
@@ -52,6 +52,7 @@ export default function MenuPage() {
   }, [searchParams, selectedLocale, setSearchParams]);
 
   useEffect(() => {
+    const controller = createAbortController();
     const cacheKey = publicMenuCacheKey({
       shopSlug,
       branchId: searchParams.get("branch") || "",
@@ -61,7 +62,7 @@ export default function MenuPage() {
     });
 
     api
-      .get(`/public/shops/${shopSlug}/menu?${search}`)
+      .get(`/public/shops/${shopSlug}/menu?${search}`, withAbortSignal({}, controller.signal))
       .then((response) => {
         const data = response.data.data;
         setMenu(data);
@@ -72,6 +73,10 @@ export default function MenuPage() {
         setError("");
       })
       .catch((requestError) => {
+        if (isRequestCanceled(requestError)) {
+          return;
+        }
+
         const cached = getPublicMenuCache(cacheKey);
 
         if (cached) {
@@ -87,6 +92,8 @@ export default function MenuPage() {
           ? t(selectedLocale, "offlineMissing")
           : requestError.response?.data?.message || "Menu is not available right now.");
       });
+
+    return () => controller.abort();
   }, [shopSlug, search, online, selectedLocale, searchParams]);
 
   useEffect(() => {

@@ -10,11 +10,17 @@ use App\Models\Product;
 use App\Models\ProductOption;
 use App\Models\ProductOptionValue;
 use App\Models\Shop;
+use App\Services\PublicMenuCacheService;
 use Illuminate\Http\Request;
 
 class PublicMenuController extends Controller
 {
     private const SUPPORTED_LOCALES = ['en', 'km'];
+
+    public function __construct(
+        private readonly PublicMenuCacheService $publicMenuCache,
+    ) {
+    }
 
     public function menu(Request $request, string $slug)
     {
@@ -27,34 +33,45 @@ class PublicMenuController extends Controller
             ? $shop->branches()->whereKey($branchId)->where('status', 'active')->first()
             : $shop->branches()->where('status', 'active')->first();
 
-        $categories = $shop->categories()
-            ->where('status', 'active')
-            ->when($branch, fn ($query) => $query->where(fn ($nested) => $nested->whereNull('branch_id')->orWhere('branch_id', $branch->id)))
-            ->with(['products' => fn ($query) => $query
-                ->where('status', 'active')
-                ->where('is_available', true)
-                ->when($branch, fn ($productQuery) => $productQuery->where(fn ($nested) => $nested->whereNull('branch_id')->orWhere('branch_id', $branch->id)))
-                ->with(['translations', 'options.translations', 'options.values.translations'])
-                ->orderBy('name')])
-            ->with('translations')
-            ->orderBy('sort_order')
-            ->get();
+        $cacheKey = $this->publicMenuCache->menuKey(
+            $shop->id,
+            $branch?->id,
+            $tableCode ? (string) $tableCode : null,
+            $locale,
+        );
 
-        $table = $branch && $tableCode
-            ? $branch->diningTables()
-                ->where(fn ($query) => $query->where('qr_token', $tableCode)->orWhere('table_code', $tableCode))
+        $payload = $this->publicMenuCache->rememberMenu($cacheKey, function () use ($shop, $branch, $tableCode, $locale): array {
+            $categories = $shop->categories()
                 ->where('status', 'active')
-                ->first()
-            : null;
+                ->when($branch, fn ($query) => $query->where(fn ($nested) => $nested->whereNull('branch_id')->orWhere('branch_id', $branch->id)))
+                ->with(['products' => fn ($query) => $query
+                    ->where('status', 'active')
+                    ->where('is_available', true)
+                    ->when($branch, fn ($productQuery) => $productQuery->where(fn ($nested) => $nested->whereNull('branch_id')->orWhere('branch_id', $branch->id)))
+                    ->with(['translations', 'options.translations', 'options.values.translations'])
+                    ->orderBy('name')])
+                ->with('translations')
+                ->orderBy('sort_order')
+                ->get();
 
-        return $this->success('menu loaded', [
-            'current_locale' => $locale,
-            'supported_locales' => self::SUPPORTED_LOCALES,
-            'shop' => $this->localizedShop($shop, $locale),
-            'branch' => $branch ? $this->publicBranch($branch) : null,
-            'table' => $table ? $this->publicTable($table) : null,
-            'categories' => $categories->map(fn (Category $category) => $this->localizedCategory($category, $locale))->values(),
-        ]);
+            $table = $branch && $tableCode
+                ? $branch->diningTables()
+                    ->where(fn ($query) => $query->where('qr_token', $tableCode)->orWhere('table_code', $tableCode))
+                    ->where('status', 'active')
+                    ->first()
+                : null;
+
+            return [
+                'current_locale' => $locale,
+                'supported_locales' => self::SUPPORTED_LOCALES,
+                'shop' => $this->localizedShop($shop, $locale),
+                'branch' => $branch ? $this->publicBranch($branch) : null,
+                'table' => $table ? $this->publicTable($table) : null,
+                'categories' => $categories->map(fn (Category $category) => $this->localizedCategory($category, $locale))->values()->all(),
+            ];
+        });
+
+        return $this->success('menu loaded', $payload);
     }
 
     public function product(Request $request, string $slug, Product $product)

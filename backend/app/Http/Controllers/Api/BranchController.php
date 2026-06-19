@@ -5,11 +5,17 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Shop;
+use App\Services\PublicMenuCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class BranchController extends Controller
 {
+    public function __construct(
+        private readonly PublicMenuCacheService $publicMenuCache,
+    ) {
+    }
+
     public function index(Request $request, Shop $shop)
     {
         $this->authorizeShop($request, $shop);
@@ -31,6 +37,7 @@ class BranchController extends Controller
             'name' => $branch->name,
             'status' => $branch->status,
         ]);
+        $this->publicMenuCache->flushShop($shop->id);
 
         return $this->success('Branch created successfully', ['branch' => $branch], 201);
     }
@@ -52,6 +59,7 @@ class BranchController extends Controller
             'name' => $branch->name,
             'status' => $branch->status,
         ]);
+        $this->publicMenuCache->flushShop($branch->shop_id);
 
         return $this->success('Branch updated successfully', ['branch' => $branch->fresh()]);
     }
@@ -68,6 +76,7 @@ class BranchController extends Controller
         $this->audit($request, 'branch.deleted', $shopId, 'branch', $branchId, [
             'name' => $branchName,
         ]);
+        $this->publicMenuCache->flushShop($shopId);
 
         return $this->success('Branch deleted successfully');
     }

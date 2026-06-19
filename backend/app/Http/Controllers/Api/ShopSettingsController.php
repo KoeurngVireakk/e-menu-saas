@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Shop;
 use App\Services\BillingCalculator;
 use App\Services\Notifications\TelegramNotificationService;
+use App\Services\PublicMenuCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -33,6 +34,7 @@ class ShopSettingsController extends Controller
     public function __construct(
         private readonly BillingCalculator $billing,
         private readonly TelegramNotificationService $telegram,
+        private readonly PublicMenuCacheService $publicMenuCache,
     ) {
     }
 
@@ -102,6 +104,7 @@ class ShopSettingsController extends Controller
         $this->audit($request, 'shop.settings_updated', $shop->id, 'shop', $shop->id, [
             'changed_keys' => array_keys($validated),
         ]);
+        $this->publicMenuCache->flushShop($shop->id);
 
         return $this->success('Shop settings updated', [
             'shop' => $shop->fresh()->load('settings'),

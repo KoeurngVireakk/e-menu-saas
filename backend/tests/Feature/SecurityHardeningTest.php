@@ -11,6 +11,7 @@ use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -183,6 +184,32 @@ class SecurityHardeningTest extends TestCase
             ->assertJsonPath('data.pagination.per_page', 1)
             ->assertJsonPath('data.pagination.total', 2)
             ->assertJsonStructure(['data' => ['payments', 'pagination']]);
+    }
+
+    public function test_public_menu_cache_invalidates_after_product_update(): void
+    {
+        Cache::flush();
+        config(['cache.public_menu_ttl_seconds' => 300]);
+        $catalog = $this->createCatalog();
+        $url = "/api/public/shops/{$catalog['shop']->slug}/menu?branch={$catalog['branch']->id}";
+
+        $this->getJson($url)
+            ->assertOk()
+            ->assertJsonPath('data.categories.0.products.0.name', 'Iced Latte');
+
+        Sanctum::actingAs($catalog['owner']);
+        $this->putJson("/api/products/{$catalog['product']->id}", [
+            'category_id' => $catalog['category']->id,
+            'name' => 'Fast Latte',
+            'price' => 11000,
+            'is_featured' => true,
+            'is_available' => true,
+            'status' => 'active',
+        ])->assertOk();
+
+        $this->getJson($url)
+            ->assertOk()
+            ->assertJsonPath('data.categories.0.products.0.name', 'Fast Latte');
     }
 
     public function test_payment_proof_rejects_scripts_and_oversized_files_and_stores_safe_filename(): void

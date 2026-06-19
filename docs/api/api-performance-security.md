@@ -45,8 +45,12 @@
 
 ## Cache Strategy
 
-- No new backend response cache was added in this module.
-- Public menu caching remains a future enhancement because safe invalidation must cover shop, branch, category, product, option, translation, and table updates.
+- Public menu backend caching is available through `PublicMenuCacheService`.
+- Public menu keys are scoped by shop id, shop cache version, branch id, table code, and locale.
+- `PUBLIC_MENU_CACHE_TTL_SECONDS` controls the TTL and defaults to 60 seconds.
+- Public menu invalidation increments a per-shop version key after branch, category, product, table, translation, and shop settings updates.
+- Cache tags are intentionally avoided so the strategy works with database, file, and array cache drivers.
+- Payment proof data, public order status data, provider payloads, and private admin data are not cached.
 - PWA/offline public menu cache remains untouched.
 
 ## Index Strategy

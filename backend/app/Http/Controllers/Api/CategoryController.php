@@ -5,12 +5,18 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Shop;
+use App\Services\PublicMenuCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class CategoryController extends Controller
 {
+    public function __construct(
+        private readonly PublicMenuCacheService $publicMenuCache,
+    ) {
+    }
+
     public function index(Request $request, Shop $shop)
     {
         $this->authorizeShop($request, $shop);
@@ -45,6 +51,7 @@ class CategoryController extends Controller
             'branch_id' => $category->branch_id,
             'status' => $category->status,
         ]);
+        $this->publicMenuCache->flushShop($shop->id);
 
         return $this->success('Category created successfully', ['category' => $category], 201);
     }
@@ -74,6 +81,7 @@ class CategoryController extends Controller
             'branch_id' => $category->branch_id,
             'status' => $category->status,
         ]);
+        $this->publicMenuCache->flushShop($category->shop_id);
 
         return $this->success('Category updated successfully', ['category' => $category->fresh()]);
     }
@@ -90,6 +98,7 @@ class CategoryController extends Controller
         $this->audit($request, 'category.deleted', $shopId, 'category', $categoryId, [
             'name' => $categoryName,
         ]);
+        $this->publicMenuCache->flushShop($shopId);
 
         return $this->success('Category deleted successfully');
     }

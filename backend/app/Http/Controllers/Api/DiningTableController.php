@@ -6,12 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\DiningTable;
 use App\Models\Shop;
+use App\Services\PublicMenuCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class DiningTableController extends Controller
 {
+    public function __construct(
+        private readonly PublicMenuCacheService $publicMenuCache,
+    ) {
+    }
+
     public function index(Request $request, Branch $branch)
     {
         $this->authorizeBranchAccess($request, $branch);
@@ -33,6 +39,7 @@ class DiningTableController extends Controller
         $validated['qr_url'] = $this->menuUrl($branch, $validated['qr_token']);
 
         $table = DiningTable::create($validated);
+        $this->publicMenuCache->flushShop($branch->shop_id);
 
         return $this->success('Table created successfully', ['table' => $table], 201);
     }
@@ -53,6 +60,7 @@ class DiningTableController extends Controller
         $validated['qr_token'] = $table->qr_token ?: Str::random(48);
         $validated['qr_url'] = $this->menuUrl($table->branch, $validated['qr_token']);
         $table->update($validated);
+        $this->publicMenuCache->flushShop($table->shop_id);
 
         return $this->success('Table updated successfully', ['table' => $table->fresh()]);
     }
@@ -61,7 +69,9 @@ class DiningTableController extends Controller
     {
         $this->authorizeShopAccess($request, $table->shop, $table->branch_id);
         abort_unless($request->user()->canManageTables(), 403);
+        $shopId = $table->shop_id;
         $table->delete();
+        $this->publicMenuCache->flushShop($shopId);
 
         return $this->success('Table deleted successfully');
     }

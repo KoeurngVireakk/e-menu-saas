@@ -7,6 +7,7 @@ describe("queryClient defaults", () => {
 
     expect(defaults.staleTime).toBe(30_000);
     expect(defaults.gcTime).toBe(5 * 60_000);
+    expect(defaults.placeholderData("previous")).toBe("previous");
     expect(defaults.refetchOnWindowFocus).toBe(false);
     expect(defaults.refetchOnReconnect).toBe(true);
   });

@@ -120,6 +120,8 @@ return [
 
     'prefix' => env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-cache-'),
 
+    'public_menu_ttl_seconds' => (int) env('PUBLIC_MENU_CACHE_TTL_SECONDS', 60),
+
     /*
     |--------------------------------------------------------------------------
     | Serializable Classes

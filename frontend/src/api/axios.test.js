@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import api, { API_TIMEOUT_MS, getApiErrorMessage, normalizeApiError, withAbortSignal } from "./axios";
+import api, {
+  API_TIMEOUT_MS,
+  createAbortController,
+  getApiErrorMessage,
+  isRequestCanceled,
+  normalizeApiError,
+  withAbortSignal,
+} from "./axios";
 
 describe("API client defaults", () => {
   it("uses a shared base URL and timeout", () => {
@@ -29,12 +36,16 @@ describe("API client defaults", () => {
   });
 
   it("supports AbortController signals through request config", () => {
-    const controller = new AbortController();
+    const controller = createAbortController();
 
     expect(withAbortSignal({ params: { page: 1 } }, controller.signal)).toEqual({
       params: { page: 1 },
       signal: controller.signal,
     });
+  });
+
+  it("keeps config unchanged when no abort signal is supplied", () => {
+    expect(withAbortSignal({ params: { page: 1 } })).toEqual({ params: { page: 1 } });
   });
 });
 
@@ -84,5 +95,17 @@ describe("API error normalization", () => {
 
   it("uses normalized user messages when available", () => {
     expect(getApiErrorMessage({ userMessage: "Friendly message" })).toBe("Friendly message");
+  });
+
+  it("marks canceled requests without treating them as server failures", () => {
+    const error = { code: "ERR_CANCELED", name: "CanceledError" };
+    const normalized = normalizeApiError(error);
+
+    expect(isRequestCanceled(error)).toBe(true);
+    expect(normalized).toMatchObject({
+      status: 0,
+      code: "ERR_CANCELED",
+      isCanceled: true,
+    });
   });
 });

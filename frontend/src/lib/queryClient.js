@@ -14,6 +14,7 @@ export const queryClient = new QueryClient({
 
         return failureCount < 1;
       },
+      placeholderData: (previousData) => previousData,
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
     },

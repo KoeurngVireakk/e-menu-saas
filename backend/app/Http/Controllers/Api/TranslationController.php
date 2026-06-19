@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductOption;
 use App\Models\ProductOptionValue;
 use App\Models\Shop;
+use App\Services\PublicMenuCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -15,6 +16,11 @@ use Illuminate\Validation\ValidationException;
 class TranslationController extends Controller
 {
     private const SUPPORTED_LOCALES = ['en', 'km'];
+
+    public function __construct(
+        private readonly PublicMenuCacheService $publicMenuCache,
+    ) {
+    }
 
     public function shop(Request $request, Shop $shop)
     {
@@ -66,6 +72,7 @@ class TranslationController extends Controller
         $this->audit($request, 'translations.updated', $shop->id, 'shop', $shop->id, [
             'locales' => array_keys($translations),
         ]);
+        $this->publicMenuCache->flushShop($shop->id);
 
         return $this->success('Shop translations updated', [
             'shop' => $shop->refresh()->load('translations'),
@@ -86,6 +93,7 @@ class TranslationController extends Controller
         $this->audit($request, 'translations.updated', $category->shop_id, 'category', $category->id, [
             'locales' => array_keys($translations),
         ]);
+        $this->publicMenuCache->flushShop($category->shop_id);
 
         return $this->success('Category translations updated', [
             'category' => $category->refresh()->load('translations'),
@@ -107,6 +115,7 @@ class TranslationController extends Controller
         $this->audit($request, 'translations.updated', $product->shop_id, 'product', $product->id, [
             'locales' => array_keys($translations),
         ]);
+        $this->publicMenuCache->flushShop($product->shop_id);
 
         return $this->success('Product translations updated', [
             'product' => $product->refresh()->load('translations'),
@@ -129,6 +138,7 @@ class TranslationController extends Controller
             'product_id' => $product->id,
             'locales' => array_keys($translations),
         ]);
+        $this->publicMenuCache->flushShop($product->shop_id);
 
         return $this->success('Product option translations updated', [
             'option' => $option->refresh()->load('translations'),
@@ -153,6 +163,7 @@ class TranslationController extends Controller
             'option_id' => $option->id,
             'locales' => array_keys($translations),
         ]);
+        $this->publicMenuCache->flushShop($product->shop_id);
 
         return $this->success('Product option value translations updated', [
             'value' => $value->refresh()->load('translations'),

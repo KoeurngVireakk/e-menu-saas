@@ -69,9 +69,20 @@ api.interceptors.response.use(
 );
 
 export function normalizeApiError(error) {
+  if (isRequestCanceled(error)) {
+    return {
+      status: 0,
+      message: "Request canceled.",
+      errors: {},
+      code: "ERR_CANCELED",
+      isCanceled: true,
+    };
+  }
+
   const status = error?.response?.status || 0;
   const data = error?.response?.data || {};
   const errors = normalizeValidationErrors(data.errors);
+  const code = safeErrorCode(data.code || error?.code);
 
   if (!error?.response) {
     return {
@@ -80,6 +91,8 @@ export function normalizeApiError(error) {
         ? "You are offline. Please reconnect and try again."
         : "The server could not be reached.",
       errors,
+      code,
+      isCanceled: false,
     };
   }
 
@@ -88,6 +101,8 @@ export function normalizeApiError(error) {
       status,
       message: firstValidationMessage(errors) || statusMessages[422],
       errors,
+      code,
+      isCanceled: false,
     };
   }
 
@@ -96,6 +111,8 @@ export function normalizeApiError(error) {
       status,
       message: "The service is temporarily unavailable. Please try again soon.",
       errors,
+      code,
+      isCanceled: false,
     };
   }
 
@@ -103,6 +120,8 @@ export function normalizeApiError(error) {
     status,
     message: statusMessages[status] || safeServerMessage(data.message) || "Something went wrong. Please try again.",
     errors,
+    code,
+    isCanceled: false,
   };
 }
 
@@ -111,10 +130,34 @@ export function getApiErrorMessage(error, fallback = "Something went wrong. Plea
 }
 
 export function withAbortSignal(config = {}, signal) {
+  if (!signal) {
+    return config;
+  }
+
   return {
     ...config,
     signal,
   };
+}
+
+export function createAbortController() {
+  if (typeof AbortController === "undefined") {
+    return {
+      signal: undefined,
+      abort: () => {},
+    };
+  }
+
+  return new AbortController();
+}
+
+export function isRequestCanceled(error) {
+  return Boolean(
+    axios.isCancel(error)
+      || error?.code === "ERR_CANCELED"
+      || error?.name === "CanceledError"
+      || error?.normalized?.isCanceled,
+  );
 }
 
 function normalizeValidationErrors(errors) {
@@ -147,6 +190,16 @@ function safeServerMessage(message) {
   }
 
   return trimmed;
+}
+
+function safeErrorCode(code) {
+  if (typeof code !== "string") {
+    return "";
+  }
+
+  const trimmed = code.trim();
+
+  return /^[A-Z0-9_.-]{2,60}$/i.test(trimmed) ? trimmed : "";
 }
 
 export default api;

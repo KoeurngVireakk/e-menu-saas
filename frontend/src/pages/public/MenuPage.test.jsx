@@ -13,6 +13,12 @@ vi.mock("../../api/axios", () => ({
   default: {
     get: vi.fn(),
   },
+  createAbortController: () => ({
+    signal: undefined,
+    abort: vi.fn(),
+  }),
+  isRequestCanceled: () => false,
+  withAbortSignal: (config) => config,
 }));
 
 const menuResponse = {

@@ -6,12 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Shop;
+use App\Services\PublicMenuCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
+    public function __construct(
+        private readonly PublicMenuCacheService $publicMenuCache,
+    ) {
+    }
+
     public function index(Request $request, Shop $shop)
     {
         $this->authorizeShop($request, $shop);
@@ -53,6 +59,7 @@ class ProductController extends Controller
             'status' => $product->status,
             'option_count' => count($options),
         ]);
+        $this->publicMenuCache->flushShop($shop->id);
 
         return $this->success('Product created successfully', ['product' => $product->load('options.values')], 201);
     }
@@ -93,6 +100,7 @@ class ProductController extends Controller
             'status' => $product->status,
             'options_changed' => is_array($options),
         ]);
+        $this->publicMenuCache->flushShop($product->shop_id);
 
         return $this->success('Product updated successfully', ['product' => $product->fresh()->load('options.values')]);
     }
@@ -109,6 +117,7 @@ class ProductController extends Controller
         $this->audit($request, 'product.deleted', $shopId, 'product', $productId, [
             'name' => $productName,
         ]);
+        $this->publicMenuCache->flushShop($shopId);
 
         return $this->success('Product deleted successfully');
     }
