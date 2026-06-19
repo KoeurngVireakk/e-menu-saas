@@ -120,7 +120,7 @@ class ProductController extends Controller
             'category_id' => ['required', Rule::exists('categories', 'id')->where('shop_id', $shop->id)],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'max:4096'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'mimetypes:image/jpeg,image/png,image/webp', 'max:4096'],
             'price' => ['required', 'numeric', 'min:0'],
             'discount_price' => ['nullable', 'numeric', 'min:0', 'lte:price'],
             'preparation_time_minutes' => ['nullable', 'integer', 'min:0'],
@@ -140,7 +140,7 @@ class ProductController extends Controller
     private function storeImage(Request $request, array &$validated): void
     {
         if ($request->hasFile('image')) {
-            $validated['image_path'] = $request->file('image')->store('products', 'public');
+            $validated['image_path'] = $this->storePublicImage($request, 'image', 'products');
         }
 
         unset($validated['image']);

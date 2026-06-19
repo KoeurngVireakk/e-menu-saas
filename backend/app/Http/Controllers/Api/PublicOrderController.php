@@ -55,7 +55,7 @@ class PublicOrderController extends Controller
         $branch = Branch::whereKey($validated['branch_id'])->where('shop_id', $shop->id)->where('status', 'active')->firstOrFail();
         $table = isset($validated['table_code'])
             ? $branch->diningTables()
-                ->where('table_code', $validated['table_code'])
+                ->where(fn ($query) => $query->where('qr_token', $validated['table_code'])->orWhere('table_code', $validated['table_code']))
                 ->where('status', 'active')
                 ->first()
             : null;
@@ -119,7 +119,7 @@ class PublicOrderController extends Controller
         $this->telegram->notifyOrderCreated($order);
         $this->operationsEvents->broadcastOrderCreated($order);
 
-        return $this->success('Order submitted successfully', ['order' => $order], 201);
+        return $this->success('Order submitted successfully', ['order' => $this->publicOrderPayload($order)], 201);
     }
 
     public function show(string $orderNumber)
@@ -127,7 +127,7 @@ class PublicOrderController extends Controller
         $order = Order::where('order_number', $orderNumber)->with(['items', 'payment', 'shop', 'branch', 'diningTable'])->firstOrFail();
 
         return $this->success('Order loaded', [
-            'order' => $order,
+            'order' => $this->publicOrderPayload($order),
             'payment_methods' => $this->payments->publicMethods(),
         ]);
     }
@@ -138,15 +138,15 @@ class PublicOrderController extends Controller
         $validated = $request->validate([
             'payment_method' => ['required', Rule::in(['cash', 'khqr_manual', 'bakong_khqr'])],
             'transaction_reference' => ['nullable', 'string', 'max:255'],
-            'proof_image' => ['nullable', 'image', 'max:4096'],
+            'proof_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'mimetypes:image/jpeg,image/png,image/webp', 'max:4096'],
         ]);
 
         if ($validated['payment_method'] === 'khqr_manual') {
-            $request->validate(['proof_image' => ['required', 'image', 'max:4096']]);
+            $request->validate(['proof_image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'mimetypes:image/jpeg,image/png,image/webp', 'max:4096']]);
         }
 
         if ($request->hasFile('proof_image')) {
-            $validated['proof_image_path'] = $request->file('proof_image')->store('payments', 'public');
+            $validated['proof_image_path'] = $this->storePublicImage($request, 'proof_image', 'payments');
         }
 
         unset($validated['proof_image']);
@@ -187,9 +187,69 @@ class PublicOrderController extends Controller
         $order->update(['payment_status' => $payment->payment_method === 'cash' ? 'pending' : 'pending']);
 
         return $this->success('Payment submitted successfully', [
-            'payment' => $payment,
+            'payment' => $this->publicPaymentPayload($payment),
             ...$result->responsePayload(),
         ], 201);
+    }
+
+    private function publicOrderPayload(Order $order): array
+    {
+        return [
+            'id' => $order->id,
+            'order_number' => $order->order_number,
+            'order_type' => $order->order_type,
+            'subtotal' => $order->subtotal,
+            'discount_total' => $order->discount_total,
+            'service_charge' => $order->service_charge,
+            'tax_total' => $order->tax_total,
+            'grand_total' => $order->grand_total,
+            'currency_code' => $order->currency_code,
+            'secondary_currency_code' => $order->secondary_currency_code,
+            'secondary_currency_total' => $order->secondary_currency_total,
+            'payment_status' => $order->payment_status,
+            'order_status' => $order->order_status,
+            'shop' => $order->shop ? [
+                'id' => $order->shop->id,
+                'name' => $order->shop->name,
+                'slug' => $order->shop->slug,
+                'currency_code' => $order->shop->currency_code,
+                'logo_path' => $order->shop->logo_path,
+            ] : null,
+            'branch' => $order->branch ? [
+                'id' => $order->branch->id,
+                'name' => $order->branch->name,
+            ] : null,
+            'dining_table' => $order->diningTable ? [
+                'id' => $order->diningTable->id,
+                'table_name' => $order->diningTable->table_name,
+                'table_code' => $order->diningTable->table_code,
+            ] : null,
+            'items' => $order->items->map(fn ($item) => [
+                'id' => $item->id,
+                'product_name' => $item->product_name,
+                'quantity' => $item->quantity,
+                'unit_price' => $item->unit_price,
+                'discount_price' => $item->discount_price,
+                'total_price' => $item->total_price,
+                'selected_options' => $item->selected_options_json,
+            ])->values()->all(),
+            'payment' => $order->payment ? $this->publicPaymentPayload($order->payment) : null,
+        ];
+    }
+
+    private function publicPaymentPayload(Payment $payment): array
+    {
+        return [
+            'id' => $payment->id,
+            'payment_method' => $payment->payment_method,
+            'provider' => $payment->provider,
+            'amount' => $payment->amount,
+            'currency_code' => $payment->currency_code,
+            'status' => $payment->status,
+            'transaction_reference' => $payment->transaction_reference,
+            'created_at' => $payment->created_at,
+            'confirmed_at' => $payment->confirmed_at,
+        ];
     }
 
     private function orderNumber(): string

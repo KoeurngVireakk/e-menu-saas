@@ -39,4 +39,21 @@ describe("public menu cache", () => {
     expect(getPublicMenuCache(key)).toBeNull();
     expect(localStorage.getItem(key)).toBeNull();
   });
+
+  it("strips sensitive fields before writing menu data to localStorage", () => {
+    const key = publicMenuCacheKey({ shopSlug: "cafe" });
+    savePublicMenuCache(key, {
+      shop: { name: "Cafe", qr_token: "secret-token" },
+      customer_phone: "+85510000004",
+      payment: { provider_payment_id: "secret-provider-id" },
+      categories: [{ products: [{ id: 1, name: "Latte", proof_image_path: "payments/proof.png" }] }],
+    });
+
+    const rawCache = localStorage.getItem(key);
+    expect(rawCache).toContain("Latte");
+    expect(rawCache).not.toContain("secret-token");
+    expect(rawCache).not.toContain("+85510000004");
+    expect(rawCache).not.toContain("secret-provider-id");
+    expect(rawCache).not.toContain("proof.png");
+  });
 });

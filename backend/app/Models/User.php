@@ -19,6 +19,7 @@ class User extends Authenticatable
         'email',
         'phone',
         'role',
+        'status',
         'password',
     ];
 
@@ -58,6 +59,11 @@ class User extends Authenticatable
     public function isSuperAdmin(): bool
     {
         return $this->role === 'super_admin';
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
     }
 
     public function canManageShops(): bool

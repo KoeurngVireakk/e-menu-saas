@@ -39,8 +39,8 @@ Route::get('/health', function () {
 });
 
 Route::prefix('auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:auth');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
@@ -49,16 +49,16 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::prefix('public')->group(function () {
-    Route::get('/shops/{slug}/menu', [PublicMenuController::class, 'menu']);
-    Route::get('/shops/{slug}/products/{product}', [PublicMenuController::class, 'product']);
-    Route::post('/orders', [PublicOrderController::class, 'store']);
-    Route::get('/orders/{orderNumber}', [PublicOrderController::class, 'show']);
-    Route::post('/orders/{orderNumber}/payment', [PublicOrderController::class, 'payment']);
+    Route::get('/shops/{slug}/menu', [PublicMenuController::class, 'menu'])->middleware('throttle:public-menu');
+    Route::get('/shops/{slug}/products/{product}', [PublicMenuController::class, 'product'])->middleware('throttle:public-menu');
+    Route::post('/orders', [PublicOrderController::class, 'store'])->middleware('throttle:public-orders');
+    Route::get('/orders/{orderNumber}', [PublicOrderController::class, 'show'])->middleware('throttle:public-orders');
+    Route::post('/orders/{orderNumber}/payment', [PublicOrderController::class, 'payment'])->middleware('throttle:payment-proof');
 });
 
-Route::post('/webhooks/bakong-khqr', BakongKhqrWebhookController::class);
+Route::post('/webhooks/bakong-khqr', BakongKhqrWebhookController::class)->middleware('throttle:webhooks');
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:admin-api'])->group(function () {
     Route::get('/system/health', [HealthController::class, 'index']);
 
     Route::get('/reports/sales-summary', [ReportController::class, 'salesSummary']);

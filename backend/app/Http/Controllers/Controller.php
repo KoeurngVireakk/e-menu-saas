@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 abstract class Controller
 {
@@ -125,5 +126,19 @@ abstract class Controller
 
             $nested->whereIn($column, $branchIds);
         });
+    }
+
+    protected function storePublicImage(Request $request, string $field, string $directory): ?string
+    {
+        if (! $request->hasFile($field)) {
+            return null;
+        }
+
+        $file = $request->file($field);
+        $extension = strtolower($file->extension() ?: $file->guessExtension() ?: 'bin');
+        $path = trim($directory, '/');
+        $filename = Str::uuid()->toString().'.'.$extension;
+
+        return $file->storeAs($path, $filename, 'public');
     }
 }

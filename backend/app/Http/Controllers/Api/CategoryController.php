@@ -99,7 +99,7 @@ class CategoryController extends Controller
         return $request->validate([
             'branch_id' => ['nullable', Rule::exists('branches', 'id')->where('shop_id', $shop->id)],
             'name' => ['required', 'string', 'max:255'],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'mimetypes:image/jpeg,image/png,image/webp', 'max:2048'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'status' => ['nullable', Rule::in(['active', 'inactive'])],
         ]);
@@ -108,7 +108,7 @@ class CategoryController extends Controller
     private function storeImage(Request $request, array &$validated): void
     {
         if ($request->hasFile('image')) {
-            $validated['image_path'] = $request->file('image')->store('categories', 'public');
+            $validated['image_path'] = $this->storePublicImage($request, 'image', 'categories');
         }
 
         unset($validated['image']);

@@ -30,7 +30,7 @@ class DiningTableController extends Controller
         $validated['shop_id'] = $branch->shop_id;
         $validated['branch_id'] = $branch->id;
         $validated['qr_token'] = Str::random(48);
-        $validated['qr_url'] = $this->menuUrl($branch, $validated['table_code']);
+        $validated['qr_url'] = $this->menuUrl($branch, $validated['qr_token']);
 
         $table = DiningTable::create($validated);
 
@@ -50,7 +50,8 @@ class DiningTableController extends Controller
         abort_unless($request->user()->canManageTables(), 403);
 
         $validated = $this->validateTable($request, $table->branch, $table->id);
-        $validated['qr_url'] = $this->menuUrl($table->branch, $validated['table_code']);
+        $validated['qr_token'] = $table->qr_token ?: Str::random(48);
+        $validated['qr_url'] = $this->menuUrl($table->branch, $validated['qr_token']);
         $table->update($validated);
 
         return $this->success('Table updated successfully', ['table' => $table->fresh()]);
@@ -95,11 +96,11 @@ class DiningTableController extends Controller
         ]);
     }
 
-    private function menuUrl(Branch $branch, string $tableCode): string
+    private function menuUrl(Branch $branch, string $tableToken): string
     {
         $frontendUrl = rtrim(env('FRONTEND_URL', 'http://localhost:5173'), '/');
 
-        return "{$frontendUrl}/menu/{$branch->shop->slug}?branch={$branch->id}&table={$tableCode}";
+        return "{$frontendUrl}/menu/{$branch->shop->slug}?branch={$branch->id}&table={$tableToken}";
     }
 
     private function authorizeShop(Request $request, Shop $shop): void

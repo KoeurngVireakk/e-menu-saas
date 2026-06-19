@@ -25,6 +25,7 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'phone' => $validated['phone'] ?? null,
             'role' => 'shop_owner',
+            'status' => 'active',
             'password' => Hash::make($validated['password']),
         ]);
 
@@ -45,6 +46,17 @@ class AuthController extends Controller
         $user = User::where('email', $validated['email'])->first();
 
         if (! $user || ! Hash::check($validated['password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+
+        if (! $user->isActive()) {
+            $this->audit($request, 'login.blocked', null, 'user', $user->id, [
+                'status' => $user->status,
+                'role' => $user->role,
+            ]);
+
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);

@@ -39,15 +39,18 @@ class PublicMenuController extends Controller
             ->get();
 
         $table = $branch && $tableCode
-            ? $branch->diningTables()->where('table_code', $tableCode)->where('status', 'active')->first()
+            ? $branch->diningTables()
+                ->where(fn ($query) => $query->where('qr_token', $tableCode)->orWhere('table_code', $tableCode))
+                ->where('status', 'active')
+                ->first()
             : null;
 
-        return $this->success('Public menu loaded', [
+        return $this->success('menu loaded', [
             'current_locale' => $locale,
             'supported_locales' => self::SUPPORTED_LOCALES,
             'shop' => $this->localizedShop($shop, $locale),
-            'branch' => $branch,
-            'table' => $table,
+            'branch' => $branch ? $this->publicBranch($branch) : null,
+            'table' => $table ? $this->publicTable($table) : null,
             'categories' => $categories->map(fn (Category $category) => $this->localizedCategory($category, $locale))->values(),
         ]);
     }
@@ -74,42 +77,63 @@ class PublicMenuController extends Controller
 
     private function localizedShop(Shop $shop, string $locale): array
     {
-        $data = $shop->toArray();
-        $data['name'] = $shop->localizedName($locale);
-        $data['description'] = $shop->localizedDescription($locale);
-        $data['address'] = $shop->localizedAddress($locale);
-        unset($data['translations']);
-
-        return $data;
+        return [
+            'id' => $shop->id,
+            'name' => $shop->localizedName($locale),
+            'slug' => $shop->slug,
+            'phone' => $shop->phone,
+            'email' => $shop->email,
+            'address' => $shop->localizedAddress($locale),
+            'description' => $shop->localizedDescription($locale),
+            'logo_path' => $shop->logo_path,
+            'cover_path' => $shop->cover_path,
+            'primary_color' => $shop->primary_color,
+            'secondary_color' => $shop->secondary_color,
+            'currency_code' => $shop->currency_code,
+        ];
     }
 
     private function localizedCategory(Category $category, string $locale): array
     {
-        $data = $category->toArray();
-        $data['name'] = $category->localizedName($locale);
-        $data['products'] = $category->products
-            ->map(fn (Product $product) => $this->localizedProduct($product, $locale))
-            ->values()
-            ->all();
-        unset($data['translations']);
-
-        return $data;
+        return [
+            'id' => $category->id,
+            'branch_id' => $category->branch_id,
+            'name' => $category->localizedName($locale),
+            'slug' => $category->slug,
+            'image_path' => $category->image_path,
+            'sort_order' => $category->sort_order,
+            'products' => $category->products
+                ->map(fn (Product $product) => $this->localizedProduct($product, $locale))
+                ->values()
+                ->all(),
+        ];
     }
 
     private function localizedProduct(Product $product, string $locale): array
     {
-        $data = $product->toArray();
-        $data['name'] = $product->localizedName($locale);
-        $data['description'] = $product->localizedDescription($locale);
-        $data['options'] = $product->options
-            ->map(fn (ProductOption $option) => $this->localizedOption($option, $locale))
-            ->values()
-            ->all();
-        unset($data['translations']);
+        $data = [
+            'id' => $product->id,
+            'category_id' => $product->category_id,
+            'branch_id' => $product->branch_id,
+            'name' => $product->localizedName($locale),
+            'slug' => $product->slug,
+            'description' => $product->localizedDescription($locale),
+            'image_path' => $product->image_path,
+            'price' => $product->price,
+            'discount_price' => $product->discount_price,
+            'preparation_time_minutes' => $product->preparation_time_minutes,
+            'is_featured' => $product->is_featured,
+            'options' => $product->options
+                ->map(fn (ProductOption $option) => $this->localizedOption($option, $locale))
+                ->values()
+                ->all(),
+        ];
 
         if ($product->relationLoaded('category') && $product->category) {
-            $data['category']['name'] = $product->category->localizedName($locale);
-            unset($data['category']['translations']);
+            $data['category'] = [
+                'id' => $product->category->id,
+                'name' => $product->category->localizedName($locale),
+            ];
         }
 
         return $data;
@@ -117,20 +141,43 @@ class PublicMenuController extends Controller
 
     private function localizedOption(ProductOption $option, string $locale): array
     {
-        $data = $option->toArray();
-        $data['name'] = $option->localizedName($locale);
-        $data['values'] = $option->values
-            ->map(function (ProductOptionValue $value) use ($locale) {
-                $valueData = $value->toArray();
-                $valueData['name'] = $value->localizedName($locale);
-                unset($valueData['translations']);
+        return [
+            'id' => $option->id,
+            'product_id' => $option->product_id,
+            'name' => $option->localizedName($locale),
+            'type' => $option->type,
+            'is_required' => $option->is_required,
+            'sort_order' => $option->sort_order,
+            'values' => $option->values
+                ->map(fn (ProductOptionValue $value) => [
+                    'id' => $value->id,
+                    'product_option_id' => $value->product_option_id,
+                    'name' => $value->localizedName($locale),
+                    'extra_price' => $value->extra_price,
+                    'sort_order' => $value->sort_order,
+                ])
+                ->values()
+                ->all(),
+        ];
+    }
 
-                return $valueData;
-            })
-            ->values()
-            ->all();
-        unset($data['translations']);
+    private function publicBranch($branch): array
+    {
+        return [
+            'id' => $branch->id,
+            'name' => $branch->name,
+            'address' => $branch->address,
+            'opening_time' => $branch->opening_time,
+            'closing_time' => $branch->closing_time,
+        ];
+    }
 
-        return $data;
+    private function publicTable($table): array
+    {
+        return [
+            'id' => $table->id,
+            'table_name' => $table->table_name,
+            'table_code' => $table->table_code,
+        ];
     }
 }

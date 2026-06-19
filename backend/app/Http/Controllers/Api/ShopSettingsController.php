@@ -56,8 +56,8 @@ class ShopSettingsController extends Controller
             'email' => ['nullable', 'email', 'max:255'],
             'address' => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
-            'logo' => ['nullable', 'image', 'max:2048'],
-            'cover' => ['nullable', 'image', 'max:4096'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'mimetypes:image/jpeg,image/png,image/webp', 'max:2048'],
+            'cover' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'mimetypes:image/jpeg,image/png,image/webp', 'max:4096'],
             'primary_color' => ['nullable', 'string', 'max:20'],
             'secondary_color' => ['nullable', 'string', 'max:20'],
             'currency_code' => ['required', Rule::in(['KHR', 'USD'])],
@@ -153,11 +153,11 @@ class ShopSettingsController extends Controller
     private function storeUploads(Request $request, array &$validated): void
     {
         if ($request->hasFile('logo')) {
-            $validated['logo_path'] = $request->file('logo')->store('shops/logos', 'public');
+            $validated['logo_path'] = $this->storePublicImage($request, 'logo', 'shops/logos');
         }
 
         if ($request->hasFile('cover')) {
-            $validated['cover_path'] = $request->file('cover')->store('shops/covers', 'public');
+            $validated['cover_path'] = $this->storePublicImage($request, 'cover', 'shops/covers');
         }
 
         unset($validated['logo'], $validated['cover']);
