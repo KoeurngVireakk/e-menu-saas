@@ -50,7 +50,7 @@ export default function CartDrawer({ cart, onQuantity, onRemove, onCheckout, loc
           </div>
         ) : (
           <div className="mt-3">
-            <AppEmptyState title={t(locale, "cartEmpty")} description={t(locale, "chooseProduct")} />
+            <AppEmptyState title={t(locale, "cartEmpty")} description={t(locale, "chooseProduct")} contained={false} />
           </div>
         )}
       </div>

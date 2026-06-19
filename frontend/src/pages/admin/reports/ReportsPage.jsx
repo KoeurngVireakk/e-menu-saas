@@ -202,6 +202,7 @@ export default function ReportsPage() {
               ]}
               actionLabel={t("reports.clearFilters", "Clear filters")}
               onAction={clearFilters}
+              contained={false}
             />
           ) : null}
 

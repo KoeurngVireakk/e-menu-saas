@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Inbox } from "lucide-react";
 import AppButton from "./AppButton";
 import AppCard from "./AppCard";
+import { cn } from "../../components/ui/utils";
 
 export default function AppEmptyState({
   icon: Icon = Inbox,
@@ -12,10 +13,12 @@ export default function AppEmptyState({
   secondaryActionLabel,
   onSecondaryAction,
   checklist = [],
+  contained = true,
+  className = "",
 }) {
-  return (
-    <AppCard className="text-center">
-      <motion.div
+  const content = (
+    <motion.div
+        className="text-center"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
@@ -42,7 +45,10 @@ export default function AppEmptyState({
           ) : null}
         </div>
       ) : null}
-      </motion.div>
-    </AppCard>
+    </motion.div>
   );
+
+  if (!contained) return <div className={cn("px-4 py-8", className)}>{content}</div>;
+
+  return <AppCard className={cn("text-center", className)}>{content}</AppCard>;
 }

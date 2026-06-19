@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import api from "../../../api/axios";
+import LanguageProvider from "../../../i18n/LanguageProvider";
 import ProductsPage from "./ProductsPage";
 
 vi.mock("../../../api/axios", () => ({
@@ -34,7 +35,9 @@ describe("ProductsPage", () => {
 
     render(
       <MemoryRouter>
-        <ProductsPage />
+        <LanguageProvider>
+          <ProductsPage />
+        </LanguageProvider>
       </MemoryRouter>,
     );
 
@@ -46,5 +49,14 @@ describe("ProductsPage", () => {
     await waitFor(() => expect(screen.getByRole("heading", { name: "Add product" })).toBeInTheDocument());
     expect(screen.getByRole("button", { name: "Pricing" })).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Iced Latte")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Options/Add-ons" }));
+    expect(screen.getByRole("button", { name: "Copy example" })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Options JSON"), { target: { value: "{}" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create product" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Options must be a JSON array.");
+    expect(api.post).not.toHaveBeenCalled();
   });
 });

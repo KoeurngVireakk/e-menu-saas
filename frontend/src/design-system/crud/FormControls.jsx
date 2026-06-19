@@ -1,13 +1,33 @@
-export function Field({ label, children }) {
+import { cloneElement, useId } from "react";
+
+export function Field({ label, children, description, error, required = false }) {
+  const fieldId = useId();
+  const descriptionId = `${fieldId}-description`;
+  const errorId = `${fieldId}-error`;
+  const describedBy = [
+    children.props["aria-describedby"],
+    description ? descriptionId : null,
+    error ? errorId : null,
+  ].filter(Boolean).join(" ") || undefined;
+
   return (
-    <label className="grid gap-1.5 text-sm font-bold text-slate-700">
-      <span>{label}</span>
-      {children}
-    </label>
+    <div className="grid gap-1.5">
+      <label htmlFor={children.props.id || fieldId} className="text-sm font-bold text-slate-700">
+        {label}{required ? <span className="text-rose-600" aria-hidden="true"> *</span> : null}
+      </label>
+      {cloneElement(children, {
+        id: children.props.id || fieldId,
+        required: children.props.required ?? required,
+        "aria-describedby": describedBy,
+        "aria-invalid": error ? true : children.props["aria-invalid"],
+      })}
+      {description ? <span id={descriptionId} className="text-xs font-medium leading-5 text-slate-500">{description}</span> : null}
+      {error ? <span id={errorId} className="text-xs font-bold leading-5 text-rose-600" role="alert">{error}</span> : null}
+    </div>
   );
 }
 
-export function TextInput({ value, onChange, type = "text", required = false, placeholder = "" }) {
+export function TextInput({ value, onChange, type = "text", required = false, placeholder = "", className = "", ...props }) {
   return (
     <input
       type={type}
@@ -15,12 +35,13 @@ export function TextInput({ value, onChange, type = "text", required = false, pl
       required={required}
       placeholder={placeholder}
       onChange={(event) => onChange(event.target.value)}
-      className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+      className={`h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 aria-invalid:border-rose-300 aria-invalid:focus:border-rose-500 aria-invalid:focus:ring-rose-100 ${className}`}
+      {...props}
     />
   );
 }
 
-export function TextArea({ value, onChange, required = false, placeholder = "", rows = 4, className = "" }) {
+export function TextArea({ value, onChange, required = false, placeholder = "", rows = 4, className = "", ...props }) {
   return (
     <textarea
       value={value}
@@ -28,32 +49,35 @@ export function TextArea({ value, onChange, required = false, placeholder = "", 
       rows={rows}
       placeholder={placeholder}
       onChange={(event) => onChange(event.target.value)}
-      className={`rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:ring-2 focus:ring-blue-100 ${className}`}
+      className={`rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 aria-invalid:border-rose-300 aria-invalid:focus:border-rose-500 aria-invalid:focus:ring-rose-100 ${className}`}
+      {...props}
     />
   );
 }
 
-export function SelectInput({ value, onChange, options, required = false, disabled = false }) {
+export function SelectInput({ value, onChange, options, required = false, disabled = false, className = "", ...props }) {
   return (
     <select
       value={value}
       required={required}
       disabled={disabled}
       onChange={(event) => onChange(event.target.value)}
-      className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100 disabled:bg-slate-100 disabled:text-slate-500"
+      className={`h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 aria-invalid:border-rose-300 aria-invalid:focus:border-rose-500 aria-invalid:focus:ring-rose-100 ${className}`}
+      {...props}
     >
       {options.map(([optionValue, label]) => <option key={optionValue || "empty"} value={optionValue}>{label}</option>)}
     </select>
   );
 }
 
-export function FileInput({ onChange, accept = "image/*" }) {
+export function FileInput({ onChange, accept = "image/*", className = "", ...props }) {
   return (
     <input
       type="file"
       accept={accept}
       onChange={(event) => onChange(event.target.files?.[0] || null)}
-      className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-1.5 file:text-sm file:font-bold file:text-white"
+      className={`rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-sm text-slate-600 outline-none transition file:mr-3 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-1.5 file:text-sm file:font-bold file:text-white focus:border-blue-300 focus:ring-2 focus:ring-blue-100 ${className}`}
+      {...props}
     />
   );
 }

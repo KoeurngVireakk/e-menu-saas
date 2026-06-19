@@ -281,6 +281,7 @@ export default function Dashboard() {
                 actionLabel="View table QR codes"
                 onAction={() => { window.location.href = "/admin/tables"; }}
                 checklist={["Create at least one product", "Generate a table QR code", "Submit a test order from the public menu"]}
+                contained={false}
               />
             ) : orders.map((order) => (
               <Link
@@ -355,6 +356,7 @@ export default function Dashboard() {
               actionLabel="Create shop"
               onAction={() => { window.location.href = "/admin/shops"; }}
               checklist={["Add shop name and logo", "Create a branch", "Add products and table QR codes"]}
+              contained={false}
             />
           ) : null}
           {shops.map((shop) => (

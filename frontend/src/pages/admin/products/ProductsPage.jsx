@@ -5,6 +5,7 @@ import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
 import { alertError, toastError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import useLanguage from "../../../i18n/useLanguage";
 import {
   AppBadge,
   AppButton,
@@ -45,8 +46,21 @@ const drawerTabs = [
   ["translations", "Translations"],
 ];
 
+const optionsExample = JSON.stringify([
+  {
+    name: "Size",
+    type: "single",
+    is_required: true,
+    values: [
+      { name: "Regular", extra_price: 0 },
+      { name: "Large", extra_price: 2000 },
+    ],
+  },
+], null, 2);
+
 export default function ProductsPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const allowCreate = canCreate(user, "products");
   const allowUpdate = canUpdate(user, "products");
   const allowDelete = canDelete(user, "products");
@@ -68,6 +82,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [optionsError, setOptionsError] = useState("");
 
   useEffect(() => {
     api.get("/shops").then((response) => {
@@ -118,6 +133,7 @@ export default function ProductsPage() {
     setEditing(null);
     setForm(initial);
     setDrawerTab("basic");
+    setOptionsError("");
     setDrawerOpen(true);
   };
 
@@ -131,6 +147,7 @@ export default function ProductsPage() {
       options_json: product.options?.length ? JSON.stringify(product.options, null, 2) : "",
     });
     setDrawerTab("basic");
+    setOptionsError("");
     setDrawerOpen(true);
   };
 
@@ -145,6 +162,7 @@ export default function ProductsPage() {
       options_json: product.options?.length ? JSON.stringify(product.options, null, 2) : "",
     });
     setDrawerTab("basic");
+    setOptionsError("");
     setDrawerOpen(true);
   };
 
@@ -152,6 +170,7 @@ export default function ProductsPage() {
     setDrawerOpen(false);
     setEditing(null);
     setForm(initial);
+    setOptionsError("");
   };
 
   const submit = async (event) => {
@@ -165,7 +184,7 @@ export default function ProductsPage() {
 
     if (form.options_json.trim()) {
       try {
-        JSON.parse(form.options_json).forEach((option, optionIndex) => {
+        parseOptionsJson(form.options_json).forEach((option, optionIndex) => {
           data.append(`options[${optionIndex}][name]`, option.name);
           data.append(`options[${optionIndex}][type]`, option.type || "single");
           data.append(`options[${optionIndex}][is_required]`, option.is_required ? 1 : 0);
@@ -174,12 +193,15 @@ export default function ProductsPage() {
             data.append(`options[${optionIndex}][values][${valueIndex}][extra_price]`, value.extra_price || 0);
           });
         });
-      } catch {
-        toastError("Options must be valid JSON.");
+      } catch (error) {
+        setOptionsError(error.message);
+        toastError(error.message);
         setDrawerTab("options");
         return;
       }
     }
+
+    setOptionsError("");
 
     setSaving(true);
     try {
@@ -204,6 +226,16 @@ export default function ProductsPage() {
     await api.delete(`/products/${product.id}`);
     toastSuccess("Product deleted successfully.");
     load();
+  };
+
+  const copyOptionsExample = async () => {
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
+      await navigator.clipboard.writeText(optionsExample);
+      toastSuccess(t("productOptions.copySuccess", "Option example copied."));
+    } catch {
+      toastError(t("productOptions.copyUnavailable", "Copy is unavailable in this browser. Select the example text instead."));
+    }
   };
 
   const columns = [
@@ -256,11 +288,13 @@ export default function ProductsPage() {
         <ProductGrid
           products={filteredProducts}
           loading={loading}
+          allowCreate={allowCreate}
           allowUpdate={allowUpdate}
           allowDelete={allowDelete}
           onEdit={openEdit}
           onDuplicate={duplicate}
           onDelete={remove}
+          onCreate={openCreate}
         />
       ) : (
         <AppCard bodyClassName="p-0">
@@ -270,6 +304,15 @@ export default function ProductsPage() {
             loading={loading}
             emptyTitle="No products found"
             emptyDescription="Create a product or clear filters to see more menu items."
+            emptyActionLabel={products.length ? "Clear filters" : allowCreate ? "Create first product" : undefined}
+            onEmptyAction={products.length ? () => {
+              setSearch("");
+              setStatusFilter("all");
+              setCategoryFilter("all");
+              setBranchFilter("all");
+              setAvailabilityFilter("all");
+            } : allowCreate ? openCreate : undefined}
+            ariaLabel="Products"
             rowActions={(product) => <ProductActions product={product} allowUpdate={allowUpdate} allowDelete={allowDelete} onEdit={openEdit} onDuplicate={duplicate} onDelete={remove} />}
           />
         </AppCard>
@@ -339,20 +382,36 @@ export default function ProductsPage() {
 
         {drawerTab === "options" ? (
           <>
-            <AppCard title="Option builder guidance" description="Keep the existing JSON shape so product submissions stay compatible with the backend. Use one object per option group.">
+            <AppCard title={t("productOptions.guidanceTitle", "Option builder guidance")} description={t("productOptions.guidanceDescription", "Keep the existing JSON shape so product submissions stay compatible with the backend. Use one object per option group.")}>
               <div className="grid gap-2 text-sm leading-6 text-slate-600">
-                <p><strong className="text-slate-900">type:</strong> use <code>single</code> for radio-style choice or <code>multiple</code> for add-ons.</p>
-                <p><strong className="text-slate-900">is_required:</strong> set to <code>true</code> when customers must choose before adding to cart.</p>
-                <p><strong className="text-slate-900">extra_price:</strong> use KHR amount, or <code>0</code> for free options.</p>
+                <p><strong className="text-slate-900">type:</strong> {t("productOptions.typeHelp", "use single for radio-style choice or multiple for add-ons.")}</p>
+                <p><strong className="text-slate-900">is_required:</strong> {t("productOptions.requiredHelp", "set to true when customers must choose before adding to cart.")}</p>
+                <p><strong className="text-slate-900">extra_price:</strong> {t("productOptions.priceHelp", "use KHR amount, or 0 for free options.")}</p>
+                <div className="mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-slate-950">
+                  <div className="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2">
+                    <span className="text-xs font-black uppercase text-slate-300">{t("productOptions.exampleLabel", "Backend-compatible example")}</span>
+                    <AppButton type="button" size="sm" variant="secondary" iconLeft={<Copy className="h-4 w-4" />} onClick={copyOptionsExample}>
+                      {t("productOptions.copyExample", "Copy example")}
+                    </AppButton>
+                  </div>
+                  <pre className="max-h-64 overflow-auto p-3 text-left text-xs leading-5 text-slate-100"><code>{optionsExample}</code></pre>
+                </div>
               </div>
             </AppCard>
-            <Field label="Options JSON">
+            <Field
+              label={t("productOptions.fieldLabel", "Options JSON")}
+              description={t("productOptions.fieldDescription", "Paste a JSON array using the structure above. Existing product option payloads remain unchanged.")}
+              error={optionsError}
+            >
               <TextArea
                 rows={10}
                 value={form.options_json}
                 className="font-mono text-xs"
-                onChange={(value) => setForm({ ...form, options_json: value })}
-                placeholder='[{"name":"Size","type":"single","is_required":true,"values":[{"name":"Large","extra_price":2000}]}]'
+                onChange={(value) => {
+                  setForm({ ...form, options_json: value });
+                  if (optionsError) setOptionsError("");
+                }}
+                placeholder={optionsExample}
               />
             </Field>
           </>
@@ -383,7 +442,7 @@ export default function ProductsPage() {
   );
 }
 
-function ProductGrid({ products, loading, allowUpdate, allowDelete, onEdit, onDuplicate, onDelete }) {
+function ProductGrid({ products, loading, allowCreate, allowUpdate, allowDelete, onEdit, onDuplicate, onDelete, onCreate }) {
   if (loading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -393,7 +452,15 @@ function ProductGrid({ products, loading, allowUpdate, allowDelete, onEdit, onDu
   }
 
   if (!products.length) {
-    return <AppEmptyState icon={Grid2X2} title="No products found" description="Create a product or clear filters to see more menu items." />;
+    return (
+      <AppEmptyState
+        icon={Grid2X2}
+        title="No products found"
+        description="Create a product or clear filters to see more menu items."
+        actionLabel={allowCreate ? "Create first product" : undefined}
+        onAction={allowCreate ? onCreate : undefined}
+      />
+    );
   }
 
   return (
@@ -488,6 +555,37 @@ function SelectFilter({ ariaLabel, value, onChange, options }) {
       {options.map(([optionValue, label]) => <option key={optionValue || "empty"} value={optionValue}>{label}</option>)}
     </select>
   );
+}
+
+function parseOptionsJson(value) {
+  let parsed;
+
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    throw new Error("Options must use valid JSON syntax.");
+  }
+
+  if (!Array.isArray(parsed)) throw new Error("Options must be a JSON array.");
+
+  parsed.forEach((option, index) => {
+    if (!option || typeof option !== "object" || !String(option.name || "").trim()) {
+      throw new Error(`Option group ${index + 1} needs a name.`);
+    }
+    if (option.type && !["single", "multiple"].includes(option.type)) {
+      throw new Error(`Option group ${index + 1} type must be single or multiple.`);
+    }
+    if (!Array.isArray(option.values) || !option.values.length) {
+      throw new Error(`Option group ${index + 1} needs at least one value.`);
+    }
+    option.values.forEach((optionValue, valueIndex) => {
+      if (!optionValue || !String(optionValue.name || "").trim()) {
+        throw new Error(`Value ${valueIndex + 1} in option group ${index + 1} needs a name.`);
+      }
+    });
+  });
+
+  return parsed;
 }
 
 function IconButton({ label, icon, onClick, children }) {

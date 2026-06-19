@@ -113,3 +113,15 @@
 - CRUD drawer checklist: keep list-first CRUD, sticky save/cancel footer, one-column mobile forms, readable helper text, and clear destructive confirmations.
 - Customer QR ordering checklist: product cards must have large tap targets, cart must stay visible, options must validate inline, offline submit must be disabled, and payment proof must not persist in localStorage.
 - Performance checklist: preserve lazy routes, lazy charts, dynamic realtime/payment libraries, PWA behavior, and a production build with no large chunk warning.
+
+## Module 46 Feature-Wide QA
+
+- Feature inventory checklist: review landing, auth, admin shell, dashboard, setup, catalog, operations, reports, business tools, customer QR ordering, and CI/test workflows before editing.
+- Shared-component-first checklist: fix recurring issues in `AppSheet`, form controls, state components, tables, and CRUD drawers before touching individual pages.
+- Drawer checklist: title and description must be announced, Escape should close, focus should return to the trigger, the background should not scroll, and footer actions should remain reachable on mobile.
+- Form checklist: labels must be explicit, helper/error text must be associated with fields, invalid state must not rely only on color, upload controls need readable labels, and Khmer copy must have adequate line height.
+- Table checklist: tables need an accessible label, sortable headers should expose sort state, row actions need clear labels, and empty/no-results states should provide the next useful action.
+- Product options checklist: preserve backend payload shape, validate JSON before submit, show a copyable example, and document a visual builder TODO until the backend contract is ready.
+- Operations checklist: order, kitchen, and payment actions should be obvious, two-tap where practical, and destructive or irreversible actions should use clear confirmation copy.
+- Customer QR checklist: cart visibility, offline submit blocking, required option validation, payment proof preview, and order status timeline must be reviewed in both languages.
+- CI separation checklist: Vitest must only collect `src/**/*.{test,spec}.{js,jsx,ts,tsx}`; Playwright specs stay in `e2e`; production build must keep charts and realtime code out of public/landing chunks.
