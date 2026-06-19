@@ -26,7 +26,7 @@ function getPageContext(pathname) {
   return pageContext.find(([path]) => pathname === path || (path !== "/admin" && pathname.startsWith(path))) || pageContext.at(-1);
 }
 
-export default function Navbar() {
+export default function Navbar({ onOpenCommand }) {
   const { logout } = useAuth();
   const { t } = useLanguage();
   const { pathname } = useLocation();
@@ -54,10 +54,20 @@ export default function Navbar() {
         <span className="sr-only">{t("common.search")}</span>
         <input
           type="search"
+          readOnly
           className="w-full bg-transparent font-semibold outline-none placeholder:text-slate-400"
           placeholder={t("navbar.searchPlaceholder")}
           aria-label={t("navbar.searchPlaceholder")}
+          onClick={onOpenCommand}
+          onFocus={onOpenCommand}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onOpenCommand?.();
+            }
+          }}
         />
+        <kbd className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-black text-slate-500">Ctrl K</kbd>
       </label>
       <div className="flex shrink-0 items-center gap-2 md:gap-3">
         <RealtimeStatusBadge status="unavailable" className="hidden xl:inline-flex" />

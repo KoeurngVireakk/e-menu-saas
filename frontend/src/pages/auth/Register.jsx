@@ -42,7 +42,7 @@ export default function Register() {
             <LanguageToggle compact />
           </div>
           <h1 className="text-3xl font-black text-slate-950">{t("auth.createWorkspace")}</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-500">Create your owner account and start building a QR ordering workspace.</p>
+          <p className="mt-2 text-sm leading-6 text-slate-500">{t("auth.accountHint")}</p>
           <div className="mt-7 grid gap-4 sm:grid-cols-2">
             <AuthField icon={UserRound} label="Name" required value={form.name} onChange={(event) => update("name", event.target.value)} />
             <AuthField icon={Phone} label="Phone" value={form.phone} onChange={(event) => update("phone", event.target.value)} />

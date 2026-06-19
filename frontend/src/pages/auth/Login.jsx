@@ -40,10 +40,10 @@ export default function Login() {
             <div>
               <AppLogo size="lg" to="/" ariaLabel="Go to home" />
               <h2 className="mt-10 text-4xl font-black leading-tight">{t("auth.welcomeBack")}</h2>
-              <p className="mt-4 text-sm leading-6 text-slate-300">Manage QR menus, customer orders, kitchen activity, and payment confirmation with a premium MenuDIGI dashboard.</p>
+              <p className="mt-4 text-sm leading-6 text-slate-300">{t("auth.accountHint")}</p>
             </div>
             <div className="grid gap-3 rounded-3xl border border-white/10 bg-white/5 p-4">
-              {["QR menu ready", "Kitchen workflow", "Payment review"].map((item) => (
+              {[t("auth.secureWorkspace"), "QR menu ready", "Kitchen workflow"].map((item) => (
                 <p key={item} className="text-sm font-bold text-blue-100">{item}</p>
               ))}
             </div>
@@ -55,7 +55,7 @@ export default function Login() {
             <LanguageToggle compact />
           </div>
           <h1 className="text-3xl font-black text-slate-950">{t("common.signIn")}</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-500">Manage shops, menus, orders, and payments.</p>
+          <p className="mt-2 text-sm leading-6 text-slate-500">{t("auth.accountHint")}</p>
           <label className="mt-7 block text-sm font-bold text-slate-700">
             {t("auth.email")}
             <span className="mt-2 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 transition focus-within:border-blue-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-50">

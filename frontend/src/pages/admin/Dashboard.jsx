@@ -1,9 +1,10 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Building2, ChefHat, ClipboardList, CreditCard, PackagePlus, QrCode, Store, Utensils } from "lucide-react";
+import { AlertTriangle, Building2, ChefHat, ClipboardList, CreditCard, PackagePlus, QrCode, Store, Utensils } from "lucide-react";
 import api from "../../api/axios";
 import AutomationInsightCard from "../../components/automation/AutomationInsightCard";
+import SetupChecklist from "../../components/onboarding/SetupChecklist";
 import RealtimeStatusBadge from "../../components/realtime/RealtimeStatusBadge";
 import { toastSuccess } from "../../components/ui";
 import { useAuth } from "../../context/AuthContext";
@@ -146,6 +147,54 @@ export default function Dashboard() {
     return Object.entries(counts).map(([name, quantity]) => ({ name, quantity })).slice(0, 5);
   }, [orders]);
 
+  const attentionItems = useMemo(() => {
+    const unpaidOrders = orders.filter((order) => order.payment_status && order.payment_status !== "paid").length;
+    const pendingOrders = Number(summary.pending_count || 0);
+    const items = [];
+
+    if (!shops.length) {
+      items.push({
+        title: "Create your shop profile",
+        description: "A shop profile is required before QR menus, branches, products, and orders can work.",
+        to: "/admin/shops",
+        action: "Create shop",
+        tone: "warning",
+      });
+    }
+
+    if (pendingOrders > 0) {
+      items.push({
+        title: `${pendingOrders} order${pendingOrders === 1 ? "" : "s"} need attention`,
+        description: "Open the orders or kitchen queue and move work through the next clear status.",
+        to: "/admin/orders",
+        action: "View orders",
+        tone: "info",
+      });
+    }
+
+    if (unpaidOrders > 0) {
+      items.push({
+        title: `${unpaidOrders} payment${unpaidOrders === 1 ? "" : "s"} pending`,
+        description: "Review proof uploads or confirm cash/manual payments before closing the shift.",
+        to: "/admin/payments",
+        action: "Review payments",
+        tone: "danger",
+      });
+    }
+
+    if (!orders.length) {
+      items.push({
+        title: "No customer orders yet",
+        description: "Orders will appear here when customers scan your QR menu and submit cart items.",
+        to: "/admin/tables",
+        action: "Create table QR",
+        tone: "neutral",
+      });
+    }
+
+    return items;
+  }, [orders, shops.length, summary.pending_count]);
+
   if (loading) return <AppSkeleton variant="page" />;
   if (error) return <AppEmptyState title="Dashboard unavailable" description={error} />;
 
@@ -165,6 +214,27 @@ export default function Dashboard() {
           </motion.div>
         ))}
       </motion.section>
+
+      <SetupChecklist shops={shops} orders={orders} />
+
+      <AppCard title="Needs attention" description="What needs action now, based on loaded shop and order data.">
+        <div className="grid gap-3 lg:grid-cols-2">
+          {attentionItems.map((item) => (
+            <Link key={item.title} to={item.to} className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 transition hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/40">
+              <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl ${
+                item.tone === "danger" ? "bg-rose-50 text-rose-600" : item.tone === "warning" ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"
+              }`}>
+                <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <span className="min-w-0">
+                <span className="block font-black text-slate-950">{item.title}</span>
+                <span className="mt-1 block text-sm leading-5 text-slate-500">{item.description}</span>
+                <span className="mt-3 inline-flex text-sm font-black text-blue-700">{item.action}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      </AppCard>
 
       <section className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <ChartCard title="Sales trend" description="Confirmed order value by hour for the current dashboard sample.">

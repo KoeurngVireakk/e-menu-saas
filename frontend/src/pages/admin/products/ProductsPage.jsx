@@ -338,15 +338,24 @@ export default function ProductsPage() {
         ) : null}
 
         {drawerTab === "options" ? (
-          <Field label="Options JSON">
-            <TextArea
-              rows={10}
-              value={form.options_json}
-              className="font-mono text-xs"
-              onChange={(value) => setForm({ ...form, options_json: value })}
-              placeholder='[{"name":"Size","type":"single","values":[{"name":"Large","extra_price":2000}]}]'
-            />
-          </Field>
+          <>
+            <AppCard title="Option builder guidance" description="Keep the existing JSON shape so product submissions stay compatible with the backend. Use one object per option group.">
+              <div className="grid gap-2 text-sm leading-6 text-slate-600">
+                <p><strong className="text-slate-900">type:</strong> use <code>single</code> for radio-style choice or <code>multiple</code> for add-ons.</p>
+                <p><strong className="text-slate-900">is_required:</strong> set to <code>true</code> when customers must choose before adding to cart.</p>
+                <p><strong className="text-slate-900">extra_price:</strong> use KHR amount, or <code>0</code> for free options.</p>
+              </div>
+            </AppCard>
+            <Field label="Options JSON">
+              <TextArea
+                rows={10}
+                value={form.options_json}
+                className="font-mono text-xs"
+                onChange={(value) => setForm({ ...form, options_json: value })}
+                placeholder='[{"name":"Size","type":"single","is_required":true,"values":[{"name":"Large","extra_price":2000}]}]'
+              />
+            </Field>
+          </>
         ) : null}
 
         {drawerTab === "availability" ? (

@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { LanguageProvider } from "../i18n";
 import AdminLayout from "./AdminLayout";
 
@@ -17,6 +17,8 @@ vi.mock("../context/AuthContext", () => ({
 }));
 
 describe("AdminLayout", () => {
+  afterEach(() => cleanup());
+
   it("renders protected admin layout content", () => {
     render(
       <MemoryRouter>
@@ -28,5 +30,20 @@ describe("AdminLayout", () => {
 
     expect(screen.getByText("Admin content")).toBeInTheDocument();
     expect(screen.getAllByLabelText("Go to dashboard").length).toBeGreaterThan(0);
+  });
+
+  it("opens the command palette with Ctrl+K", async () => {
+    render(
+      <MemoryRouter>
+        <LanguageProvider>
+          <AdminLayout />
+        </LanguageProvider>
+      </MemoryRouter>,
+    );
+
+    fireEvent.keyDown(window, { key: "k", ctrlKey: true });
+
+    await waitFor(() => expect(screen.getByRole("dialog", { name: "Command palette" })).toBeInTheDocument());
+    expect(screen.getByRole("button", { name: /Go to orders/i })).toBeInTheDocument();
   });
 });

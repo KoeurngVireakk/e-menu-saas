@@ -15,6 +15,7 @@ describe("RealtimeStatusBadge", () => {
     );
 
     expect(screen.getByText("Live updates on")).toBeInTheDocument();
+    expect(screen.getByText("Live updates on")).toHaveAttribute("title", "Shows whether live operational updates are currently connected.");
     expect(screen.getByText("Connecting live updates...")).toBeInTheDocument();
     expect(screen.getByText("Live updates paused")).toBeInTheDocument();
     expect(screen.getByText("Realtime connection issue")).toBeInTheDocument();
