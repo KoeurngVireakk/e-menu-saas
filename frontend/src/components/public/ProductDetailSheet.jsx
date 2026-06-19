@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { AlertCircle, Minus, Plus, ShoppingCart } from "lucide-react";
 import { AppBadge, AppButton } from "../../design-system/components";
 import { cartItemKey, money, productBasePrice } from "../../utils/cart";
 import { t } from "../../utils/localization";
@@ -11,6 +11,7 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
   const [quantity, setQuantity] = useState(1);
   const [note, setNote] = useState("");
   const [selectedValues, setSelectedValues] = useState({});
+  const [validationMessage, setValidationMessage] = useState({ productId: null, text: "" });
   const imageUrl = product?.image_path ? `${storageUrl}/${product.image_path}` : null;
   const available = product?.is_available !== false;
 
@@ -27,11 +28,15 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
 
   if (!product) return null;
 
+  const visibleValidationMessage = validationMessage.productId === product.id ? validationMessage.text : "";
+
   const setSingle = (optionId, valueId) => {
+    setValidationMessage({ productId: product.id, text: "" });
     setSelectedValues((current) => ({ ...current, [optionId]: [Number(valueId)] }));
   };
 
   const toggleMultiple = (optionId, valueId) => {
+    setValidationMessage({ productId: product.id, text: "" });
     setSelectedValues((current) => {
       const currentValues = current[optionId] || [];
       const id = Number(valueId);
@@ -46,7 +51,9 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
   const submit = () => {
     const missing = (product.options || []).find((option) => option.is_required && !(selectedValues[option.id] || []).length);
     if (missing) {
-      onValidationError?.(`${missing.name} ${t(locale, "isRequired")}`);
+      const message = `${missing.name} ${t(locale, "isRequired")}`;
+      setValidationMessage({ productId: product.id, text: message });
+      onValidationError?.(message);
       return;
     }
 
@@ -77,6 +84,7 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
     setQuantity(1);
     setNote("");
     setSelectedValues({});
+    setValidationMessage({ productId: product.id, text: "" });
     onClose();
   };
 
@@ -130,7 +138,14 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
             </section>
           ))}
 
-          <Textarea label="Special instructions" placeholder="Less sugar, no spicy, extra ice..." value={note} onChange={(event) => setNote(event.target.value)} />
+          {visibleValidationMessage ? (
+            <p className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900" role="alert">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              {visibleValidationMessage}
+            </p>
+          ) : null}
+
+          <Textarea label={t(locale, "specialInstructions")} placeholder={t(locale, "specialInstructionsPlaceholder")} value={note} onChange={(event) => setNote(event.target.value)} />
 
           <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-slate-50 p-3">
             <span className="font-black text-slate-800">{t(locale, "quantity")}</span>
@@ -147,7 +162,7 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
               <p className="text-xl font-black text-slate-950">{money(liveTotal)} KHR</p>
             </div>
             <AppButton type="button" disabled={!available} iconLeft={<ShoppingCart className="h-4 w-4" />} onClick={submit}>
-              {available ? t(locale, "addToCart") : "Sold out"}
+              {available ? t(locale, "addToCart") : t(locale, "soldOut")}
             </AppButton>
           </div>
         </div>

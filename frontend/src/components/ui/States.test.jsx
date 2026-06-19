@@ -7,6 +7,7 @@ describe("UI states", () => {
     render(<LoadingState message="Loading orders..." />);
 
     expect(screen.getByText("Loading orders...")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("renders error text and retry action", () => {
@@ -23,7 +24,7 @@ describe("UI states", () => {
       <div>
         <NoResultsState />
         <OfflineState />
-        <ForbiddenState />
+        <ForbiddenState checklist={["Ask an owner for access"]} />
         <SuccessState />
       </div>,
     );
@@ -31,6 +32,7 @@ describe("UI states", () => {
     expect(screen.getByText("No matching results")).toBeInTheDocument();
     expect(screen.getByText("You are offline")).toBeInTheDocument();
     expect(screen.getByText("Access unavailable")).toBeInTheDocument();
+    expect(screen.getByText("Ask an owner for access")).toBeInTheDocument();
     expect(screen.getByText("All set")).toBeInTheDocument();
   });
 });

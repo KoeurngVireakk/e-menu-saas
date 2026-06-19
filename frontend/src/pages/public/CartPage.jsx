@@ -81,18 +81,18 @@ export default function CartPage() {
     <div className="mx-auto min-h-screen max-w-2xl bg-slate-50 p-4 pb-32" lang={locale}>
       {!online ? <OfflineBanner locale={locale} /> : null}
       <header className="mb-5">
-        <AppButton type="button" variant="ghost" size="sm" iconLeft={<ArrowLeft className="h-4 w-4" />} onClick={() => navigate(-1)}>Back to menu</AppButton>
+        <AppButton type="button" variant="ghost" size="sm" iconLeft={<ArrowLeft className="h-4 w-4" />} onClick={() => navigate(-1)}>{t(locale, "backToMenu")}</AppButton>
         <p className="mt-4 text-xs font-black uppercase tracking-wide text-blue-600">{t(locale, "checkout")}</p>
         <h1 className="mt-1 text-3xl font-black text-slate-950">{t(locale, "cart")}</h1>
-        <p className="mt-2 text-sm text-slate-500">Review your items, add customer details, and submit your order to the restaurant.</p>
+        <p className="mt-2 text-sm text-slate-500">{t(locale, "checkoutDescription")}</p>
       </header>
 
-      {!cart.length ? <PublicEmptyState title={t(locale, "cartEmpty")} description={t(locale, "emptyCartMessage")} actionLabel="Return to menu" onAction={() => navigate(-1)} /> : null}
+      {!cart.length ? <PublicEmptyState title={t(locale, "cartEmpty")} description={t(locale, "emptyCartMessage")} actionLabel={t(locale, "returnToMenu")} onAction={() => navigate(-1)} /> : null}
       {cart.length ? <PublicCartSummary cart={cart} locale={locale} onQuantity={changeQuantity} onRemove={remove} /> : null}
 
       {cart.length ? (
       <form onSubmit={submit} className="mt-6 grid gap-3">
-        <AppCard title="Customer details" description="These details help the restaurant confirm and prepare your order." bodyClassName="grid gap-3 p-4">
+        <AppCard title={t(locale, "customerDetails")} description={t(locale, "customerDetailsHelp")} bodyClassName="grid gap-3 p-4">
           <Input label={t(locale, "customerName")} placeholder={t(locale, "customerName")} value={form.customer_name} onChange={(event) => setForm({ ...form, customer_name: event.target.value })} />
           <Input label={t(locale, "customerPhone")} placeholder={t(locale, "customerPhone")} value={form.customer_phone} onChange={(event) => setForm({ ...form, customer_phone: event.target.value })} />
           <Select label={t(locale, "orderType")} value={form.order_type} onChange={(event) => setForm({ ...form, order_type: event.target.value })}>
@@ -107,7 +107,7 @@ export default function CartPage() {
           <SummaryRow label={t(locale, "total")} value={`${money(total)} KHR`} strong />
           {!online ? (
             <p className="rounded-2xl bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900" role="status">
-              Ordering requires internet connection.
+              {t(locale, "offlineSubmit")}
             </p>
           ) : null}
         </AppCard>
@@ -117,7 +117,7 @@ export default function CartPage() {
             <p className="text-xs font-black uppercase tracking-wide text-blue-600">{t(locale, "total")}</p>
             <p className="text-xl font-black text-slate-950">{money(total)} KHR</p>
           </div>
-          <AppButton type="submit" disabled={!cart.length || saving || !online || !searchParams.get("shop") || !searchParams.get("branch")} title={!online ? "Ordering requires internet connection." : undefined} iconLeft={<ReceiptText className="h-4 w-4" />}>
+          <AppButton type="submit" disabled={!cart.length || saving || !online || !searchParams.get("shop") || !searchParams.get("branch")} title={!online ? t(locale, "offlineSubmit") : undefined} iconLeft={<ReceiptText className="h-4 w-4" />}>
             {saving ? t(locale, "submitting") : t(locale, "submitOrder")}
           </AppButton>
         </div>

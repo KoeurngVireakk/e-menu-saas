@@ -202,7 +202,7 @@ export default function MenuPage() {
           </section>
         ))}
         {!visibleCategories.length ? (
-          <PublicEmptyState title={t(selectedLocale, "noProductsFound")} description={t(selectedLocale, "tryAnotherSearch")} actionLabel="Clear search" onAction={() => setQuery("")} />
+          <PublicEmptyState title={t(selectedLocale, "noProductsFound")} description={t(selectedLocale, "tryAnotherSearch")} actionLabel={t(selectedLocale, "clearSearch")} onAction={() => setQuery("")} />
         ) : null}
       </div>
       <ProductDetailSheet
@@ -216,6 +216,7 @@ export default function MenuPage() {
       <StickyCartBar
         cart={cart}
         label={t(selectedLocale, "checkout")}
+        helper={t(selectedLocale, "reviewCartBeforeCheckout")}
         onClick={() => navigate(`/cart?${checkoutParams.toString()}`)}
       />
     </div>

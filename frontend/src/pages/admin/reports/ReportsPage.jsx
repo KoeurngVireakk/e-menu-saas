@@ -193,8 +193,13 @@ export default function ReportsPage() {
 
           {!hasData ? (
             <AppEmptyState
-              title={t("reports.noReportData", "No report data")}
-              description="No matching orders or payments were found. Create products, generate table QR codes, receive orders, or adjust filters."
+              title={t("reports.noReportData", "No report data for this period")}
+              description={t("reports.noReportDataDescription", "No matching orders or payments were found. Try widening the date range or wait until orders are completed.")}
+              checklist={[
+                t("reports.emptyChecklistProducts", "Products must exist before customers can order."),
+                t("reports.emptyChecklistQr", "Table QR codes help customers reach the menu."),
+                t("reports.emptyChecklistOrders", "Completed paid orders create sales analytics."),
+              ]}
               actionLabel={t("reports.clearFilters", "Clear filters")}
               onAction={clearFilters}
             />

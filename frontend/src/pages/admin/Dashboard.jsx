@@ -275,7 +275,13 @@ export default function Dashboard() {
         <AppCard title="Recent orders" description="Live updates appear here without a page refresh.">
           <div className="grid gap-3">
             {!orders.length ? (
-              <AppEmptyState title="No orders yet" description="Customer orders will appear here when submitted." />
+              <AppEmptyState
+                title="No orders yet"
+                description="Orders will appear here when customers scan table QR codes and submit their cart."
+                actionLabel="View table QR codes"
+                onAction={() => { window.location.href = "/admin/tables"; }}
+                checklist={["Create at least one product", "Generate a table QR code", "Submit a test order from the public menu"]}
+              />
             ) : orders.map((order) => (
               <Link
                 key={order.id}
@@ -342,7 +348,15 @@ export default function Dashboard() {
 
       <AppCard title="Shops" description="Restaurant portfolio available to this account.">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {!shops.length ? <AppEmptyState title="No shops available" description="Create a shop to start selling from the public menu." /> : null}
+          {!shops.length ? (
+            <AppEmptyState
+              title="Create your first shop"
+              description="Your shop profile controls the QR menu identity, branch setup, and customer ordering context."
+              actionLabel="Create shop"
+              onAction={() => { window.location.href = "/admin/shops"; }}
+              checklist={["Add shop name and logo", "Create a branch", "Add products and table QR codes"]}
+            />
+          ) : null}
           {shops.map((shop) => (
             <Link key={shop.id} to="/admin/shops" className="rounded-2xl border border-slate-200 p-4 transition hover:border-blue-200 hover:bg-blue-50/40">
               <div className="flex items-start justify-between gap-3">

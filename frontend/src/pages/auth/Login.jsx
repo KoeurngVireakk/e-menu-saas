@@ -26,7 +26,7 @@ export default function Login() {
       const nextPath = searchParams.get("next");
       navigate(nextPath?.startsWith("/admin") ? nextPath : "/admin");
     } catch (error) {
-      alertError(error, "Check your email and password.");
+      alertError(error, t("auth.loginError", "Check your email and password, then try again."));
     } finally {
       setSaving(false);
     }
@@ -73,14 +73,14 @@ export default function Login() {
               </button>
             </span>
           </label>
-          <p className="mt-3 text-xs font-semibold text-slate-500">{t("auth.resetUnavailable")}</p>
+          <p className="mt-3 rounded-2xl bg-slate-50 px-3 py-2 text-xs font-semibold leading-5 text-slate-500">{t("auth.resetUnavailable")}</p>
           <AppButton type="submit" loading={saving} fullWidth className="mt-6">
             {saving ? `${t("common.loading")}...` : t("common.signIn")}
           </AppButton>
           <p className="mt-5 text-center text-sm text-slate-600">
-            New shop owner? <Link className="font-black text-blue-700 hover:text-blue-800" to="/register">{t("common.register")}</Link>
+            {t("auth.newOwner")} <Link className="font-black text-blue-700 hover:text-blue-800" to="/register">{t("common.register")}</Link>
           </p>
-          <p className="mt-3 text-center text-xs text-slate-500">Demo: owner@example.com / password</p>
+          <p className="mt-3 text-center text-xs text-slate-500">{t("auth.demoHint")}</p>
         </form>
       </div>
     </div>

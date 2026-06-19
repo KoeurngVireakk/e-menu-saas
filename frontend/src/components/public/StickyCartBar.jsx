@@ -3,7 +3,7 @@ import { ShoppingCart } from "lucide-react";
 import { AppButton } from "../../design-system/components";
 import { cartTotal, money } from "../../utils/cart";
 
-export default function StickyCartBar({ cart, label = "View cart", onClick }) {
+export default function StickyCartBar({ cart, label = "View cart", helper = "Review items and checkout", onClick }) {
   const count = cart.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
   const total = cartTotal(cart);
 
@@ -23,6 +23,7 @@ export default function StickyCartBar({ cart, label = "View cart", onClick }) {
             <div>
               <p className="text-xs font-black uppercase tracking-wide text-blue-600">{count} item{count === 1 ? "" : "s"}</p>
               <p className="text-lg font-black text-slate-950">{money(total)} KHR</p>
+              <p className="text-xs font-semibold text-slate-500">{helper}</p>
             </div>
             <AppButton type="button" iconLeft={<ShoppingCart className="h-4 w-4" />} onClick={onClick}>
               {label}

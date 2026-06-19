@@ -25,7 +25,7 @@ export default function Register() {
       await register(form);
       navigate("/admin");
     } catch (error) {
-      alertError(error, "Please review the form.");
+      alertError(error, t("auth.registerError", "Please review the form and try again."));
     } finally {
       setSaving(false);
     }
@@ -44,8 +44,8 @@ export default function Register() {
           <h1 className="text-3xl font-black text-slate-950">{t("auth.createWorkspace")}</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">{t("auth.accountHint")}</p>
           <div className="mt-7 grid gap-4 sm:grid-cols-2">
-            <AuthField icon={UserRound} label="Name" required value={form.name} onChange={(event) => update("name", event.target.value)} />
-            <AuthField icon={Phone} label="Phone" value={form.phone} onChange={(event) => update("phone", event.target.value)} />
+            <AuthField icon={UserRound} label={t("auth.name")} required value={form.name} onChange={(event) => update("name", event.target.value)} />
+            <AuthField icon={Phone} label={t("auth.phone")} value={form.phone} onChange={(event) => update("phone", event.target.value)} />
           </div>
           <AuthField icon={Mail} className="mt-4" label={t("auth.email")} type="email" required value={form.email} onChange={(event) => update("email", event.target.value)} />
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -56,16 +56,16 @@ export default function Register() {
             {saving ? `${t("common.loading")}...` : t("common.register")}
           </AppButton>
           <p className="mt-5 text-center text-sm text-slate-600">
-            Already registered? <Link className="font-black text-blue-700 hover:text-blue-800" to="/login">{t("common.signIn")}</Link>
+            {t("auth.alreadyRegistered")} <Link className="font-black text-blue-700 hover:text-blue-800" to="/login">{t("common.signIn")}</Link>
           </p>
         </form>
         <aside className="hidden bg-slate-950 p-8 text-white lg:block">
           <div className="flex h-full flex-col justify-between">
             <div>
-              <h2 className="text-4xl font-black leading-tight">Build a premium QR ordering experience.</h2>
+              <h2 className="text-4xl font-black leading-tight">{t("auth.registerHero")}</h2>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              {["Menus", "Tables", "Orders", "Payments"].map((item) => (
+              {[t("common.products"), t("common.tables"), t("common.orders"), t("common.payments")].map((item) => (
                 <div key={item} className="rounded-3xl border border-white/10 bg-white/5 p-4 text-sm font-black text-blue-100">{item}</div>
               ))}
             </div>

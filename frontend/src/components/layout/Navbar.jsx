@@ -51,7 +51,7 @@ export default function Navbar({ onOpenCommand }) {
       </div>
       <label className="hidden min-w-0 flex-1 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500 shadow-sm shadow-slate-900/5 focus-within:border-blue-300 focus-within:ring-4 focus-within:ring-blue-50 lg:flex lg:max-w-sm">
         <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
-        <span className="sr-only">{t("common.search")}</span>
+        <span className="sr-only">{t("navbar.searchPlaceholder")}</span>
         <input
           type="search"
           readOnly
@@ -72,7 +72,7 @@ export default function Navbar({ onOpenCommand }) {
       <div className="flex shrink-0 items-center gap-2 md:gap-3">
         <RealtimeStatusBadge status="unavailable" className="hidden xl:inline-flex" />
         <LanguageToggle compact className="hidden md:inline-flex" />
-        <button type="button" aria-label="Notifications" className="hidden h-10 w-10 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:-translate-y-0.5 hover:text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 lg:grid">
+        <button type="button" aria-label={t("navbar.notificationsPlaceholder", "Notifications are planned for a future inbox")} title={t("navbar.notificationsPlaceholder", "Notifications are planned for a future inbox")} className="hidden h-10 w-10 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:-translate-y-0.5 hover:text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 lg:grid">
           <Bell className="h-4 w-4" aria-hidden="true" />
         </button>
         <AppButton type="button" variant="secondary" size="sm" iconLeft={<LogOut className="h-4 w-4" />} onClick={confirmLogout}>

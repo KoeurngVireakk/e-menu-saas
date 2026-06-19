@@ -88,3 +88,16 @@
 - Do not import Echo/Pusher globally.
 - Do not import SweetAlert2 into landing/public code.
 - Preserve Vite manual chunk strategy and avoid large chunk warnings.
+
+## Module 43 Practical Review
+
+- Desktop review: scan `/admin`, CRUD pages, reports, and operations pages at 1024px and 1440px for crowded toolbars, weak headings, unclear primary actions, and nested card clutter.
+- Mobile review: scan customer ordering, cart, payment, and admin drawers at 375px and 430px for tap target size, sticky footer overlap, horizontal overflow, and long Khmer wrapping.
+- Keyboard review: open command palette with Ctrl/Cmd+K, tab through filters, drawers, language toggles, cart quantity controls, and modal close buttons.
+- Khmer review: switch landing/auth/admin/public flows to Khmer and check headings, badges, buttons, and empty states for natural copy and readable line height.
+- Empty-state review: verify every first-time state explains the benefit, what happened, and the next useful action without fake data.
+- Error-state review: verify retry paths exist where data loading can fail, and that errors do not imply user data was changed.
+- Offline review: confirm public menu can show cached menu data, checkout submission is disabled offline, and offline copy explains recovery.
+- CRUD drawer review: confirm dialog titles are announced, footer actions remain sticky, cancel/save hierarchy is clear, and long forms do not become two-column CRUD.
+- Realtime review: confirm connected, reconnecting, paused, unavailable, and issue states use text and tooltips, not color alone.
+- Performance review: run production build and confirm charts remain lazy/admin-only, Echo/Pusher is not globally imported, and no large chunk warning returns.
