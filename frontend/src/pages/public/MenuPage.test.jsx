@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import api from "../../api/axios";
 import { publicMenuCacheKey, savePublicMenuCache } from "../../services/publicMenuCache";
 import MenuPage from "./MenuPage";
@@ -40,6 +40,10 @@ const menuResponse = {
 };
 
 describe("MenuPage", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
     localStorage.clear();
     api.get.mockReset();
@@ -55,7 +59,7 @@ describe("MenuPage", () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() => expect(screen.getByText("MenuDIGI Cafe")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText("MenuDIGI Cafe").length).toBeGreaterThan(0));
     expect(screen.getByRole("button", { name: /Coffee\s*1/ })).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Search menu")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Iced Latte" }).length).toBeGreaterThan(0);

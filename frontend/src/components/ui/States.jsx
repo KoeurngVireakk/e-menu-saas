@@ -55,16 +55,16 @@ export function ErrorState({ message = "Unable to load data.", onRetry }) {
   );
 }
 
-export function NoResultsState({ title = "No matching results", message = "Try a different search term or clear filters.", action }) {
-  return <EmptyState icon={SearchX} title={title} message={message} action={action} />;
+export function NoResultsState({ title = "No matching results", message = "Try a different search term or clear filters.", action, checklist = [] }) {
+  return <EmptyState icon={SearchX} title={title} message={message} action={action} checklist={checklist} />;
 }
 
-export function OfflineState({ title = "You are offline", message = "Reconnect to continue loading live restaurant data.", action }) {
-  return <EmptyState icon={WifiOff} title={title} message={message} action={action} />;
+export function OfflineState({ title = "You are offline", message = "Reconnect to continue loading live restaurant data.", action, checklist = [] }) {
+  return <EmptyState icon={WifiOff} title={title} message={message} action={action} checklist={checklist} />;
 }
 
-export function ForbiddenState({ title = "Access unavailable", message = "Your account does not have permission to view this workspace area.", action }) {
-  return <EmptyState icon={Ban} title={title} message={message} action={action} />;
+export function ForbiddenState({ title = "Access unavailable", message = "Your account does not have permission to view this workspace area.", action, checklist = [] }) {
+  return <EmptyState icon={Ban} title={title} message={message} action={action} checklist={checklist} />;
 }
 
 export function SuccessState({ title = "All set", message = "The action completed successfully.", action }) {

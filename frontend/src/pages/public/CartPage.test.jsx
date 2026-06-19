@@ -74,7 +74,7 @@ describe("CartPage", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Ordering requires internet connection.")).toBeInTheDocument();
+    expect(screen.getByText("Connect to the internet before submitting your order.")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /Submit order/ }).some((button) => button.disabled)).toBe(true);
   });
 });

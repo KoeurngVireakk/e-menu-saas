@@ -1,10 +1,14 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { LanguageProvider } from "../../i18n";
 import AppCommandPalette from "./AppCommandPalette";
 
 describe("AppCommandPalette", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   it("renders frontend navigation actions and filters them", () => {
     render(
       <MemoryRouter>
