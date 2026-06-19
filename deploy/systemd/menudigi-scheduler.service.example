@@ -1,0 +1,15 @@
+[Unit]
+Description=MenuDIGI Laravel Scheduler
+After=network.target mysql.service redis.service
+
+[Service]
+Type=simple
+User=__DEPLOY_USER__
+Group=__WEB_GROUP__
+WorkingDirectory=__BACKEND_PATH__
+ExecStart=/usr/bin/php __BACKEND_PATH__/artisan schedule:work
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

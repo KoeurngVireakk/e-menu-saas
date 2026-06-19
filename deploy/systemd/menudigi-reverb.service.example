@@ -1,0 +1,16 @@
+[Unit]
+Description=MenuDIGI Reverb WebSocket Server
+After=network.target redis.service
+
+[Service]
+Type=simple
+User=__DEPLOY_USER__
+Group=__WEB_GROUP__
+WorkingDirectory=__BACKEND_PATH__
+EnvironmentFile=__BACKEND_PATH__/.env
+ExecStart=/usr/bin/php __BACKEND_PATH__/artisan reverb:start --host=0.0.0.0 --port=${REVERB_SERVER_PORT}
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

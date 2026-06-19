@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# MenuDIGI rollback example.
+# This script intentionally does not delete releases or roll back databases automatically.
+
+PREVIOUS_RELEASE="${PREVIOUS_RELEASE:-/var/www/menudigi/releases/previous}"
+CURRENT_LINK="${CURRENT_LINK:-/var/www/menudigi/current}"
+
+if [ ! -d "$PREVIOUS_RELEASE" ]; then
+  echo "Previous release path does not exist: $PREVIOUS_RELEASE" >&2
+  exit 1
+fi
+
+echo "Review pending migrations before rollback. Database rollback is not automatic."
+echo "Switching current symlink to: $PREVIOUS_RELEASE"
+
+# ln -sfn "$PREVIOUS_RELEASE" "$CURRENT_LINK"
+# cd "$CURRENT_LINK/backend"
+# php artisan config:cache
+# php artisan route:cache
+# php artisan view:cache
+# php artisan queue:restart
+# sudo systemctl reload php8.4-fpm
+# sudo systemctl reload nginx
+
+echo "Rollback template completed. Uncomment commands only after testing your release layout."

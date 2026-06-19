@@ -1,0 +1,11 @@
+[program:menudigi-reverb]
+command=php __BACKEND_PATH__/artisan reverb:start --host=0.0.0.0 --port=__REVERB_SERVER_PORT__
+directory=__BACKEND_PATH__
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=__DEPLOY_USER__
+redirect_stderr=true
+stdout_logfile=__BACKEND_PATH__/storage/logs/reverb.log
+stopwaitsecs=60

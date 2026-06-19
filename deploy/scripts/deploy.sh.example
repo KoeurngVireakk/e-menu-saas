@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# MenuDIGI deployment example.
+# Review every path and command before using on a real server.
+
+RELEASE_PATH="${RELEASE_PATH:-/var/www/menudigi/current}"
+BACKEND_PATH="${BACKEND_PATH:-$RELEASE_PATH/backend}"
+FRONTEND_PATH="${FRONTEND_PATH:-$RELEASE_PATH/frontend}"
+FRONTEND_PUBLIC_PATH="${FRONTEND_PUBLIC_PATH:-/var/www/menudigi/frontend}"
+
+cd "$BACKEND_PATH"
+composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+php artisan migrate --force
+php artisan storage:link || true
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan event:cache || true
+
+cd "$FRONTEND_PATH"
+npm ci
+npm run build
+
+# Use rsync only after verifying FRONTEND_PUBLIC_PATH.
+# rsync -a --delete "$FRONTEND_PATH/dist/" "$FRONTEND_PUBLIC_PATH/"
+
+cd "$BACKEND_PATH"
+php artisan queue:restart
+php artisan menudigi:production-check --expect-production
+
+# Reload process managers after verifying service names.
+# sudo supervisorctl reread && sudo supervisorctl update && sudo supervisorctl restart menudigi-worker:* menudigi-scheduler menudigi-reverb
+# sudo systemctl reload php8.4-fpm
+# sudo systemctl reload nginx
+
+echo "Deployment commands completed. Run smoke tests before switching traffic."

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE_URL="${BASE_URL:-https://example.com}"
+API_URL="${API_URL:-$BASE_URL/api}"
+
+curl --fail --silent --show-error "$API_URL/health" >/dev/null
+curl --fail --silent --show-error "$API_URL/health/live" >/dev/null
+curl --fail --silent --show-error "$API_URL/health/ready" >/dev/null
+
+echo "MenuDIGI health checks passed for $API_URL"

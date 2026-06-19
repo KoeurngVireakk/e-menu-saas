@@ -1,0 +1,4 @@
+# Optional combined reverse-proxy image for Docker deployments.
+
+FROM nginx:1.27-alpine
+COPY deploy/nginx/menudigi.conf.example /etc/nginx/conf.d/menudigi.conf

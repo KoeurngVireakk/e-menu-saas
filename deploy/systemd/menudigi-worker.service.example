@@ -1,0 +1,17 @@
+[Unit]
+Description=MenuDIGI Laravel Queue Worker
+After=network.target mysql.service redis.service
+
+[Service]
+Type=simple
+User=__DEPLOY_USER__
+Group=__WEB_GROUP__
+WorkingDirectory=__BACKEND_PATH__
+ExecStart=/usr/bin/php __BACKEND_PATH__/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+Restart=always
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=3600
+
+[Install]
+WantedBy=multi-user.target
