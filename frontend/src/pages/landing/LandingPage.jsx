@@ -169,11 +169,11 @@ function HeroVisual() {
   };
 
   return (
-    <div className="relative min-h-[680px] lg:min-h-[740px]">
-      <motion.div {...floatMotion} className="absolute left-1/2 top-0 z-20 w-[315px] -translate-x-1/2 sm:w-[360px]" aria-label="MenuDIGI mobile ordering preview">
+    <div className="relative min-h-170 lg:min-h-185">
+      <motion.div {...floatMotion} className="absolute left-1/2 top-0 z-20 w-78.75 -translate-x-1/2 sm:w-90" aria-label="MenuDIGI mobile ordering preview">
         <PhoneMockup />
       </motion.div>
-      <motion.div {...getMotion(reduced, 0.1)} className="absolute bottom-0 right-0 z-10 w-full max-w-xl rounded-[2rem] border border-white/80 bg-white/90 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur">
+      <motion.div {...getMotion(reduced, 0.1)} className="absolute bottom-0 right-0 z-10 w-full max-w-xl rounded-4xl border border-white/80 bg-white/90 p-5 shadow-2xl shadow-slate-900/15 backdrop-blur">
         <DashboardMockup />
       </motion.div>
       <motion.div {...getMotion(reduced, 0.18)} className="absolute left-0 top-24 hidden rounded-3xl border border-blue-100 bg-white px-4 py-3 text-sm font-black text-blue-700 shadow-xl sm:block">
@@ -310,7 +310,7 @@ function FeatureGridSection() {
               className="group rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-900/10"
               {...getMotion(reduced, Math.min(index * 0.035, 0.2))}
             >
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-blue-600 to-sky-400 text-white shadow-lg shadow-blue-600/20">
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-linear-to-br from-blue-600 to-sky-400 text-white shadow-lg shadow-blue-600/20">
                 <Icon className="h-5 w-5" aria-hidden="true" />
               </div>
               <h3 className="mt-4 text-lg font-black text-slate-950">{title}</h3>
@@ -345,7 +345,7 @@ function PaymentReadySection() {
   return (
     <Section eyebrow={t("common.payment")} title={t("landing.sections.paymentTitle")} description={t("landing.sections.paymentCopy")}>
       <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-[2rem] border border-blue-100 bg-blue-600 p-6 text-white shadow-xl shadow-blue-600/20">
+        <div className="rounded-4xl border border-blue-100 bg-blue-600 p-6 text-white shadow-xl shadow-blue-600/20">
           <CreditCard className="h-10 w-10" aria-hidden="true" />
           <h3 className="mt-5 text-2xl font-black">KHQR / ABA</h3>
           <p className="mt-3 text-sm leading-6 text-blue-50">{t("landing.sections.paymentCopy")}</p>
@@ -369,7 +369,7 @@ function PricingSection() {
     <Section id="pricing" eyebrow={t("nav.pricing")} title={t("landing.sections.pricingTitle")} description={t("landing.sections.pricingCopy")}>
       <div className="grid gap-4 lg:grid-cols-3">
         {t("landing.pricingPlans", []).map(([name, copy, items], index) => (
-          <motion.div key={name} whileHover={{ y: -4 }} transition={{ duration: 0.18 }} className={`rounded-[2rem] border bg-white p-6 shadow-sm ${index === 1 ? "border-blue-300 ring-4 ring-blue-50" : "border-slate-200"}`}>
+          <motion.div key={name} whileHover={{ y: -4 }} transition={{ duration: 0.18 }} className={`rounded-4xl border bg-white p-6 shadow-sm ${index === 1 ? "border-blue-300 ring-4 ring-blue-50" : "border-slate-200"}`}>
             <p className="text-sm font-black uppercase text-blue-600">{name}</p>
             <h3 className="mt-3 text-2xl font-black text-slate-950">{index === 0 ? "Free" : "Contact sales"}</h3>
             <p className="mt-2 text-sm leading-6 text-slate-600">{copy}</p>
