@@ -1,10 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
+import { Edit3, Plus, RefreshCw, Store, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
-import DataTable from "../../../components/DataTable";
-import StatusBadge from "../../../components/StatusBadge";
 import { alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import AppBadge from "../../../design-system/components/AppBadge";
+import AppButton from "../../../design-system/components/AppButton";
+import AppCard from "../../../design-system/components/AppCard";
+import AppEmptyState from "../../../design-system/components/AppEmptyState";
+import AppPageHeader from "../../../design-system/components/AppPageHeader";
+import AppTable from "../../../design-system/components/AppTable";
+import CreateEditDrawer from "../../../design-system/crud/CreateEditDrawer";
+import CrudToolbar from "../../../design-system/crud/CrudToolbar";
+import { Field, FileInput, SelectInput, TextArea, TextInput } from "../../../design-system/crud/FormControls";
 import { canCreate, canDelete, canUpdate } from "../../../utils/permissions";
 
 const initial = {
@@ -13,11 +21,29 @@ const initial = {
   email: "",
   address: "",
   description: "",
-  primary_color: "#f97316",
-  secondary_color: "#111827",
+  primary_color: "#2563eb",
+  secondary_color: "#0f172a",
   currency_code: "KHR",
   status: "active",
+  logo: null,
+  cover: null,
+  logo_path: "",
+  cover_path: "",
 };
+
+const editableFields = [
+  "name",
+  "phone",
+  "email",
+  "address",
+  "description",
+  "primary_color",
+  "secondary_color",
+  "currency_code",
+  "status",
+  "logo",
+  "cover",
+];
 
 export default function ShopsPage() {
   const { user } = useAuth();
@@ -27,7 +53,11 @@ export default function ShopsPage() {
   const [shops, setShops] = useState([]);
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState("");
 
   const load = useCallback(() => {
@@ -46,10 +76,61 @@ export default function ShopsPage() {
     return () => window.clearTimeout(timer);
   }, [load]);
 
+  const filteredShops = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return shops.filter((shop) => {
+      const matchesStatus = statusFilter === "all" || shop.status === statusFilter;
+      const matchesSearch = !query || [shop.name, shop.slug, shop.phone, shop.email, shop.currency_code]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
+
+      return matchesStatus && matchesSearch;
+    });
+  }, [search, shops, statusFilter]);
+
+  const openCreate = () => {
+    setEditing(null);
+    setForm(initial);
+    setDrawerOpen(true);
+  };
+
+  const openEdit = (shop) => {
+    setEditing(shop);
+    setForm({
+      ...initial,
+      name: shop.name || "",
+      phone: shop.phone || "",
+      email: shop.email || "",
+      address: shop.address || "",
+      description: shop.description || "",
+      primary_color: shop.primary_color || "#2563eb",
+      secondary_color: shop.secondary_color || "#0f172a",
+      currency_code: shop.currency_code || "KHR",
+      status: shop.status || "active",
+      logo_path: shop.logo_path || "",
+      cover_path: shop.cover_path || "",
+    });
+    setDrawerOpen(true);
+  };
+
+  const closeDrawer = () => {
+    setDrawerOpen(false);
+    setEditing(null);
+    setForm(initial);
+  };
+
   const submit = async (event) => {
     event.preventDefault();
+    setSaving(true);
+
     const data = new FormData();
-    Object.entries(form).forEach(([key, value]) => value !== null && data.append(key, value));
+    editableFields.forEach((key) => {
+      const value = form[key];
+      if (value !== null && value !== undefined && value !== "") {
+        data.append(key, value);
+      }
+    });
 
     try {
       if (editing) {
@@ -60,17 +141,13 @@ export default function ShopsPage() {
         await api.post("/shops", data, { headers: { "Content-Type": "multipart/form-data" } });
         toastSuccess("Shop created successfully.");
       }
-      setForm(initial);
-      setEditing(null);
+      closeDrawer();
       load();
     } catch (error) {
       alertError(error, "Please review the shop profile.");
+    } finally {
+      setSaving(false);
     }
-  };
-
-  const edit = (shop) => {
-    setEditing(shop);
-    setForm({ ...initial, ...shop, logo: null, cover: null });
   };
 
   const remove = async (shop) => {
@@ -79,88 +156,257 @@ export default function ShopsPage() {
     load();
   };
 
+  const clearFilters = search || statusFilter !== "all"
+    ? () => {
+      setSearch("");
+      setStatusFilter("all");
+    }
+    : undefined;
+
   return (
-    <div className={`grid gap-6 ${allowCreate || allowUpdate ? "lg:grid-cols-[420px_1fr]" : ""}`}>
-      {allowCreate || allowUpdate ? <form onSubmit={submit} className="rounded-md border border-slate-200 bg-white p-4">
-        <h2 className="text-lg font-semibold text-slate-950">{editing ? "Edit shop" : "Create shop"}</h2>
-        <Input label="Name" value={form.name} onChange={(value) => setForm({ ...form, name: value })} required />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Phone" value={form.phone || ""} onChange={(value) => setForm({ ...form, phone: value })} />
-          <Input label="Email" type="email" value={form.email || ""} onChange={(value) => setForm({ ...form, email: value })} />
+    <div className="grid gap-6">
+      <AppPageHeader
+        eyebrow="Workspace setup"
+        title="Shops"
+        description="Manage restaurant identity, branding, currency, and the public profile customers see after scanning a QR code."
+        primaryAction={allowCreate ? {
+          children: "Add shop",
+          iconLeft: <Plus className="h-4 w-4" aria-hidden="true" />,
+          onClick: openCreate,
+        } : null}
+        secondaryActions={(
+          <AppButton type="button" variant="secondary" iconLeft={<RefreshCw className="h-4 w-4" aria-hidden="true" />} onClick={load}>
+            Refresh
+          </AppButton>
+        )}
+      />
+
+      <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
+        <div className="grid gap-4">
+          <CrudToolbar
+            search={search}
+            onSearch={setSearch}
+            searchPlaceholder="Search shops..."
+            filters={(
+              <label className="grid gap-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+                Status
+                <select
+                  value={statusFilter}
+                  onChange={(event) => setStatusFilter(event.target.value)}
+                  className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold normal-case tracking-normal text-slate-700 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="all">All statuses</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </label>
+            )}
+            onClear={clearFilters}
+          />
+
+          {loadError ? (
+            <AppCard className="border-rose-200 bg-rose-50" bodyClassName="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm font-semibold text-rose-700">{loadError}</p>
+              <AppButton type="button" variant="secondary" size="sm" onClick={load}>Try again</AppButton>
+            </AppCard>
+          ) : null}
+
+          <AppTable
+            ariaLabel="Shops"
+            columns={[
+              {
+                accessorKey: "name",
+                header: "Shop",
+                cell: ({ row }) => (
+                  <div className="flex min-w-56 items-center gap-3">
+                    <BrandAvatar shop={row.original} />
+                    <div>
+                      <p className="font-black text-slate-950">{row.original.name}</p>
+                      <p className="text-xs font-medium text-slate-500">{row.original.slug || "Public slug pending"}</p>
+                    </div>
+                  </div>
+                ),
+              },
+              { accessorKey: "currency_code", header: "Currency" },
+              {
+                accessorKey: "contact",
+                header: "Contact",
+                cell: ({ row }) => (
+                  <div className="min-w-44 text-sm">
+                    <p className="font-semibold text-slate-700">{row.original.phone || "No phone"}</p>
+                    <p className="text-xs text-slate-500">{row.original.email || "No email"}</p>
+                  </div>
+                ),
+              },
+              {
+                accessorKey: "status",
+                header: "Status",
+                cell: ({ row }) => <AppBadge status={row.original.status === "active" ? "active" : row.original.status === "suspended" ? "warning" : "inactive"}>{row.original.status}</AppBadge>,
+              },
+            ]}
+            data={filteredShops}
+            loading={loading}
+            emptyTitle={shops.length ? "No shops match your filters" : "Create your first shop"}
+            emptyDescription={shops.length ? "Clear the search or status filter to see every shop again." : "A shop profile controls the restaurant name, branding, currency, and customer QR menu identity."}
+            emptyActionLabel={allowCreate && !shops.length ? "Add shop" : undefined}
+            onEmptyAction={allowCreate && !shops.length ? openCreate : undefined}
+            rowActions={allowUpdate || allowDelete ? (shop) => (
+              <div className="flex flex-wrap justify-end gap-2">
+                {allowUpdate ? (
+                  <AppButton type="button" variant="secondary" size="sm" iconLeft={<Edit3 className="h-4 w-4" aria-hidden="true" />} onClick={() => openEdit(shop)}>
+                    Edit
+                  </AppButton>
+                ) : null}
+                {allowDelete ? (
+                  <ConfirmButton
+                    title="Delete shop?"
+                    text="This removes the shop profile and can affect customer QR menu access. This action cannot be undone."
+                    onConfirm={() => remove(shop)}
+                    className="inline-flex h-9 items-center justify-center gap-2 rounded-2xl bg-rose-600 px-3 text-sm font-bold text-white shadow-lg shadow-rose-600/20 transition hover:-translate-y-0.5 hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    Delete
+                  </ConfirmButton>
+                ) : null}
+              </div>
+            ) : undefined}
+          />
         </div>
-        <Input label="Address" value={form.address || ""} onChange={(value) => setForm({ ...form, address: value })} />
-        <label className="mt-3 block text-sm font-medium text-slate-700">
-          Description
-          <textarea className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" value={form.description || ""} onChange={(event) => setForm({ ...form, description: event.target.value })} />
-        </label>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Primary color" type="color" value={form.primary_color || "#f97316"} onChange={(value) => setForm({ ...form, primary_color: value })} />
-          <Input label="Secondary color" type="color" value={form.secondary_color || "#111827"} onChange={(value) => setForm({ ...form, secondary_color: value })} />
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Input label="Currency" value={form.currency_code || "KHR"} onChange={(value) => setForm({ ...form, currency_code: value.toUpperCase() })} />
-          <label className="mt-3 block text-sm font-medium text-slate-700">
-            Status
-            <select className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" value={form.status || "active"} onChange={(event) => setForm({ ...form, status: event.target.value })}>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="suspended">Suspended</option>
-            </select>
-          </label>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <File label="Logo" onChange={(file) => setForm({ ...form, logo: file })} />
-          <File label="Cover" onChange={(file) => setForm({ ...form, cover: file })} />
-        </div>
-        <button disabled={editing ? !allowUpdate : !allowCreate} className="mt-5 rounded-md bg-orange-600 px-4 py-2 font-semibold text-white hover:bg-orange-700 disabled:opacity-60">{editing ? "Update shop" : "Create shop"}</button>
-        {editing ? <button type="button" onClick={() => { setEditing(null); setForm(initial); }} className="ml-2 rounded-md border border-slate-300 px-4 py-2 font-semibold text-slate-700">Cancel</button> : null}
-      </form> : null}
-      <div className="grid gap-4">
-        <div className="rounded-md border border-slate-200 bg-white p-4">
-          <h2 className="text-lg font-semibold text-slate-950">Preview</h2>
-          <div className="mt-4 rounded-md border border-slate-200 p-4" style={{ borderTop: `5px solid ${form.primary_color || "#f97316"}` }}>
-            <p className="text-xl font-bold" style={{ color: form.secondary_color || "#111827" }}>{form.name || "Shop name"}</p>
-            <p className="mt-1 text-sm text-slate-500">{form.description || "Shop description appears here."}</p>
-            <p className="mt-3 text-sm font-semibold text-slate-700">{form.currency_code || "KHR"}</p>
-          </div>
-        </div>
-        <DataTable
-          columns={[
-            { key: "name", label: "Name" },
-            { key: "slug", label: "Slug" },
-            { key: "currency_code", label: "Currency" },
-            { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
-          ]}
-          rows={shops}
-          loading={loading}
-          error={loadError}
-          emptyMessage="No shops yet."
-          renderActions={allowUpdate || allowDelete ? (shop) => (
-            <div className="flex gap-2">
-              {allowUpdate ? <button onClick={() => edit(shop)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button> : null}
-              {allowDelete ? <ConfirmButton onConfirm={() => remove(shop)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Delete</ConfirmButton> : null}
-            </div>
-          ) : undefined}
-        />
+
+        <BrandPreview form={form} selectedShop={editing || shops[0]} />
       </div>
+
+      <CreateEditDrawer
+        open={drawerOpen}
+        title={editing ? "Edit shop" : "Add shop"}
+        description={editing ? "Update customer-facing identity, branding, and shop contact details." : "Create the restaurant profile customers will see on the QR menu."}
+        onClose={closeDrawer}
+        onSubmit={submit}
+        submitLabel={editing ? "Update shop" : "Create shop"}
+        loading={saving}
+        disabled={editing ? !allowUpdate : !allowCreate}
+      >
+        <Field label="Shop name" required description="Use the public restaurant name customers recognize.">
+          <TextInput value={form.name} onChange={(value) => setForm({ ...form, name: value })} placeholder="MenuDIGI Cafe" />
+        </Field>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Phone">
+            <TextInput value={form.phone || ""} onChange={(value) => setForm({ ...form, phone: value })} placeholder="+855..." />
+          </Field>
+          <Field label="Email">
+            <TextInput type="email" value={form.email || ""} onChange={(value) => setForm({ ...form, email: value })} placeholder="owner@example.com" />
+          </Field>
+        </div>
+        <Field label="Address">
+          <TextInput value={form.address || ""} onChange={(value) => setForm({ ...form, address: value })} placeholder="Street, district, city" />
+        </Field>
+        <Field label="Description" description="This short copy appears in brand previews and can guide customers before ordering.">
+          <TextArea value={form.description || ""} onChange={(value) => setForm({ ...form, description: value })} placeholder="Fresh coffee, lunch, and table ordering." />
+        </Field>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Primary color">
+            <TextInput type="color" value={form.primary_color || "#2563eb"} onChange={(value) => setForm({ ...form, primary_color: value })} />
+          </Field>
+          <Field label="Secondary color">
+            <TextInput type="color" value={form.secondary_color || "#0f172a"} onChange={(value) => setForm({ ...form, secondary_color: value })} />
+          </Field>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Currency">
+            <TextInput value={form.currency_code || "KHR"} onChange={(value) => setForm({ ...form, currency_code: value.toUpperCase() })} maxLength={3} />
+          </Field>
+          <Field label="Status">
+            <SelectInput
+              value={form.status || "active"}
+              onChange={(value) => setForm({ ...form, status: value })}
+              options={[
+                ["active", "Active"],
+                ["inactive", "Inactive"],
+                ["suspended", "Suspended"],
+              ]}
+            />
+          </Field>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Logo" description={form.logo?.name || (form.logo_path ? "Current logo is saved. Upload to replace it." : "Square image works best.")}>
+            <FileInput onChange={(file) => setForm({ ...form, logo: file })} />
+          </Field>
+          <Field label="Cover" description={form.cover?.name || (form.cover_path ? "Current cover is saved. Upload to replace it." : "Wide image for menu headers.")}>
+            <FileInput onChange={(file) => setForm({ ...form, cover: file })} />
+          </Field>
+        </div>
+        <BrandPreview form={form} compact />
+      </CreateEditDrawer>
+
+      {!shops.length && !loading && !loadError && !allowCreate ? (
+        <AppEmptyState
+          icon={Store}
+          title="No shops available"
+          description="Ask an owner or administrator to create a shop profile before configuring menu operations."
+        />
+      ) : null}
     </div>
   );
 }
 
-function Input({ label, value, onChange, type = "text", required = false }) {
+function BrandAvatar({ shop }) {
+  if (shop.logo_path) {
+    return <img src={shop.logo_path} alt="" className="h-11 w-11 rounded-2xl border border-slate-200 object-cover" />;
+  }
+
   return (
-    <label className="mt-3 block text-sm font-medium text-slate-700">
-      {label}
-      <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" type={type} value={value} required={required} onChange={(event) => onChange(event.target.value)} />
-    </label>
+    <div
+      className="grid h-11 w-11 place-items-center rounded-2xl text-sm font-black text-white shadow-sm"
+      style={{ backgroundColor: shop.primary_color || "#2563eb" }}
+      aria-hidden="true"
+    >
+      {String(shop.name || "S").slice(0, 1).toUpperCase()}
+    </div>
   );
 }
 
-function File({ label, onChange }) {
+function BrandPreview({ form, selectedShop, compact = false }) {
+  const preview = {
+    ...initial,
+    ...(selectedShop || {}),
+    ...form,
+  };
+
   return (
-    <label className="mt-3 block text-sm font-medium text-slate-700">
-      {label}
-      <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" type="file" accept="image/*" onChange={(event) => onChange(event.target.files?.[0] || null)} />
-    </label>
+    <AppCard
+      title="Brand preview"
+      description={compact ? "Customer-facing identity preview." : "Use this to check contrast, currency, and menu-facing identity before saving."}
+      className="h-fit"
+      bodyClassName="grid gap-4"
+    >
+      <div
+        className="overflow-hidden rounded-3xl border border-slate-200 bg-slate-950 text-white shadow-sm"
+        style={{ backgroundColor: preview.secondary_color || "#0f172a" }}
+      >
+        <div
+          className="h-20 bg-slate-200"
+          style={{
+            backgroundColor: preview.primary_color || "#2563eb",
+            backgroundImage: preview.cover_path ? `url(${preview.cover_path})` : undefined,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+        <div className="p-4">
+          <div className="flex items-start gap-3">
+            <BrandAvatar shop={preview} />
+            <div className="min-w-0">
+              <p className="truncate text-lg font-black">{preview.name || "Shop name"}</p>
+              <p className="mt-1 text-sm text-white/75">{preview.description || "Shop description appears here."}</p>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2 text-xs font-black">
+            <span className="rounded-full bg-white/15 px-3 py-1">{preview.currency_code || "KHR"}</span>
+            <span className="rounded-full bg-white/15 px-3 py-1">{preview.status || "active"}</span>
+          </div>
+        </div>
+      </div>
+    </AppCard>
   );
 }

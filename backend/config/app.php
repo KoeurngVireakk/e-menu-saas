@@ -21,6 +21,8 @@ return [
 
     'api_slow_log_ms' => (int) env('API_SLOW_LOG_MS', 500),
 
+    'api_timing_headers' => (bool) env('API_TIMING_HEADERS', false),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

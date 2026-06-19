@@ -41,6 +41,11 @@ describe("SettingsPage", () => {
   it("renders Telegram notification settings", async () => {
     render(<SettingsPage />);
 
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Shop settings" })).toBeInTheDocument());
+    expect(screen.getByRole("heading", { name: "Identity" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Branding" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Billing defaults" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Brand preview" })).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText("Telegram notifications")).toBeInTheDocument());
     expect(screen.getByLabelText("Telegram chat ID")).toBeInTheDocument();
     expect(screen.getByText("Test Telegram")).toBeInTheDocument();

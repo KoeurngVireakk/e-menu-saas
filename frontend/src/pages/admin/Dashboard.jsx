@@ -20,6 +20,7 @@ import {
 import ChartCard from "../../design-system/charts/ChartCard";
 import { pageTransition, staggerContainer, staggerItem } from "../../design-system/motion/variants";
 import useOperationsRealtime from "../../hooks/useOperationsRealtime";
+import { useShopsQuery } from "../../hooks/useShopsQuery";
 
 const OrderStatusChart = lazy(() => import("../../design-system/charts/OrderStatusChart"));
 const SalesLineChart = lazy(() => import("../../design-system/charts/SalesLineChart"));
@@ -27,7 +28,7 @@ const TopProductsChart = lazy(() => import("../../design-system/charts/TopProduc
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [shops, setShops] = useState([]);
+  const { data: shops = [] } = useShopsQuery();
   const [orders, setOrders] = useState([]);
   const [summary, setSummary] = useState({ new_count: 0, pending_count: 0, today_revenue: 0 });
   const [loading, setLoading] = useState(true);
@@ -76,14 +77,18 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    Promise.all([api.get("/shops"), api.get("/orders")])
-      .then(([shopsResponse, ordersResponse]) => {
-        setShops(shopsResponse.data.data.shops);
-        setOrders(ordersResponse.data.data.orders.slice(0, 8));
-        setSummary(ordersResponse.data.data.summary);
-      })
-      .catch((requestError) => setError(requestError.response?.data?.message || "Dashboard could not be loaded."))
-      .finally(() => setLoading(false));
+    const timer = window.setTimeout(() => {
+      setLoading(true);
+      api.get("/orders")
+        .then((ordersResponse) => {
+          setOrders(ordersResponse.data.data.orders.slice(0, 8));
+          setSummary(ordersResponse.data.data.summary);
+        })
+        .catch((requestError) => setError(requestError.response?.data?.message || "Dashboard could not be loaded."))
+        .finally(() => setLoading(false));
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   const metrics = useMemo(() => {

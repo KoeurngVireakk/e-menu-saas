@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import api from "../../api/axios";
@@ -10,7 +11,7 @@ vi.mock("../../api/axios", () => ({
 }));
 
 vi.mock("../../context/AuthContext", () => ({
-  useAuth: () => ({ user: { name: "Owner", role: "shop_owner" } }),
+  useAuth: () => ({ authenticated: true, user: { name: "Owner", role: "shop_owner" } }),
 }));
 
 vi.mock("../../hooks/useOperationsRealtime", () => ({
@@ -29,17 +30,29 @@ vi.mock("../../design-system/charts/TopProductsChart", () => ({
   default: () => <div data-testid="top-products-chart" />,
 }));
 
+function renderWithQuery(ui) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+}
+
 describe("Dashboard", () => {
   beforeEach(() => {
     api.get.mockReset();
   });
 
   it("renders dashboard metrics and recent order", async () => {
-    api.get
-      .mockResolvedValueOnce({
-        data: { data: { shops: [{ id: 1, name: "MenuDIGI Cafe", slug: "menudigi-cafe", status: "active" }] } },
-      })
-      .mockResolvedValueOnce({
+    api.get.mockImplementation((url) => {
+      if (url === "/shops") {
+        return Promise.resolve({
+          data: { data: { shops: [{ id: 1, name: "MenuDIGI Cafe", slug: "menudigi-cafe", status: "active" }] } },
+        });
+      }
+
+      if (url === "/orders") {
+        return Promise.resolve({
         data: {
           data: {
             summary: { new_count: 1, pending_count: 1, today_revenue: 12000 },
@@ -58,8 +71,12 @@ describe("Dashboard", () => {
           },
         },
       });
+      }
 
-    render(
+      return Promise.reject(new Error(`Unexpected URL ${url}`));
+    });
+
+    renderWithQuery(
       <MemoryRouter>
         <LanguageProvider>
           <Dashboard />

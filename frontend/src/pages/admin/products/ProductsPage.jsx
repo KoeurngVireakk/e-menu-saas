@@ -5,6 +5,8 @@ import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
 import { alertError, toastError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { useShopsQuery } from "../../../hooks/useShopsQuery";
+import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
 import useLanguage from "../../../i18n/useLanguage";
 import {
   AppBadge,
@@ -64,11 +66,19 @@ export default function ProductsPage() {
   const allowCreate = canCreate(user, "products");
   const allowUpdate = canUpdate(user, "products");
   const allowDelete = canDelete(user, "products");
-  const [shops, setShops] = useState([]);
-  const [branches, setBranches] = useState([]);
+  const { data: shops = [] } = useShopsQuery();
+  const [shopId, setShopId] = useState("");
+
+  useEffect(() => {
+    if (shops.length && !shopId) {
+      const timer = setTimeout(() => setShopId(shops[0].id), 0);
+      return () => clearTimeout(timer);
+    }
+  }, [shops, shopId]);
+
+  const { data: branches = [] } = useBranchesQuery(shopId);
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
-  const [shopId, setShopId] = useState("");
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -84,14 +94,6 @@ export default function ProductsPage() {
   const [loadError, setLoadError] = useState("");
   const [optionsError, setOptionsError] = useState("");
 
-  useEffect(() => {
-    api.get("/shops").then((response) => {
-      const loaded = response.data.data.shops;
-      setShops(loaded);
-      setShopId(loaded[0]?.id || "");
-    });
-  }, []);
-
   const load = useCallback(() => {
     if (!shopId) return;
     setLoading(true);
@@ -100,20 +102,18 @@ export default function ProductsPage() {
     Promise.all([
       api.get(`/shops/${shopId}/products`),
       api.get(`/shops/${shopId}/categories`),
-      api.get(`/shops/${shopId}/branches`),
     ])
-      .then(([productsResponse, categoriesResponse, branchesResponse]) => {
+      .then(([productsResponse, categoriesResponse]) => {
         setProducts(productsResponse.data.data.products);
         setCategories(categoriesResponse.data.data.categories);
-        setBranches(branchesResponse.data.data.branches);
       })
       .catch((error) => setLoadError(error.response?.data?.message || "Unable to load products."))
       .finally(() => setLoading(false));
   }, [shopId]);
 
   useEffect(() => {
-    const timer = window.setTimeout(load, 0);
-    return () => window.clearTimeout(timer);
+    const timer = setTimeout(load, 0);
+    return () => clearTimeout(timer);
   }, [load]);
 
   const filteredProducts = useMemo(() => {

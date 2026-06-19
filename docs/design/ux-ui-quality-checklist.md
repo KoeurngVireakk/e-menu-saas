@@ -136,3 +136,13 @@
 - Mobile restaurant checklist: at 375px and 430px, verify category tabs, product cards, option controls, cart review, payment proof upload, and status timeline remain readable in English and Khmer.
 - Operations checklist: orders, kitchen, and payments should surface current state, elapsed urgency where available, and the safest next action before secondary details.
 - Trust checklist: landing/auth/payment copy must be accurate; do not add fake testimonials, fake metrics, fake payment readiness, or fake realtime claims.
+
+## Module 48.5 Admin Debt Cleanup QA
+
+- Shop CRUD checklist: shop management should be list-first with search, status filter, drawer create/edit, brand preview, explicit media helper text, empty/no-results states, and delete copy that explains QR menu impact.
+- Print station checklist: station management should show shop/type filters, branch scope, default station state, routing summary by station type, drawer create/edit, and delete copy that does not imply old print logs are removed.
+- Settings checklist: settings should be grouped into identity, branding, billing defaults, and notifications, with a visible selected shop, owner-only edit state, brand preview, and sticky save action for long forms.
+- Media checklist: logo and cover uploads need readable labels, replacement guidance, and preview/context where existing assets are already saved.
+- Admin mobile checklist: drawers must remain one-column, footer actions reachable, toolbar filters wrap cleanly, tables scroll inside their container, and preview panels stack below the primary list.
+- Bilingual readiness checklist: new admin copy should have Khmer and English keys even when a page still needs a later wiring pass to `useLanguage`.
+- Regression checklist: preserve existing API payloads, Telegram test action, multipart upload behavior, permission checks, and destructive confirmation flow.

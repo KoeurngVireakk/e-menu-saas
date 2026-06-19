@@ -5,6 +5,8 @@ import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
 import { alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { useShopsQuery } from "../../../hooks/useShopsQuery";
+import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
 import {
   AppCard,
   AppEmptyState,
@@ -26,9 +28,17 @@ export default function CategoriesPage() {
   const allowCreate = canCreate(user, "categories");
   const allowUpdate = canUpdate(user, "categories");
   const allowDelete = canDelete(user, "categories");
-  const [shops, setShops] = useState([]);
-  const [branches, setBranches] = useState([]);
+  const { data: shops = [] } = useShopsQuery();
   const [shopId, setShopId] = useState("");
+
+  useEffect(() => {
+    if (shops.length && !shopId) {
+      const timer = setTimeout(() => setShopId(shops[0].id), 0);
+      return () => clearTimeout(timer);
+    }
+  }, [shops, shopId]);
+
+  const { data: branches = [] } = useBranchesQuery(shopId);
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
@@ -40,34 +50,22 @@ export default function CategoriesPage() {
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState("");
 
-  useEffect(() => {
-    api.get("/shops").then((response) => {
-      const loaded = response.data.data.shops;
-      setShops(loaded);
-      setShopId(loaded[0]?.id || "");
-    });
-  }, []);
-
   const load = useCallback(() => {
     if (!shopId) return;
     setLoading(true);
     setLoadError("");
 
-    Promise.all([
-      api.get(`/shops/${shopId}/categories`),
-      api.get(`/shops/${shopId}/branches`),
-    ])
-      .then(([categoriesResponse, branchesResponse]) => {
+    api.get(`/shops/${shopId}/categories`)
+      .then((categoriesResponse) => {
         setCategories(categoriesResponse.data.data.categories);
-        setBranches(branchesResponse.data.data.branches);
       })
       .catch((error) => setLoadError(error.response?.data?.message || "Unable to load categories."))
       .finally(() => setLoading(false));
   }, [shopId]);
 
   useEffect(() => {
-    const timer = window.setTimeout(load, 0);
-    return () => window.clearTimeout(timer);
+    const timer = setTimeout(load, 0);
+    return () => clearTimeout(timer);
   }, [load]);
 
   const filteredCategories = useMemo(() => {

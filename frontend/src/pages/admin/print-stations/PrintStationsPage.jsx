@@ -1,10 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
+import { Edit3, Plus, Printer, RefreshCw, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import api, { getApiErrorMessage } from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
-import DataTable from "../../../components/DataTable";
-import StatusBadge from "../../../components/StatusBadge";
-import { Badge, Button, Card, EmptyState, alertError, toastSuccess } from "../../../components/ui";
+import { alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import AppBadge from "../../../design-system/components/AppBadge";
+import AppButton from "../../../design-system/components/AppButton";
+import AppCard from "../../../design-system/components/AppCard";
+import AppEmptyState from "../../../design-system/components/AppEmptyState";
+import AppPageHeader from "../../../design-system/components/AppPageHeader";
+import AppTable from "../../../design-system/components/AppTable";
+import CreateEditDrawer from "../../../design-system/crud/CreateEditDrawer";
+import CrudToolbar from "../../../design-system/crud/CrudToolbar";
+import { Field, SelectInput, TextInput, ToggleField } from "../../../design-system/crud/FormControls";
 import { canManagePrintStations } from "../../../utils/permissions";
 
 const initial = {
@@ -35,11 +43,6 @@ export default function PrintStationsPage() {
   const [shops, setShops] = useState([]);
   const [shopId, setShopId] = useState("");
   const [branches, setBranches] = useState([]);
-  const [stations, setStations] = useState([]);
-  const [form, setForm] = useState(initial);
-  const [editing, setEditing] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     api.get("/shops").then((response) => {
@@ -49,17 +52,27 @@ export default function PrintStationsPage() {
     });
   }, []);
 
+  const [stations, setStations] = useState([]);
+  const [form, setForm] = useState(initial);
+  const [editing, setEditing] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState("");
+
   const load = useCallback(() => {
     if (!shopId) {
       setBranches([]);
       setStations([]);
-      return;
+      return Promise.resolve();
     }
 
     setLoading(true);
     setLoadError("");
 
-    Promise.all([
+    return Promise.all([
       api.get(`/shops/${shopId}/branches`),
       api.get(`/shops/${shopId}/print-stations`),
     ])
@@ -72,12 +85,52 @@ export default function PrintStationsPage() {
   }, [shopId]);
 
   useEffect(() => {
-    const timer = window.setTimeout(load, 0);
-    return () => window.clearTimeout(timer);
+    const timer = setTimeout(load, 0);
+    return () => clearTimeout(timer);
   }, [load]);
+
+  const filteredStations = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return stations.filter((station) => {
+      const matchesType = typeFilter === "all" || station.type === typeFilter;
+      const matchesSearch = !query || [station.name, station.type, station.paper_size, station.branch?.name]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
+
+      return matchesType && matchesSearch;
+    });
+  }, [search, stations, typeFilter]);
+
+  const openCreate = () => {
+    setEditing(null);
+    setForm(initial);
+    setDrawerOpen(true);
+  };
+
+  const openEdit = (station) => {
+    setEditing(station);
+    setForm({
+      branch_id: station.branch_id || "",
+      name: station.name || "",
+      type: station.type || "kitchen",
+      paper_size: station.paper_size || "80mm",
+      is_default: Boolean(station.is_default),
+      status: station.status || "active",
+    });
+    setDrawerOpen(true);
+  };
+
+  const closeDrawer = () => {
+    setDrawerOpen(false);
+    setEditing(null);
+    setForm(initial);
+  };
 
   const submit = async (event) => {
     event.preventDefault();
+    setSaving(true);
+
     const payload = {
       ...form,
       branch_id: form.branch_id || null,
@@ -92,23 +145,13 @@ export default function PrintStationsPage() {
         await api.post(`/shops/${shopId}/print-stations`, payload);
         toastSuccess("Print station created.");
       }
-      resetForm();
+      closeDrawer();
       load();
     } catch (error) {
       alertError(error, "Please review the print station.");
+    } finally {
+      setSaving(false);
     }
-  };
-
-  const edit = (station) => {
-    setEditing(station);
-    setForm({
-      branch_id: station.branch_id || "",
-      name: station.name || "",
-      type: station.type || "kitchen",
-      paper_size: station.paper_size || "80mm",
-      is_default: Boolean(station.is_default),
-      status: station.status || "active",
-    });
   };
 
   const remove = async (station) => {
@@ -117,100 +160,216 @@ export default function PrintStationsPage() {
     load();
   };
 
-  const resetForm = () => {
-    setEditing(null);
-    setForm(initial);
-  };
+  const clearFilters = search || typeFilter !== "all"
+    ? () => {
+      setSearch("");
+      setTypeFilter("all");
+    }
+    : undefined;
 
   if (!shops.length && !loading) {
-    return <EmptyState title="No shops available." message="Create or assign a shop before configuring print stations." />;
+    return (
+      <AppEmptyState
+        icon={Printer}
+        title="No shops available"
+        description="Create or assign a shop before configuring kitchen, cashier, receipt, or bar print stations."
+      />
+    );
   }
 
   return (
-    <div className={`grid gap-6 ${allowManage ? "lg:grid-cols-[390px_1fr]" : ""}`}>
-      {allowManage ? (
-        <form onSubmit={submit} className="rounded-md border border-slate-200 bg-white p-4">
-          <h1 className="text-lg font-semibold text-slate-950">{editing ? "Edit print station" : "Add print station"}</h1>
-          <Select label="Shop" value={shopId} disabled={Boolean(editing)} onChange={(value) => setShopId(value)}>
-            {shops.map((shop) => <option key={shop.id} value={shop.id}>{shop.name}</option>)}
-          </Select>
-          <Select label="Branch" value={form.branch_id} onChange={(value) => setForm({ ...form, branch_id: value })}>
-            <option value="">All branches</option>
-            {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
-          </Select>
-          <Input label="Station name" value={form.name} required onChange={(value) => setForm({ ...form, name: value })} />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Select label="Type" value={form.type} onChange={(value) => setForm({ ...form, type: value })}>
-              {stationTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-            </Select>
-            <Select label="Paper size" value={form.paper_size} onChange={(value) => setForm({ ...form, paper_size: value })}>
-              {paperSizes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-            </Select>
-          </div>
-          <Select label="Status" value={form.status} onChange={(value) => setForm({ ...form, status: value })}>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </Select>
-          <label className="mt-3 flex items-center gap-2 text-sm font-medium text-slate-700">
-            <input type="checkbox" checked={form.is_default} onChange={(event) => setForm({ ...form, is_default: event.target.checked })} />
-            Default station for this type
-          </label>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Button type="submit" disabled={!shopId}>{editing ? "Update station" : "Create station"}</Button>
-            {editing ? <Button type="button" variant="secondary" onClick={resetForm}>Cancel</Button> : null}
-          </div>
-        </form>
-      ) : null}
+    <div className="grid gap-6">
+      <AppPageHeader
+        eyebrow="Operations"
+        title="Print stations"
+        description="Route kitchen tickets, receipts, and service-area print jobs to the right branch device."
+        primaryAction={allowManage ? {
+          children: "Add station",
+          iconLeft: <Plus className="h-4 w-4" aria-hidden="true" />,
+          onClick: openCreate,
+          disabled: !shopId,
+        } : null}
+        secondaryActions={(
+          <AppButton type="button" variant="secondary" iconLeft={<RefreshCw className="h-4 w-4" aria-hidden="true" />} onClick={load} disabled={!shopId}>
+            Refresh
+          </AppButton>
+        )}
+      />
 
-      <Card className="grid gap-4 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-orange-600">Operations</p>
-            <h2 className="text-xl font-bold text-slate-950">Print Stations</h2>
-          </div>
-          {!allowManage ? <Badge tone="slate">View only</Badge> : null}
+      <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
+        <div className="grid gap-4">
+          <CrudToolbar
+            search={search}
+            onSearch={setSearch}
+            searchPlaceholder="Search print stations..."
+            filters={(
+              <>
+                <label className="grid gap-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+                  Shop
+                  <select
+                    value={shopId}
+                    onChange={(event) => setShopId(event.target.value)}
+                    disabled={Boolean(editing)}
+                    className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold normal-case tracking-normal text-slate-700 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 disabled:bg-slate-100"
+                  >
+                    {shops.map((shop) => <option key={shop.id} value={shop.id}>{shop.name}</option>)}
+                  </select>
+                </label>
+                <label className="grid gap-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+                  Type
+                  <select
+                    value={typeFilter}
+                    onChange={(event) => setTypeFilter(event.target.value)}
+                    className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold normal-case tracking-normal text-slate-700 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="all">All types</option>
+                    {stationTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                  </select>
+                </label>
+              </>
+            )}
+            onClear={clearFilters}
+          />
+
+          {loadError ? (
+            <AppCard className="border-rose-200 bg-rose-50" bodyClassName="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm font-semibold text-rose-700">{loadError}</p>
+              <AppButton type="button" variant="secondary" size="sm" onClick={load}>Try again</AppButton>
+            </AppCard>
+          ) : null}
+
+          <AppTable
+            ariaLabel="Print stations"
+            columns={[
+              {
+                accessorKey: "name",
+                header: "Station",
+                cell: ({ row }) => (
+                  <div className="min-w-44">
+                    <p className="font-black text-slate-950">{row.original.name}</p>
+                    <p className="text-xs font-medium text-slate-500">{row.original.branch?.name || "All branches"}</p>
+                  </div>
+                ),
+              },
+              {
+                accessorKey: "type",
+                header: "Type",
+                cell: ({ row }) => <AppBadge status={row.original.type === "kitchen" ? "warning" : "info"}>{row.original.type}</AppBadge>,
+              },
+              { accessorKey: "paper_size", header: "Paper" },
+              {
+                accessorKey: "is_default",
+                header: "Default",
+                cell: ({ row }) => row.original.is_default ? <AppBadge status="success">Default</AppBadge> : <span className="text-slate-400">-</span>,
+              },
+              {
+                accessorKey: "status",
+                header: "Status",
+                cell: ({ row }) => <AppBadge status={row.original.status === "active" ? "active" : "inactive"}>{row.original.status}</AppBadge>,
+              },
+            ]}
+            data={filteredStations}
+            loading={loading}
+            emptyTitle={stations.length ? "No print stations match your filters" : "Add your first print station"}
+            emptyDescription={stations.length ? "Clear filters to review all configured station routes." : "Print stations tell the operations team where kitchen tickets, receipts, and bar items should be sent."}
+            emptyActionLabel={allowManage && !stations.length ? "Add station" : undefined}
+            onEmptyAction={allowManage && !stations.length ? openCreate : undefined}
+            rowActions={allowManage ? (station) => (
+              <div className="flex flex-wrap justify-end gap-2">
+                <AppButton type="button" variant="secondary" size="sm" iconLeft={<Edit3 className="h-4 w-4" aria-hidden="true" />} onClick={() => openEdit(station)}>
+                  Edit
+                </AppButton>
+                <ConfirmButton
+                  title="Delete print station?"
+                  text="This removes the station route for future tickets. Existing print logs are not changed."
+                  onConfirm={() => remove(station)}
+                  className="inline-flex h-9 items-center justify-center gap-2 rounded-2xl bg-rose-600 px-3 text-sm font-bold text-white shadow-lg shadow-rose-600/20 transition hover:-translate-y-0.5 hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  Delete
+                </ConfirmButton>
+              </div>
+            ) : undefined}
+          />
         </div>
-        <DataTable
-          columns={[
-            { key: "name", label: "Name" },
-            { key: "branch", label: "Branch", render: (row) => row.branch?.name || "All branches" },
-            { key: "type", label: "Type", render: (row) => <Badge tone={row.type === "kitchen" ? "orange" : "slate"}>{row.type}</Badge> },
-            { key: "paper_size", label: "Paper" },
-            { key: "is_default", label: "Default", render: (row) => row.is_default ? <Badge tone="green">Default</Badge> : "-" },
-            { key: "status", label: "Status", render: (row) => <StatusBadge value={row.status} /> },
-          ]}
-          rows={stations}
-          loading={loading}
-          error={loadError}
-          emptyMessage="No print stations yet."
-          renderActions={allowManage ? (station) => (
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => edit(station)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button>
-              <ConfirmButton onConfirm={() => remove(station)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Delete</ConfirmButton>
-            </div>
-          ) : undefined}
+
+        <AppCard
+          title="Station routing"
+          description="Keep one default route per print type so staff can print with fewer choices during service."
+          className="h-fit"
+        >
+          <div className="grid gap-3 text-sm">
+            {stationTypes.map(([value, label]) => {
+              const count = stations.filter((station) => station.type === value).length;
+              const defaultStation = stations.find((station) => station.type === value && station.is_default);
+
+              return (
+                <div key={value} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-black text-slate-900">{label}</p>
+                    <AppBadge status={count ? "info" : "inactive"}>{count}</AppBadge>
+                  </div>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">{defaultStation ? `Default: ${defaultStation.name}` : "No default station selected."}</p>
+                </div>
+              );
+            })}
+          </div>
+        </AppCard>
+      </div>
+
+      <CreateEditDrawer
+        open={drawerOpen}
+        title={editing ? "Edit print station" : "Add print station"}
+        description="Configure where operational tickets and receipts should be routed."
+        onClose={closeDrawer}
+        onSubmit={submit}
+        submitLabel={editing ? "Update station" : "Create station"}
+        loading={saving}
+        disabled={!shopId || !allowManage}
+      >
+        <Field label="Shop" required description="Stations belong to one shop workspace.">
+          <SelectInput
+            value={shopId}
+            disabled={Boolean(editing)}
+            onChange={setShopId}
+            options={shops.map((shop) => [shop.id, shop.name])}
+          />
+        </Field>
+        <Field label="Branch" description="Leave as all branches when one printer handles the full shop.">
+          <SelectInput
+            value={form.branch_id}
+            onChange={(value) => setForm({ ...form, branch_id: value })}
+            options={[["", "All branches"], ...branches.map((branch) => [branch.id, branch.name])]}
+          />
+        </Field>
+        <Field label="Station name" required description="Use a clear operational name, such as Kitchen pass or Cashier receipt.">
+          <TextInput value={form.name} onChange={(value) => setForm({ ...form, name: value })} placeholder="Kitchen pass" />
+        </Field>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Type">
+            <SelectInput value={form.type} onChange={(value) => setForm({ ...form, type: value })} options={stationTypes} />
+          </Field>
+          <Field label="Paper size">
+            <SelectInput value={form.paper_size} onChange={(value) => setForm({ ...form, paper_size: value })} options={paperSizes} />
+          </Field>
+        </div>
+        <Field label="Status">
+          <SelectInput
+            value={form.status}
+            onChange={(value) => setForm({ ...form, status: value })}
+            options={[
+              ["active", "Active"],
+              ["inactive", "Inactive"],
+            ]}
+          />
+        </Field>
+        <ToggleField
+          label="Default station for this type"
+          description="Use this when staff should not have to choose a printer for the same ticket type."
+          checked={Boolean(form.is_default)}
+          onChange={(value) => setForm({ ...form, is_default: value })}
         />
-      </Card>
+      </CreateEditDrawer>
     </div>
-  );
-}
-
-function Input({ label, value, onChange, type = "text", required = false }) {
-  return (
-    <label className="mt-3 block text-sm font-medium text-slate-700">
-      {label}
-      <input className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2" type={type} value={value} required={required} onChange={(event) => onChange(event.target.value)} />
-    </label>
-  );
-}
-
-function Select({ label, value, onChange, disabled = false, children }) {
-  return (
-    <label className="mt-3 block text-sm font-medium text-slate-700">
-      {label}
-      <select disabled={disabled} className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 disabled:bg-slate-100" value={value} onChange={(event) => onChange(event.target.value)}>
-        {children}
-      </select>
-    </label>
   );
 }

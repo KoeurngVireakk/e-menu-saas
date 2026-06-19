@@ -4,6 +4,9 @@ import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
 import { alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { useShopsQuery } from "../../../hooks/useShopsQuery";
+import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   AppCard,
   AppEmptyState,
@@ -25,45 +28,33 @@ export default function BranchesPage() {
   const allowCreate = canCreate(user, "branches");
   const allowUpdate = canUpdate(user, "branches");
   const allowDelete = canDelete(user, "branches");
-  const [shops, setShops] = useState([]);
+  const queryClient = useQueryClient();
+  const { data: shops = [] } = useShopsQuery();
   const [shopId, setShopId] = useState("");
-  const [branches, setBranches] = useState([]);
+
+  useEffect(() => {
+    if (shops.length && !shopId) {
+      const timer = setTimeout(() => setShopId(shops[0].id), 0);
+      return () => clearTimeout(timer);
+    }
+  }, [shops, shopId]);
+
+  const { data: branches = [], isLoading, isFetching, error: queryError } = useBranchesQuery(shopId);
+  const loading = isLoading || isFetching;
+  const loadError = queryError?.response?.data?.message || queryError?.message || "";
+
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [loadError, setLoadError] = useState("");
-
-  useEffect(() => {
-    api.get("/shops").then((response) => {
-      const loaded = response.data.data.shops;
-      setShops(loaded);
-      setShopId(loaded[0]?.id || "");
-    });
-  }, []);
 
   const load = useCallback(() => {
-    if (!shopId) {
-      setBranches([]);
-      return;
+    if (shopId) {
+      queryClient.invalidateQueries({ queryKey: ["branches", shopId] });
     }
-
-    setLoading(true);
-    setLoadError("");
-    api
-      .get(`/shops/${shopId}/branches`)
-      .then((response) => setBranches(response.data.data.branches))
-      .catch((error) => setLoadError(error.response?.data?.message || "Unable to load branches."))
-      .finally(() => setLoading(false));
-  }, [shopId]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(load, 0);
-    return () => window.clearTimeout(timer);
-  }, [load]);
+  }, [queryClient, shopId]);
 
   const filteredBranches = useMemo(() => {
     const query = search.trim().toLowerCase();

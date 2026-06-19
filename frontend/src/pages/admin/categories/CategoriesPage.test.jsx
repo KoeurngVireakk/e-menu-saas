@@ -20,10 +20,21 @@ describe("CategoriesPage", () => {
   });
 
   it("renders toolbar search and opens the add category drawer", async () => {
-    api.get
-      .mockResolvedValueOnce({ data: { data: { shops: [{ id: 1, name: "MenuDIGI Cafe" }] } } })
-      .mockResolvedValueOnce({ data: { data: { categories: [{ id: 10, name: "Coffee", sort_order: 1, status: "active", branch: null }] } } })
-      .mockResolvedValueOnce({ data: { data: { branches: [{ id: 2, name: "Main" }] } } });
+    api.get.mockImplementation((url) => {
+      if (url === "/shops") {
+        return Promise.resolve({ data: { data: { shops: [{ id: 1, name: "MenuDIGI Cafe" }] } } });
+      }
+
+      if (url === "/shops/1/categories") {
+        return Promise.resolve({ data: { data: { categories: [{ id: 10, name: "Coffee", sort_order: 1, status: "active", branch: null }] } } });
+      }
+
+      if (url === "/shops/1/branches") {
+        return Promise.resolve({ data: { data: { branches: [{ id: 2, name: "Main" }] } } });
+      }
+
+      return Promise.reject(new Error(`Unexpected URL ${url}`));
+    });
 
     render(
       <MemoryRouter>

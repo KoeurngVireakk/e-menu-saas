@@ -21,17 +21,31 @@ describe("ProductsPage", () => {
   });
 
   it("renders product filters and opens the tabbed add product drawer", async () => {
-    api.get
-      .mockResolvedValueOnce({ data: { data: { shops: [{ id: 1, name: "MenuDIGI Cafe" }] } } })
-      .mockResolvedValueOnce({
-        data: {
+    api.get.mockImplementation((url) => {
+      if (url === "/shops") {
+        return Promise.resolve({ data: { data: { shops: [{ id: 1, name: "MenuDIGI Cafe" }] } } });
+      }
+
+      if (url === "/shops/1/products") {
+        return Promise.resolve({
           data: {
-            products: [{ id: 20, name: "Iced Latte", price: 12000, status: "active", is_available: true, category: { name: "Coffee" } }],
+            data: {
+              products: [{ id: 20, name: "Iced Latte", price: 12000, status: "active", is_available: true, category: { name: "Coffee" } }],
+            },
           },
-        },
-      })
-      .mockResolvedValueOnce({ data: { data: { categories: [{ id: 5, name: "Coffee" }] } } })
-      .mockResolvedValueOnce({ data: { data: { branches: [{ id: 2, name: "Main" }] } } });
+        });
+      }
+
+      if (url === "/shops/1/categories") {
+        return Promise.resolve({ data: { data: { categories: [{ id: 5, name: "Coffee" }] } } });
+      }
+
+      if (url === "/shops/1/branches") {
+        return Promise.resolve({ data: { data: { branches: [{ id: 2, name: "Main" }] } } });
+      }
+
+      return Promise.reject(new Error(`Unexpected URL ${url}`));
+    });
 
     render(
       <MemoryRouter>

@@ -17,10 +17,9 @@ class LogSlowApiRequests
         $response = $next($request);
 
         $threshold = (int) config('app.api_slow_log_ms', 500);
+        $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
 
         if ($threshold > 0 && $request->is('api/*')) {
-            $durationMs = (int) round((microtime(true) - $startedAt) * 1000);
-
             if ($durationMs >= $threshold) {
                 Log::warning('Slow API request', [
                     'method' => $request->method(),
@@ -30,6 +29,10 @@ class LogSlowApiRequests
                     'user_id' => $request->user()?->id,
                 ]);
             }
+        }
+
+        if (config('app.api_timing_headers', false) && $request->is('api/*')) {
+            $response->headers->set('X-Request-Time-Ms', (string) $durationMs);
         }
 
         return $response;

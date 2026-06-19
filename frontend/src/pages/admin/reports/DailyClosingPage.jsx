@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import api, { getApiErrorMessage } from "../../../api/axios";
+import { useShopsQuery } from "../../../hooks/useShopsQuery";
+import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
 import DailyClosingPrint from "../../../components/print/DailyClosingPrint";
@@ -9,9 +11,9 @@ import { formatCurrency } from "../../../utils/currency";
 
 export default function DailyClosingPage() {
   const { user } = useAuth();
-  const [shops, setShops] = useState([]);
-  const [branches, setBranches] = useState([]);
+  const { data: shops = [] } = useShopsQuery();
   const [filters, setFilters] = useState({ shop_id: "", branch_id: "", date: today() });
+  const { data: branches = [] } = useBranchesQuery(filters.shop_id);
   const [countedCash, setCountedCash] = useState("");
   const [note, setNote] = useState("");
   const [closings, setClosings] = useState([]);
@@ -24,27 +26,25 @@ export default function DailyClosingPage() {
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    api.get("/shops").then((response) => {
-      const loaded = response.data.data.shops;
-      setShops(loaded);
-      setFilters((current) => ({ ...current, shop_id: loaded[0]?.id || "" }));
-    });
-  }, []);
+    if (shops.length && !filters.shop_id) {
+      const timer = setTimeout(() => {
+        setFilters((current) => ({ ...current, shop_id: shops[0].id }));
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [shops, filters.shop_id]);
 
   useEffect(() => {
-    if (!filters.shop_id) {
-      return;
+    if (branches.length) {
+      const timer = setTimeout(() => {
+        setFilters((current) => ({
+          ...current,
+          branch_id: user?.role === "cashier" ? branches[0].id || "" : current.branch_id,
+        }));
+      }, 0);
+      return () => clearTimeout(timer);
     }
-
-    api.get(`/shops/${filters.shop_id}/branches`).then((response) => {
-      const loaded = response.data.data.branches;
-      setBranches(loaded);
-      setFilters((current) => ({
-        ...current,
-        branch_id: user?.role === "cashier" ? loaded[0]?.id || "" : current.branch_id,
-      }));
-    });
-  }, [filters.shop_id, user?.role]);
+  }, [branches, user?.role]);
 
   const selectedShop = useMemo(() => shops.find((shop) => String(shop.id) === String(filters.shop_id)), [shops, filters.shop_id]);
   const currency = summary?.currency_code || selectedShop?.currency_code || "KHR";

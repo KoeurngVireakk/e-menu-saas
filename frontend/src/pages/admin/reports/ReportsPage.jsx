@@ -3,6 +3,7 @@ import { Download, RefreshCw } from "lucide-react";
 import api, { getApiErrorMessage } from "../../../api/axios";
 import { ErrorState, Input, LoadingState, Select } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import { AppButton, AppCard, AppEmptyState, AppMetricCard, AppPageHeader } from "../../../design-system/components";
 import ReportChartCard from "../../../design-system/charts/ReportChartCard";
 import { useLanguage } from "../../../i18n";
@@ -31,7 +32,7 @@ export default function ReportsPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const allowExport = canExportReports(user);
-  const [shops, setShops] = useState([]);
+  const { data: shops = [] } = useShopsQuery();
   const [branches, setBranches] = useState({ shopId: "", items: [] });
   const [filters, setFilters] = useState(initialFilters);
   const [reports, setReports] = useState(null);
@@ -39,12 +40,13 @@ export default function ReportsPage() {
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    api.get("/shops").then((response) => {
-      const loaded = response.data.data.shops || [];
-      setShops(loaded);
-      setFilters((current) => ({ ...current, shop_id: loaded[0]?.id || "" }));
-    }).catch((error) => setLoadError(getApiErrorMessage(error, "Unable to load shops.")));
-  }, []);
+    if (shops.length && !filters.shop_id) {
+      const timer = setTimeout(() => {
+        setFilters((current) => ({ ...current, shop_id: shops[0].id }));
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [shops, filters.shop_id]);
 
   useEffect(() => {
     if (!filters.shop_id) {
