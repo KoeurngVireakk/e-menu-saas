@@ -125,9 +125,8 @@ function HeroSection() {
   const reduced = useReducedMotion();
 
   return (
-    <section className="relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(37,99,235,0.18),transparent_32%),radial-gradient(circle_at_85%_35%,rgba(14,165,233,0.18),transparent_28%)]" aria-hidden="true" />
-      <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 lg:grid-cols-[0.92fr_1.08fr] lg:px-8 lg:py-24">
+    <section className="relative overflow-hidden bg-[linear-gradient(180deg,#F8FAFC_0%,#EEF4FF_56%,#F8FAFC_100%)]">
+      <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-14 sm:py-16 lg:grid-cols-[0.92fr_1.08fr] lg:px-8 lg:py-20">
         <motion.div {...getMotion(reduced)} className="max-w-3xl">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-4 py-2 text-xs font-black uppercase text-blue-700 shadow-sm">
             <Languages className="h-4 w-4" aria-hidden="true" />
@@ -137,12 +136,13 @@ function HeroSection() {
             {t("landing.headline")}
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">{t("landing.subheadline")}</p>
+          <p className="mt-3 max-w-xl text-sm font-bold leading-6 text-slate-700">{t("landing.heroProof")}</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link to="/register" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700">
-              {t("landing.getStartedFree")} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              {t("landing.heroPrimary")} <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
             <a href="#demo" className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-50">
-              {t("landing.viewDemo")}
+              {t("landing.heroSecondary")}
             </a>
             <Link to="/login" className="inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm font-black text-slate-700 transition hover:bg-white">
               {t("landing.signIn")}
@@ -170,7 +170,6 @@ function HeroVisual() {
 
   return (
     <div className="relative min-h-[680px] lg:min-h-[740px]">
-      <div className="absolute left-1/2 top-12 h-96 w-80 -translate-x-1/2 rounded-full bg-blue-300/30 blur-3xl" aria-hidden="true" />
       <motion.div {...floatMotion} className="absolute left-1/2 top-0 z-20 w-[315px] -translate-x-1/2 sm:w-[360px]" aria-label="MenuDIGI mobile ordering preview">
         <PhoneMockup />
       </motion.div>
@@ -241,10 +240,10 @@ function PhoneMockup() {
 function DashboardMockup() {
   const { t } = useLanguage();
   const metrics = [
-    [t("landing.todayOrders"), "42"],
-    [t("landing.sales"), "$684"],
-    [t("landing.pendingPayments"), "8"],
-    [t("landing.kitchenQueue"), "12"],
+    [t("landing.todayOrders"), t("landing.demoLive")],
+    [t("landing.sales"), t("landing.demoPaid")],
+    [t("landing.pendingPayments"), t("landing.demoReview")],
+    [t("landing.kitchenQueue"), t("landing.demoQueue")],
   ];
 
   return (
@@ -346,7 +345,7 @@ function PaymentReadySection() {
   return (
     <Section eyebrow={t("common.payment")} title={t("landing.sections.paymentTitle")} description={t("landing.sections.paymentCopy")}>
       <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-600 to-sky-500 p-6 text-white shadow-xl shadow-blue-600/20">
+        <div className="rounded-[2rem] border border-blue-100 bg-blue-600 p-6 text-white shadow-xl shadow-blue-600/20">
           <CreditCard className="h-10 w-10" aria-hidden="true" />
           <h3 className="mt-5 text-2xl font-black">KHQR / ABA</h3>
           <p className="mt-3 text-sm leading-6 text-blue-50">{t("landing.sections.paymentCopy")}</p>

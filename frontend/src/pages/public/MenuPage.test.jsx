@@ -60,11 +60,11 @@ describe("MenuPage", () => {
     );
 
     await waitFor(() => expect(screen.getAllByText("MenuDIGI Cafe").length).toBeGreaterThan(0));
-    expect(screen.getByRole("button", { name: /Coffee\s*1/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Coffee\s*1/ })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByPlaceholderText("Search menu")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Iced Latte" }).length).toBeGreaterThan(0);
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Add" })[0]);
+    fireEvent.click(screen.getAllByRole("button", { name: /Add Iced Latte to cart/ })[0]);
 
     expect(screen.getByRole("dialog", { name: "Iced Latte" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Add to cart" }));
@@ -122,8 +122,8 @@ describe("MenuPage", () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() => expect(screen.getByText("MenuDIGI Cafe")).toBeInTheDocument());
-    fireEvent.click(screen.getAllByRole("button", { name: "Add" })[0]);
+    await waitFor(() => expect(screen.getAllByText("MenuDIGI Cafe").length).toBeGreaterThan(0));
+    fireEvent.click(screen.getAllByRole("button", { name: /Add Iced Latte to cart/ })[0]);
     fireEvent.click(screen.getByRole("button", { name: "Add to cart" }));
 
     expect(screen.getByRole("alert")).toHaveTextContent("Sugar level is required");

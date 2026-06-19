@@ -11,8 +11,8 @@ import PaymentStatusBadge from "./PaymentStatusBadge";
 
 const nextStatuses = [
   ["accepted", "Accept"],
-  ["preparing", "Mark preparing"],
-  ["ready", "Mark ready"],
+  ["preparing", "Preparing"],
+  ["ready", "Ready"],
   ["completed", "Complete"],
   ["cancelled", "Cancel"],
 ];
@@ -63,8 +63,8 @@ export default function OrderDetailDrawer({
         </AppCard>
 
         {allowStatusUpdate ? (
-          <AppCard title="Update status" description="Use quick actions to move the order through operations. Cancel requires confirmation.">
-            <div className="flex flex-wrap gap-2">
+          <AppCard title="Update status" description="Use one clear next action. Cancel requires confirmation.">
+            <div className="grid gap-2 sm:grid-cols-2 xl:flex xl:flex-wrap" aria-label={`Status actions for order ${order.order_number}`}>
               {nextStatuses.map(([status, label]) => (
                 <AppButton
                   key={status}

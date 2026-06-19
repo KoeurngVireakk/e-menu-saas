@@ -25,16 +25,17 @@ export default function KitchenOrderCard({ order, isNew = false, allowUpdate = t
         <OrderItemsList items={order.items || []} currencyCode={order.currency_code} kitchen />
 
         {allowUpdate ? (
-          <div className="flex flex-wrap gap-2">
-            {order.order_status === "pending" ? <AppButton type="button" size="lg" onClick={() => onOrderStatus(order, "accepted")}>Accept order</AppButton> : null}
-            {["pending", "accepted"].includes(order.order_status) ? <AppButton type="button" size="lg" variant="secondary" onClick={() => onOrderStatus(order, "preparing")}>Start preparing</AppButton> : null}
-            {["pending", "accepted", "preparing"].includes(order.order_status) ? <AppButton type="button" size="lg" onClick={() => onOrderStatus(order, "ready")}>Mark order ready</AppButton> : null}
-            {order.order_status === "ready" ? <AppButton type="button" size="lg" variant="success" onClick={() => onOrderStatus(order, "completed")}>Served/completed</AppButton> : null}
+          <div className="grid gap-2 sm:grid-cols-2 xl:flex xl:flex-wrap" aria-label={`Kitchen actions for order ${order.order_number}`}>
+            {order.order_status === "pending" ? <AppButton type="button" size="lg" onClick={() => onOrderStatus(order, "accepted")}>Accept</AppButton> : null}
+            {["pending", "accepted"].includes(order.order_status) ? <AppButton type="button" size="lg" variant="secondary" onClick={() => onOrderStatus(order, "preparing")}>Preparing</AppButton> : null}
+            {["pending", "accepted", "preparing"].includes(order.order_status) ? <AppButton type="button" size="lg" onClick={() => onOrderStatus(order, "ready")}>Ready</AppButton> : null}
+            {order.order_status === "ready" ? <AppButton type="button" size="lg" variant="success" onClick={() => onOrderStatus(order, "completed")}>Complete</AppButton> : null}
             {(order.items || []).some((item) => ["pending", "preparing"].includes(item.kitchen_status)) ? (
               <AppButton
                 type="button"
                 size="lg"
                 variant="outline"
+                aria-label={`Mark unfinished items ready for order ${order.order_number}`}
                 onClick={() => {
                   (order.items || []).filter((item) => ["pending", "preparing"].includes(item.kitchen_status)).forEach((item) => onItemStatus(item, "ready"));
                 }}

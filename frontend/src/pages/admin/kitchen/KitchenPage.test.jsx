@@ -44,7 +44,7 @@ describe("KitchenOrderCard", () => {
     expect(screen.getByText("Less ice")).toBeInTheDocument();
     expect(screen.getByText("Size: Large")).toBeInTheDocument();
     expect(screen.getByText("Add-ons: Extra shot")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Accept order" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Item ready" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Accept" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Mark unfinished items ready for order ORD-1" })).toBeInTheDocument();
   });
 });

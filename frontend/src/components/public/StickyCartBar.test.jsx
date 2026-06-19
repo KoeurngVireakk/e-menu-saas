@@ -16,6 +16,7 @@ describe("StickyCartBar", () => {
 
     expect(screen.getByText("2 items")).toBeInTheDocument();
     expect(screen.getByText("10,000 KHR")).toBeInTheDocument();
+    expect(screen.getByText("Review items and checkout")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "View cart" }));
     expect(onClick).toHaveBeenCalled();
   });

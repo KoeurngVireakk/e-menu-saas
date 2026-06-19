@@ -43,8 +43,8 @@ export default function PaymentDetailDrawer({ payment, open, onClose, onConfirm,
         ) : null}
 
         {allowActions ? (
-          <AppCard title="Review action">
-            <div className="flex flex-wrap gap-2">
+          <AppCard title="Review action" description="Confirm only after the amount, method, and proof match the order. Reject when proof is missing or incorrect.">
+            <div className="grid gap-2 sm:grid-cols-2" aria-label={`Payment review actions for ${payment.order?.order_number || `payment ${payment.id}`}`}>
               <AppButton type="button" variant="success" iconLeft={<CheckCircle2 className="h-4 w-4" />} onClick={() => onConfirm(payment)}>Confirm payment</AppButton>
               <AppButton type="button" variant="danger" iconLeft={<XCircle className="h-4 w-4" />} onClick={() => onReject(payment)}>Reject payment</AppButton>
             </div>

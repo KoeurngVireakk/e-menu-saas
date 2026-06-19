@@ -101,3 +101,15 @@
 - CRUD drawer review: confirm dialog titles are announced, footer actions remain sticky, cancel/save hierarchy is clear, and long forms do not become two-column CRUD.
 - Realtime review: confirm connected, reconnecting, paused, unavailable, and issue states use text and tooltips, not color alone.
 - Performance review: run production build and confirm charts remain lazy/admin-only, Echo/Pusher is not globally imported, and no large chunk warning returns.
+
+## Module 44 Pixel QA
+
+- Pixel QA checklist: compare headings, card radius, button height, icon size, borders, shadows, and section spacing on landing, auth, admin, reports, operations, and public ordering screens.
+- Mobile QA checklist: at 375px and 430px, verify no horizontal overflow, sticky cart/payment bars do not cover fields, drawer footers remain usable, and action buttons stay at least 40px high.
+- Tablet QA checklist: at 768px and 1024px, verify admin nav, command palette, reports filters, kitchen cards, and payment drawers wrap without crowding.
+- Bilingual QA checklist: review Khmer in hero, auth, navbar command trigger, empty states, reports, checkout, payment, and realtime labels; avoid tiny badges for long Khmer text.
+- Accessibility QA checklist: verify icon-only controls have labels, category tabs expose selected state, validation uses visible inline text, realtime status includes text, and command palette has a dialog title.
+- Loading/empty/error checklist: every state should answer what happened, whether user data changed, and what the user can do next.
+- CRUD drawer checklist: keep list-first CRUD, sticky save/cancel footer, one-column mobile forms, readable helper text, and clear destructive confirmations.
+- Customer QR ordering checklist: product cards must have large tap targets, cart must stay visible, options must validate inline, offline submit must be disabled, and payment proof must not persist in localStorage.
+- Performance checklist: preserve lazy routes, lazy charts, dynamic realtime/payment libraries, PWA behavior, and a production build with no large chunk warning.

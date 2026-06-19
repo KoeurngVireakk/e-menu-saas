@@ -40,7 +40,10 @@ describe("PaymentPage", () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() => expect(screen.getByText("Bakong KHQR")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Complete payment" })).toBeInTheDocument());
+    expect(screen.getByText("Choose how you paid and submit proof only when the restaurant needs manual review.")).toBeInTheDocument();
+    expect(screen.getByText("No provider secrets or raw gateway data are shown here.")).toBeInTheDocument();
+    expect(screen.getByText("Bakong KHQR")).toBeInTheDocument();
     expect(screen.getByText("Manual KHQR")).toBeInTheDocument();
     expect(screen.queryByText(/ABA/i)).not.toBeInTheDocument();
   });

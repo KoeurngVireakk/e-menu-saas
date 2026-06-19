@@ -8,6 +8,7 @@ export default function CategoryTabs({ categories, active, counts = {}, onSelect
             key={category.id}
             type="button"
             onClick={() => onSelect(category.id)}
+            aria-pressed={selected}
             className={`shrink-0 rounded-full px-4 py-2 text-sm font-black shadow-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
               selected ? "bg-blue-600 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
             }`}
