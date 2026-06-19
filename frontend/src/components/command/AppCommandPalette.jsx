@@ -78,7 +78,7 @@ export default function AppCommandPalette({ open, onClose }) {
     <AnimatePresence>
       {open ? (
         <motion.div
-          className="fixed inset-0 z-[70] grid place-items-start bg-slate-950/45 px-4 py-20 backdrop-blur-sm sm:place-items-center sm:py-6"
+          className="fixed inset-0 z-70 grid place-items-start bg-slate-950/45 px-4 py-20 backdrop-blur-sm sm:place-items-center sm:py-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

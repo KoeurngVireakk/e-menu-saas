@@ -179,7 +179,7 @@ class SecurityHardeningTest extends TestCase
         $payment = Payment::where('order_id', $order->id)->firstOrFail();
         $this->assertStringStartsWith('payments/', (string) $payment->proof_image_path);
         $this->assertStringNotContainsString('original-proof', (string) $payment->proof_image_path);
-        Storage::disk('public')->assertExists((string) $payment->proof_image_path);
+        $this->assertTrue(Storage::disk('public')->exists((string) $payment->proof_image_path));
     }
 
     public function test_cors_config_uses_explicit_origins_without_wildcards(): void

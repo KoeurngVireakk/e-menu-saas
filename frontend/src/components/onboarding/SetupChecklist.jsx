@@ -26,7 +26,7 @@ export default function SetupChecklist({ shops = [], orders = [] }) {
 
   return (
     <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24, ease: "easeOut" }}>
-      <AppCard className="overflow-hidden border-blue-100 bg-gradient-to-br from-white to-blue-50/50" bodyClassName="p-5">
+      <AppCard className="overflow-hidden border-blue-100 bg-linear-to-br from-white to-blue-50/50" bodyClassName="p-5">
         <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
           <div>
             <div className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">

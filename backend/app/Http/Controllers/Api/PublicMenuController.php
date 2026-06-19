@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\Category;
+use App\Models\DiningTable;
 use App\Models\Product;
 use App\Models\ProductOption;
 use App\Models\ProductOptionValue;
@@ -161,7 +163,7 @@ class PublicMenuController extends Controller
         ];
     }
 
-    private function publicBranch($branch): array
+    private function publicBranch(Branch $branch): array
     {
         return [
             'id' => $branch->id,
@@ -172,7 +174,7 @@ class PublicMenuController extends Controller
         ];
     }
 
-    private function publicTable($table): array
+    private function publicTable(DiningTable $table): array
     {
         return [
             'id' => $table->id,

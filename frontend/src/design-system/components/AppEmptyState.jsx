@@ -20,7 +20,7 @@ export default function AppEmptyState({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
       >
-      <div className="mx-auto grid h-14 w-14 place-items-center rounded-3xl bg-gradient-to-br from-blue-50 to-slate-100 text-blue-600 shadow-inner">
+      <div className="mx-auto grid h-14 w-14 place-items-center rounded-3xl bg-linear-to-br from-blue-50 to-slate-100 text-blue-600 shadow-inner">
         <Icon className="h-6 w-6" aria-hidden="true" />
       </div>
       <h3 className="mt-4 text-lg font-black text-slate-950">{title}</h3>
