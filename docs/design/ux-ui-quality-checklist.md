@@ -125,3 +125,14 @@
 - Operations checklist: order, kitchen, and payment actions should be obvious, two-tap where practical, and destructive or irreversible actions should use clear confirmation copy.
 - Customer QR checklist: cart visibility, offline submit blocking, required option validation, payment proof preview, and order status timeline must be reviewed in both languages.
 - CI separation checklist: Vitest must only collect `src/**/*.{test,spec}.{js,jsx,ts,tsx}`; Playwright specs stay in `e2e`; production build must keep charts and realtime code out of public/landing chunks.
+
+## Module 46 Research-Inspired QA
+
+- Research-source checklist: use external SaaS, design-system, and QR-ordering references only as principles for hierarchy, flow, and accessibility; do not copy screenshots, layouts, text, brand assets, or icons.
+- Merchant empty-state checklist: every first-time setup, list, table, and chart empty state should explain the business benefit and show the next useful action when one is safe.
+- Dashboard panel checklist: KPI, chart, report, and operation panels should have clear descriptions, stable numeric alignment, no color-only status meaning, and opt-in accessible region names where they do not collide with form labels.
+- Navigation checklist: sidebar and command-palette paths should prioritize frequent restaurant workflows and must not imply backend record search when only route jumping exists.
+- QR friction checklist: customer ordering must avoid PDF-like tiny text, hidden carts, forced app downloads, unclear table context, slow-feeling loading states, and confusing payment instructions.
+- Mobile restaurant checklist: at 375px and 430px, verify category tabs, product cards, option controls, cart review, payment proof upload, and status timeline remain readable in English and Khmer.
+- Operations checklist: orders, kitchen, and payments should surface current state, elapsed urgency where available, and the safest next action before secondary details.
+- Trust checklist: landing/auth/payment copy must be accurate; do not add fake testimonials, fake metrics, fake payment readiness, or fake realtime claims.
