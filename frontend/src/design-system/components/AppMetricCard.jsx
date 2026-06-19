@@ -3,7 +3,7 @@ import { useId } from "react";
 import AppCard from "./AppCard";
 import AppSkeleton from "./AppSkeleton";
 
-export default function AppMetricCard({ title, value, icon: Icon, trend, description, loading = false }) {
+export default function AppMetricCard({ title, value, icon: Icon, trend, description, loading = false, status }) {
   const generatedId = useId();
   const titleId = `${generatedId}-title`;
   const descriptionId = description ? `${generatedId}-description` : undefined;
@@ -13,7 +13,10 @@ export default function AppMetricCard({ title, value, icon: Icon, trend, descrip
       {loading ? <AppSkeleton /> : (
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p id={titleId} className="text-xs font-black uppercase tracking-wide text-slate-500">{title}</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p id={titleId} className="text-xs font-black uppercase tracking-wide text-slate-500">{title}</p>
+              {status ? <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-black text-blue-700">{status}</span> : null}
+            </div>
             <p className="mt-3 text-2xl font-black tabular-nums text-slate-950">{value}</p>
             {description ? <p id={descriptionId} className="mt-1 text-sm text-slate-500">{description}</p> : null}
             {trend ? (

@@ -53,7 +53,10 @@ export default function RealtimeStatusBadge({ status = "disconnected", className
       role="status"
       title={tooltip}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${status === "connected" ? "bg-emerald-500" : status === "error" ? "bg-rose-500" : "bg-current opacity-60"}`} aria-hidden="true" />
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${status === "connected" ? "bg-emerald-500" : status === "connecting" || status === "initialized" ? "animate-pulse bg-amber-500" : status === "error" ? "bg-rose-500" : "bg-current opacity-60"}`}
+        aria-hidden="true"
+      />
       {label}
     </span>
   );

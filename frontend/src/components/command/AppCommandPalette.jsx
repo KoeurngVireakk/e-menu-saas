@@ -87,6 +87,7 @@ export default function AppCommandPalette({ open, onClose }) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="command-palette-title"
+            aria-describedby="command-palette-description"
             className="w-full max-w-2xl overflow-hidden rounded-3xl border border-white/70 bg-white shadow-2xl shadow-slate-950/20"
             initial={{ opacity: 0, y: 16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -94,6 +95,7 @@ export default function AppCommandPalette({ open, onClose }) {
             transition={{ duration: 0.18, ease: "easeOut" }}
           >
             <h2 id="command-palette-title" className="sr-only">{t("command.title")}</h2>
+            <p id="command-palette-description" className="sr-only">{t("command.footer")}</p>
             <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3">
               <Search className="h-5 w-5 text-slate-400" aria-hidden="true" />
               <input
@@ -117,7 +119,7 @@ export default function AppCommandPalette({ open, onClose }) {
                       <button
                         key={action.key}
                         type="button"
-                        className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition hover:bg-blue-50 focus:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                        className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left transition hover:bg-blue-50 active:bg-blue-100 focus:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 motion-reduce:transition-none"
                         onClick={() => runAction(action.to)}
                       >
                         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-slate-100 text-slate-600">

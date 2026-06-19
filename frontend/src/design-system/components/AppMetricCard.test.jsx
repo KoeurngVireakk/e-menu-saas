@@ -11,11 +11,13 @@ describe("AppMetricCard", () => {
         value="120,000 KHR"
         description="Confirmed revenue"
         icon={CreditCard}
+        status="Live"
       />,
     );
 
     const metric = screen.getByRole("region", { name: "Today sales" });
     expect(metric).toHaveAccessibleDescription("Confirmed revenue");
     expect(screen.getByText("120,000 KHR")).toBeInTheDocument();
+    expect(screen.getByText("Live")).toBeInTheDocument();
   });
 });

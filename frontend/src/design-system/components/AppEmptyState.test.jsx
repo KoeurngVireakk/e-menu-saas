@@ -27,6 +27,7 @@ describe("AppEmptyState", () => {
     );
 
     expect(screen.getByText("Create a category")).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "Suggested next steps" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Add product" }));
     fireEvent.click(screen.getByRole("button", { name: "View QR tables" }));
     expect(primary).toHaveBeenCalled();

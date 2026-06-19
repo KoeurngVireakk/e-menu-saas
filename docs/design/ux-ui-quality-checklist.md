@@ -146,3 +146,16 @@
 - Admin mobile checklist: drawers must remain one-column, footer actions reachable, toolbar filters wrap cleanly, tables scroll inside their container, and preview panels stack below the primary list.
 - Bilingual readiness checklist: new admin copy should have Khmer and English keys even when a page still needs a later wiring pass to `useLanguage`.
 - Regression checklist: preserve existing API payloads, Telegram test action, multipart upload behavior, permission checks, and destructive confirmation flow.
+
+## Module 48 Research-Inspired UI System QA
+
+- Shared-component checklist: start with `AppButton`, `AppCard`, form controls, state components, table wrappers, metric cards, page headers, drawers, and command palette before page-level styling.
+- Inspiration-use checklist: use Stripe/Vercel/QR ordering/POS references only for principles such as hierarchy, focus states, spacing, and status visibility; do not copy layouts, text, assets, or brands.
+- System-status checklist: loading, empty, no-results, offline, realtime, success, and error states must be visible in text and not rely on color alone.
+- Button checklist: buttons need consistent height, icon spacing, pressed state, disabled state, loading state, focus ring, and safe destructive styling.
+- Card/header checklist: card and page-header actions should wrap on mobile without squeezing text or hiding primary actions.
+- Form checklist: labels, helper text, errors, uploads, and toggles should remain readable in English and Khmer with stable focus rings.
+- Command palette checklist: route jumping must be described honestly, dialog title/description must be present, Escape closes, and keyboard focus remains clear.
+- Realtime checklist: connected, reconnecting, paused, unavailable, and error states must show readable text, tooltips, and nonessential motion only.
+- Customer QR checklist: preserve large tap targets, sticky cart visibility, offline submit blocking, payment-proof safety, and simple status copy.
+- Performance checklist: verify route lazy loading, chart lazy loading, dynamic Echo/Pusher, dynamic SweetAlert2, PWA/offline behavior, and no large chunk warning after UI changes.
