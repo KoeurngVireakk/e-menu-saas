@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import api, { getApiErrorMessage } from "../../../api/axios";
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, Select, Textarea, alertError, toastSuccess } from "../../../components/ui";
 import { supportedLocales } from "../../../utils/localization";
+import { useShopsQuery } from "../../../hooks/useShopsQuery";
 
 const entityConfig = {
   shop: { endpoint: (id) => `/shops/${id}/translations`, title: "Shop translations", fields: ["name", "description", "address"] },
@@ -12,43 +13,34 @@ const entityConfig = {
 };
 
 export default function TranslationsPage() {
-  const [shops, setShops] = useState([]);
+  const { data: shops = [], isLoading: shopsLoading, error: shopsError } = useShopsQuery();
   const [shopId, setShopId] = useState("");
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [translationsLoading, setTranslationsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [editor, setEditor] = useState(null);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      api
-        .get("/shops")
-        .then((response) => {
-          const nextShops = response.data.data.shops;
-          setShops(nextShops);
-          setShopId(nextShops[0]?.id || "");
-        })
-        .catch((requestError) => setError(getApiErrorMessage(requestError, "Unable to load shops.")))
-        .finally(() => setLoading(false));
-    }, 0);
-
-    return () => window.clearTimeout(timer);
-  }, []);
+    if (shops.length && !shopId) {
+      const timer = window.setTimeout(() => setShopId(shops[0].id), 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [shopId, shops]);
 
   const load = useCallback(() => {
     if (!shopId) {
       return Promise.resolve();
     }
 
-    setLoading(true);
+    setTranslationsLoading(true);
     setError("");
 
     return api
       .get(`/shops/${shopId}/translations`)
       .then((response) => setData(response.data.data))
       .catch((requestError) => setError(getApiErrorMessage(requestError, "Unable to load translations.")))
-      .finally(() => setLoading(false));
+      .finally(() => setTranslationsLoading(false));
   }, [shopId]);
 
   useEffect(() => {
@@ -87,12 +79,15 @@ export default function TranslationsPage() {
     }
   };
 
+  const loading = shopsLoading || translationsLoading;
+  const visibleError = error || (shopsError ? getApiErrorMessage(shopsError, "Unable to load shops.") : "");
+
   if (loading && !data) {
     return <LoadingState message="Loading translations..." />;
   }
 
-  if (error && !data) {
-    return <ErrorState message={error} onRetry={load} />;
+  if (visibleError && !data) {
+    return <ErrorState message={visibleError} onRetry={load} />;
   }
 
   return (

@@ -1,9 +1,10 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { Download, RefreshCw } from "lucide-react";
-import api, { getApiErrorMessage } from "../../../api/axios";
+import { getApiErrorMessage } from "../../../api/axios";
 import { ErrorState, Input, LoadingState, Select } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
 import { useShopsQuery } from "../../../hooks/useShopsQuery";
+import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
 import { AppButton, AppCard, AppEmptyState, AppMetricCard, AppPageHeader } from "../../../design-system/components";
 import ReportChartCard from "../../../design-system/charts/ReportChartCard";
 import { useLanguage } from "../../../i18n";
@@ -33,41 +34,29 @@ export default function ReportsPage() {
   const { t } = useLanguage();
   const allowExport = canExportReports(user);
   const { data: shops = [] } = useShopsQuery();
-  const [branches, setBranches] = useState({ shopId: "", items: [] });
   const [filters, setFilters] = useState(initialFilters);
   const [reports, setReports] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const { data: branches = [] } = useBranchesQuery(filters.shop_id);
 
   useEffect(() => {
     if (shops.length && !filters.shop_id) {
-      const timer = setTimeout(() => {
+      const timer = window.setTimeout(() => {
         setFilters((current) => ({ ...current, shop_id: shops[0].id }));
       }, 0);
-      return () => clearTimeout(timer);
+      return () => window.clearTimeout(timer);
     }
   }, [shops, filters.shop_id]);
 
   useEffect(() => {
-    if (!filters.shop_id) {
-      return;
+    if (branches.length && user?.role === "cashier" && !filters.branch_id) {
+      const timer = window.setTimeout(() => {
+        setFilters((current) => ({ ...current, branch_id: branches[0].id }));
+      }, 0);
+      return () => window.clearTimeout(timer);
     }
-
-    let ignore = false;
-    api.get(`/shops/${filters.shop_id}/branches`).then((response) => {
-      if (ignore) return;
-      const loaded = response.data.data.branches || [];
-      setBranches({ shopId: filters.shop_id, items: loaded });
-      setFilters((current) => ({
-        ...current,
-        branch_id: user?.role === "cashier" ? loaded[0]?.id || "" : current.branch_id,
-      }));
-    });
-
-    return () => {
-      ignore = true;
-    };
-  }, [filters.shop_id, user?.role]);
+  }, [branches, filters.branch_id, user?.role]);
 
   const load = useCallback(() => {
     if (!filters.shop_id || (user?.role === "cashier" && !filters.branch_id)) {
@@ -89,7 +78,7 @@ export default function ReportsPage() {
   }, [load]);
 
   const selectedShop = useMemo(() => shops.find((shop) => String(shop.id) === String(filters.shop_id)), [filters.shop_id, shops]);
-  const branchOptions = String(branches.shopId) === String(filters.shop_id) ? branches.items : [];
+  const branchOptions = branches;
   const summary = reports?.summary;
   const currency = summary?.currency_code || selectedShop?.currency_code || "KHR";
   const hasData = Boolean(summary?.order_count || summary?.total_sales || reports?.top_products?.length);

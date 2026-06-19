@@ -1,8 +1,8 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AlertTriangle, Building2, ChefHat, ClipboardList, CreditCard, PackagePlus, QrCode, Store, Utensils } from "lucide-react";
-import api from "../../api/axios";
 import AutomationInsightCard from "../../components/automation/AutomationInsightCard";
 import SetupChecklist from "../../components/onboarding/SetupChecklist";
 import RealtimeStatusBadge from "../../components/realtime/RealtimeStatusBadge";
@@ -19,6 +19,8 @@ import {
 import ChartCard from "../../design-system/charts/ChartCard";
 import { pageTransition, staggerContainer, staggerItem } from "../../design-system/motion/variants";
 import useOperationsRealtime from "../../hooks/useOperationsRealtime";
+import { useOrders } from "../../hooks/useApiQueries";
+import { queryKeys } from "../../lib/queryKeys";
 import { useShopsQuery } from "../../hooks/useShopsQuery";
 import useLanguage from "../../i18n/useLanguage";
 
@@ -27,17 +29,20 @@ const SalesLineChart = lazy(() => import("../../design-system/charts/SalesLineCh
 const TopProductsChart = lazy(() => import("../../design-system/charts/TopProductsChart"));
 
 export default function Dashboard() {
+  const queryClient = useQueryClient();
   const { t } = useLanguage();
   const { data: shops = [] } = useShopsQuery();
-  const [orders, setOrders] = useState([]);
-  const [summary, setSummary] = useState({ new_count: 0, pending_count: 0, today_revenue: 0 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const ordersQuery = useOrders();
+  const orders = useMemo(() => (ordersQuery.data?.orders || []).slice(0, 8), [ordersQuery.data?.orders]);
+  const summary = ordersQuery.data?.summary || { new_count: 0, pending_count: 0, today_revenue: 0 };
+  const loading = ordersQuery.isLoading;
+  const error = ordersQuery.error?.userMessage || ordersQuery.error?.response?.data?.message || "";
   const shopIds = useMemo(() => shops.map((shop) => shop.id), [shops]);
 
   const handleOrderCreated = useCallback((payload) => {
-    setOrders((current) => [
-      {
+    queryClient.setQueryData(queryKeys.orders(), (current = {}) => ({
+      ...current,
+      orders: [{
         id: payload.order_id,
         order_number: payload.order_number,
         branch: { name: `Branch #${payload.branch_id}` },
@@ -45,28 +50,29 @@ export default function Dashboard() {
         order_status: payload.status,
         payment_status: payload.payment_status,
         created_at: payload.created_at,
+      }, ...(current.orders || []).filter((order) => order.id !== payload.order_id)],
+      summary: {
+        ...(current.summary || {}),
+        new_count: Number(current.summary?.new_count || 0) + 1,
+        pending_count: Number(current.summary?.pending_count || 0) + 1,
       },
-      ...current.filter((order) => order.id !== payload.order_id),
-    ].slice(0, 8));
-    setSummary((current) => ({
-      ...current,
-      new_count: Number(current.new_count || 0) + 1,
-      pending_count: Number(current.pending_count || 0) + 1,
     }));
     toastSuccess(`New order ${payload.order_number}`);
-  }, []);
+  }, [queryClient]);
 
   const handleOrderStatusChanged = useCallback((payload) => {
-    setOrders((current) => current.map((order) => (
-      order.id === payload.order_id ? { ...order, order_status: payload.new_status } : order
-    )));
-  }, []);
+    queryClient.setQueryData(queryKeys.orders(), (current = {}) => ({
+      ...current,
+      orders: (current.orders || []).map((order) => order.id === payload.order_id ? { ...order, order_status: payload.new_status } : order),
+    }));
+  }, [queryClient]);
 
   const handlePaymentConfirmed = useCallback((payload) => {
-    setOrders((current) => current.map((order) => (
-      order.id === payload.order_id ? { ...order, payment_status: "paid" } : order
-    )));
-  }, []);
+    queryClient.setQueryData(queryKeys.orders(), (current = {}) => ({
+      ...current,
+      orders: (current.orders || []).map((order) => order.id === payload.order_id ? { ...order, payment_status: "paid" } : order),
+    }));
+  }, [queryClient]);
 
   const realtimeStatus = useOperationsRealtime({
     restaurantId: shopIds,
@@ -75,21 +81,6 @@ export default function Dashboard() {
     onOrderStatusChanged: handleOrderStatusChanged,
     onPaymentConfirmed: handlePaymentConfirmed,
   });
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setLoading(true);
-      api.get("/orders")
-        .then((ordersResponse) => {
-          setOrders(ordersResponse.data.data.orders.slice(0, 8));
-          setSummary(ordersResponse.data.data.summary);
-        })
-        .catch((requestError) => setError(requestError.response?.data?.message || "Dashboard could not be loaded."))
-        .finally(() => setLoading(false));
-    }, 0);
-
-    return () => window.clearTimeout(timer);
-  }, []);
 
   const metrics = useMemo(() => {
     const completed = orders.filter((order) => order.order_status === "completed").length;

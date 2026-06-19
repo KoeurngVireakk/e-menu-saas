@@ -24,6 +24,10 @@ return new class extends Migration
             $table->index(['shop_id', 'branch_id', 'status', 'sort_order'], 'categories_public_menu_idx');
         });
 
+        Schema::table('branches', function (Blueprint $table): void {
+            $table->index(['shop_id', 'status'], 'branches_shop_status_idx');
+        });
+
         Schema::table('dining_tables', function (Blueprint $table): void {
             $table->index(['shop_id', 'branch_id', 'status'], 'dining_tables_scope_status_idx');
         });
@@ -41,6 +45,10 @@ return new class extends Migration
 
         Schema::table('dining_tables', function (Blueprint $table): void {
             $table->dropIndex('dining_tables_scope_status_idx');
+        });
+
+        Schema::table('branches', function (Blueprint $table): void {
+            $table->dropIndex('branches_shop_status_idx');
         });
 
         Schema::table('categories', function (Blueprint $table): void {

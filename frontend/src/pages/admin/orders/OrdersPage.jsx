@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
-import api, { getApiErrorMessage } from "../../../api/axios";
+import api from "../../../api/axios";
 import ReceiptPreview from "../../../components/ReceiptPreview";
 import KitchenTicketPrint from "../../../components/print/KitchenTicketPrint";
 import ReceiptPrint from "../../../components/print/ReceiptPrint";
 import { confirmAction, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { useOrders } from "../../../hooks/useApiQueries";
+import { queryKeys } from "../../../lib/queryKeys";
 import useLanguage from "../../../i18n/useLanguage";
 import {
   AppButton,
@@ -34,14 +37,16 @@ const orderStatuses = [
 ];
 
 export default function OrdersPage() {
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const { t } = useLanguage();
   const allowStatusUpdate = canManageOrders(user);
   const allowInvoiceActions = canManageInvoices(user);
   const allowKitchenPrint = canPrintKitchenTicket(user);
   const allowReceiptPrint = canPrintReceipt(user);
-  const [orders, setOrders] = useState([]);
-  const [summary, setSummary] = useState({ new_count: 0, pending_count: 0, today_revenue: 0 });
+  const ordersQuery = useOrders({}, { refetchInterval: 10_000 });
+  const orders = useMemo(() => ordersQuery.data?.orders || [], [ordersQuery.data?.orders]);
+  const summary = ordersQuery.data?.summary || { new_count: 0, pending_count: 0, today_revenue: 0 };
   const [selected, setSelected] = useState(null);
   const [receipt, setReceipt] = useState(null);
   const [printPreview, setPrintPreview] = useState(null);
@@ -50,31 +55,9 @@ export default function OrdersPage() {
   const [branchFilter, setBranchFilter] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [loadError, setLoadError] = useState("");
-
-  const load = useCallback(() => {
-    setLoading(true);
-    setLoadError("");
-
-    return api
-      .get("/orders")
-      .then((response) => {
-        setOrders(response.data.data.orders);
-        setSummary(response.data.data.summary);
-      })
-      .catch((error) => setLoadError(getApiErrorMessage(error, "Unable to load orders.")))
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    const initialTimer = window.setTimeout(load, 0);
-    const refreshTimer = window.setInterval(load, 10000);
-    return () => {
-      window.clearTimeout(initialTimer);
-      window.clearInterval(refreshTimer);
-    };
-  }, [load]);
+  const loading = ordersQuery.isLoading;
+  const loadError = ordersQuery.error?.userMessage || ordersQuery.error?.response?.data?.message || "";
+  const load = ordersQuery.refetch;
 
   const branches = useMemo(() => uniqueOptions(orders.map((order) => order.branch).filter(Boolean)), [orders]);
   const filteredOrders = useMemo(() => {
@@ -114,7 +97,7 @@ export default function OrdersPage() {
     await api.put(`/orders/${order.id}/status`, { order_status });
     toastSuccess("Order status updated.");
     setSelected((current) => current?.id === order.id ? { ...current, order_status } : current);
-    load();
+    await queryClient.invalidateQueries({ queryKey: queryKeys.orders() });
   };
 
   const viewOrder = (order) => {
@@ -132,7 +115,7 @@ export default function OrdersPage() {
   const createInvoice = async (order) => {
     const response = await api.post(`/orders/${order.id}/invoice`);
     toastSuccess(`Invoice ${response.data.data.invoice.invoice_number} ready.`);
-    load();
+    await queryClient.invalidateQueries({ queryKey: queryKeys.orders() });
   };
 
   const loadPrint = async (order, type) => {

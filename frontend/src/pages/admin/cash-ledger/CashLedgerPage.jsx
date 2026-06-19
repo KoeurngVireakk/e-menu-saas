@@ -3,40 +3,39 @@ import api, { getApiErrorMessage } from "../../../api/axios";
 import DataTable from "../../../components/DataTable";
 import { Button, Card, ErrorState, Input, LoadingState, Select, StatCard, alertError } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
+import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import { formatCurrency } from "../../../utils/currency";
 import { canExportCashLedger } from "../../../utils/permissions";
 
 export default function CashLedgerPage() {
   const { user } = useAuth();
   const allowExport = canExportCashLedger(user);
-  const [shops, setShops] = useState([]);
-  const [branches, setBranches] = useState([]);
+  const { data: shops = [] } = useShopsQuery();
   const [entries, setEntries] = useState([]);
   const [summary, setSummary] = useState(null);
   const [filters, setFilters] = useState({ shop_id: "", branch_id: "", entry_type: "", direction: "", date: today() });
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const { data: branches = [] } = useBranchesQuery(filters.shop_id);
 
   useEffect(() => {
-    api.get("/shops").then((response) => {
-      const loaded = response.data.data.shops;
-      setShops(loaded);
-      setFilters((current) => ({ ...current, shop_id: loaded[0]?.id || "" }));
-    });
-  }, []);
+    if (shops.length && !filters.shop_id) {
+      const timer = window.setTimeout(() => {
+        setFilters((current) => ({ ...current, shop_id: shops[0].id }));
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [filters.shop_id, shops]);
 
   useEffect(() => {
-    if (!filters.shop_id) return;
-
-    api.get(`/shops/${filters.shop_id}/branches`).then((response) => {
-      const loaded = response.data.data.branches;
-      setBranches(loaded);
-      setFilters((current) => ({
-        ...current,
-        branch_id: user?.role === "cashier" ? loaded[0]?.id || "" : current.branch_id,
-      }));
-    });
-  }, [filters.shop_id, user?.role]);
+    if (branches.length && user?.role === "cashier" && !filters.branch_id) {
+      const timer = window.setTimeout(() => {
+        setFilters((current) => ({ ...current, branch_id: branches[0].id }));
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [branches, filters.branch_id, user?.role]);
 
   const selectedShop = useMemo(() => shops.find((shop) => String(shop.id) === String(filters.shop_id)), [shops, filters.shop_id]);
   const currency = selectedShop?.currency_code || entries[0]?.currency_code || "KHR";

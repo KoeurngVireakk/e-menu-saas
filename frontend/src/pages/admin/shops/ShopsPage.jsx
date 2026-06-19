@@ -1,9 +1,12 @@
 import { Edit3, Plus, RefreshCw, Store, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
 import { alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { useShopsQuery } from "../../../hooks/useShopsQuery";
+import { queryKeys } from "../../../lib/queryKeys";
 import AppBadge from "../../../design-system/components/AppBadge";
 import AppButton from "../../../design-system/components/AppButton";
 import AppCard from "../../../design-system/components/AppCard";
@@ -46,35 +49,19 @@ const editableFields = [
 ];
 
 export default function ShopsPage() {
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const allowCreate = canCreate(user, "shops");
   const allowUpdate = canUpdate(user, "shops");
   const allowDelete = canDelete(user, "shops");
-  const [shops, setShops] = useState([]);
+  const { data: shops = [], isLoading: loading, error, refetch: load } = useShopsQuery();
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [loadError, setLoadError] = useState("");
-
-  const load = useCallback(() => {
-    setLoading(true);
-    setLoadError("");
-
-    return api
-      .get("/shops")
-      .then((response) => setShops(response.data.data.shops))
-      .catch((error) => setLoadError(error.response?.data?.message || "Unable to load shops."))
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    const timer = window.setTimeout(load, 0);
-    return () => window.clearTimeout(timer);
-  }, [load]);
+  const loadError = error?.userMessage || error?.response?.data?.message || "";
 
   const filteredShops = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -142,7 +129,7 @@ export default function ShopsPage() {
         toastSuccess("Shop created successfully.");
       }
       closeDrawer();
-      load();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.shops });
     } catch (error) {
       alertError(error, "Please review the shop profile.");
     } finally {
@@ -153,7 +140,7 @@ export default function ShopsPage() {
   const remove = async (shop) => {
     await api.delete(`/shops/${shop.id}`);
     toastSuccess("Shop deleted successfully.");
-    load();
+    await queryClient.invalidateQueries({ queryKey: queryKeys.shops });
   };
 
   const clearFilters = search || statusFilter !== "all"

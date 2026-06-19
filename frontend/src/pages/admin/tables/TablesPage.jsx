@@ -4,6 +4,8 @@ import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
 import { alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
+import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import useLanguage from "../../../i18n/useLanguage";
 import {
   AppButton,
@@ -29,8 +31,7 @@ export default function TablesPage() {
   const allowCreate = canCreate(user, "tables");
   const allowUpdate = canUpdate(user, "tables");
   const allowDelete = canDelete(user, "tables");
-  const [shops, setShops] = useState([]);
-  const [branches, setBranches] = useState([]);
+  const { data: shops = [] } = useShopsQuery();
   const [tables, setTables] = useState([]);
   const [shopId, setShopId] = useState("");
   const [branchId, setBranchId] = useState("");
@@ -44,23 +45,27 @@ export default function TablesPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const { data: branches = [] } = useBranchesQuery(shopId);
 
   useEffect(() => {
-    api.get("/shops").then((response) => {
-      const loaded = response.data.data.shops;
-      setShops(loaded);
-      setShopId(loaded[0]?.id || "");
-    });
-  }, []);
+    if (shops.length && !shopId) {
+      const timer = window.setTimeout(() => setShopId(shops[0].id), 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [shopId, shops]);
 
   useEffect(() => {
-    if (!shopId) return;
-    api.get(`/shops/${shopId}/branches`).then((response) => {
-      const loaded = response.data.data.branches;
-      setBranches(loaded);
-      setBranchId(loaded[0]?.id || "");
-    });
-  }, [shopId]);
+    if (branches.length || branchId) {
+      const timer = window.setTimeout(() => {
+        if (branches.length && !branches.some((branch) => String(branch.id) === String(branchId))) {
+          setBranchId(branches[0].id);
+        } else if (!branches.length && branchId) {
+          setBranchId("");
+        }
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [branchId, branches]);
 
   const load = useCallback(() => {
     if (!branchId) {

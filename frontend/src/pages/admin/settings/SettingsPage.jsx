@@ -7,6 +7,7 @@ import AppBadge from "../../../design-system/components/AppBadge";
 import AppButton from "../../../design-system/components/AppButton";
 import AppCard from "../../../design-system/components/AppCard";
 import AppPageHeader from "../../../design-system/components/AppPageHeader";
+import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import useLanguage from "../../../i18n/useLanguage";
 import { canManageTenantSettings } from "../../../utils/permissions";
 
@@ -50,37 +51,28 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const allowManage = canManageTenantSettings(user);
-  const [shops, setShops] = useState([]);
+  const { data: shops = [], isLoading: shopsLoading, error: shopsError } = useShopsQuery();
   const [shopId, setShopId] = useState("");
   const [form, setForm] = useState(initial);
-  const [loading, setLoading] = useState(true);
+  const [settingsLoading, setSettingsLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [testingTelegram, setTestingTelegram] = useState(false);
   const [telegramResult, setTelegramResult] = useState(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      api
-        .get("/shops")
-        .then((response) => {
-          const nextShops = response.data.data.shops;
-          setShops(nextShops);
-          setShopId(nextShops[0]?.id || "");
-        })
-        .catch((requestError) => setError(getApiErrorMessage(requestError, "Unable to load shops.")))
-        .finally(() => setLoading(false));
-    }, 0);
-
-    return () => window.clearTimeout(timer);
-  }, []);
+    if (shops.length && !shopId) {
+      const timer = window.setTimeout(() => setShopId(shops[0].id), 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [shopId, shops]);
 
   const load = useCallback(() => {
     if (!shopId) {
       return Promise.resolve();
     }
 
-    setLoading(true);
+    setSettingsLoading(true);
     setError("");
 
     return api
@@ -90,7 +82,7 @@ export default function SettingsPage() {
         setForm({ ...initial, ...shop, ...settings, logo: null, cover: null });
       })
       .catch((requestError) => setError(getApiErrorMessage(requestError, "Unable to load settings.")))
-      .finally(() => setLoading(false));
+      .finally(() => setSettingsLoading(false));
   }, [shopId]);
 
   useEffect(() => {
@@ -99,6 +91,8 @@ export default function SettingsPage() {
   }, [load]);
 
   const selectedShop = useMemo(() => shops.find((shop) => String(shop.id) === String(shopId)), [shopId, shops]);
+  const loading = shopsLoading || settingsLoading;
+  const visibleError = error || (shopsError ? getApiErrorMessage(shopsError, "Unable to load shops.") : "");
 
   const submit = async (event) => {
     event.preventDefault();
@@ -139,7 +133,7 @@ export default function SettingsPage() {
   };
 
   if (loading && !form.name) return <LoadingState message="Loading settings..." />;
-  if (error && !form.name) return <ErrorState message={error} onRetry={load} />;
+  if (visibleError && !form.name) return <ErrorState message={visibleError} onRetry={load} />;
 
   return (
     <div className="grid gap-6">

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Copy, Edit3, Eye, Grid2X2, Languages, Plus, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "../../../api/axios";
@@ -7,6 +8,8 @@ import { alertError, toastError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
 import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
+import { useShopCategories, useShopProducts } from "../../../hooks/useApiQueries";
+import { queryKeys } from "../../../lib/queryKeys";
 import useLanguage from "../../../i18n/useLanguage";
 import {
   AppBadge,
@@ -61,6 +64,7 @@ const optionsExample = JSON.stringify([
 ], null, 2);
 
 export default function ProductsPage() {
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const { t } = useLanguage();
   const allowCreate = canCreate(user, "products");
@@ -77,8 +81,12 @@ export default function ProductsPage() {
   }, [shops, shopId]);
 
   const { data: branches = [] } = useBranchesQuery(shopId);
-  const [categories, setCategories] = useState([]);
-  const [products, setProducts] = useState([]);
+  const categoriesQuery = useShopCategories(shopId);
+  const productsQuery = useShopProducts(shopId);
+  const categories = useMemo(() => categoriesQuery.data || [], [categoriesQuery.data]);
+  const products = useMemo(() => productsQuery.data || [], [productsQuery.data]);
+  const loading = categoriesQuery.isLoading || productsQuery.isLoading;
+  const load = async () => Promise.all([categoriesQuery.refetch(), productsQuery.refetch()]);
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -89,32 +97,10 @@ export default function ProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [branchFilter, setBranchFilter] = useState("all");
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [loadError, setLoadError] = useState("");
+  const loadError = categoriesQuery.error?.userMessage || productsQuery.error?.userMessage
+    || categoriesQuery.error?.response?.data?.message || productsQuery.error?.response?.data?.message || "";
   const [optionsError, setOptionsError] = useState("");
-
-  const load = useCallback(() => {
-    if (!shopId) return;
-    setLoading(true);
-    setLoadError("");
-
-    Promise.all([
-      api.get(`/shops/${shopId}/products`),
-      api.get(`/shops/${shopId}/categories`),
-    ])
-      .then(([productsResponse, categoriesResponse]) => {
-        setProducts(productsResponse.data.data.products);
-        setCategories(categoriesResponse.data.data.categories);
-      })
-      .catch((error) => setLoadError(error.response?.data?.message || "Unable to load products."))
-      .finally(() => setLoading(false));
-  }, [shopId]);
-
-  useEffect(() => {
-    const timer = setTimeout(load, 0);
-    return () => clearTimeout(timer);
-  }, [load]);
 
   const filteredProducts = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -214,7 +200,7 @@ export default function ProductsPage() {
         toastSuccess("Product created successfully.");
       }
       closeModal();
-      load();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.shopProducts(shopId) });
     } catch (error) {
       alertError(error, "Please review the product.");
     } finally {
@@ -225,7 +211,7 @@ export default function ProductsPage() {
   const remove = async (product) => {
     await api.delete(`/products/${product.id}`);
     toastSuccess("Product deleted successfully.");
-    load();
+    await queryClient.invalidateQueries({ queryKey: queryKeys.shopProducts(shopId) });
   };
 
   const copyOptionsExample = async () => {

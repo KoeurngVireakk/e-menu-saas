@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Edit3, Languages, Plus, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "../../../api/axios";
@@ -7,6 +8,8 @@ import { alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
 import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
+import { useShopCategories } from "../../../hooks/useApiQueries";
+import { queryKeys } from "../../../lib/queryKeys";
 import useLanguage from "../../../i18n/useLanguage";
 import {
   AppCard,
@@ -25,6 +28,7 @@ import { canCreate, canDelete, canUpdate } from "../../../utils/permissions";
 const initial = { name: "", branch_id: "", sort_order: 0, status: "active", image: null };
 
 export default function CategoriesPage() {
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const { t } = useLanguage();
   const allowCreate = canCreate(user, "categories");
@@ -41,34 +45,15 @@ export default function CategoriesPage() {
   }, [shops, shopId]);
 
   const { data: branches = [] } = useBranchesQuery(shopId);
-  const [categories, setCategories] = useState([]);
+  const { data: categories = [], isLoading: loading, error, refetch: load } = useShopCategories(shopId);
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("sort_order");
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [loadError, setLoadError] = useState("");
-
-  const load = useCallback(() => {
-    if (!shopId) return;
-    setLoading(true);
-    setLoadError("");
-
-    api.get(`/shops/${shopId}/categories`)
-      .then((categoriesResponse) => {
-        setCategories(categoriesResponse.data.data.categories);
-      })
-      .catch((error) => setLoadError(error.response?.data?.message || "Unable to load categories."))
-      .finally(() => setLoading(false));
-  }, [shopId]);
-
-  useEffect(() => {
-    const timer = setTimeout(load, 0);
-    return () => clearTimeout(timer);
-  }, [load]);
+  const loadError = error?.userMessage || error?.response?.data?.message || "";
 
   const filteredCategories = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -118,7 +103,7 @@ export default function CategoriesPage() {
         toastSuccess("Category created successfully.");
       }
       closeModal();
-      load();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.shopCategories(shopId) });
     } catch (error) {
       alertError(error, "Please review the category.");
     } finally {
@@ -129,7 +114,7 @@ export default function CategoriesPage() {
   const remove = async (category) => {
     await api.delete(`/categories/${category.id}`);
     toastSuccess("Category deleted successfully.");
-    load();
+    await queryClient.invalidateQueries({ queryKey: queryKeys.shopCategories(shopId) });
   };
 
   const columns = [

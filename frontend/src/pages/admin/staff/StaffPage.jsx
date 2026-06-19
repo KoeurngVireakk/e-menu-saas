@@ -4,6 +4,8 @@ import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
 import { Badge, Button, Card, Input, Modal, Select, alertError, confirmAction, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
+import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import { canManageStaff } from "../../../utils/permissions";
 
 const initial = {
@@ -18,9 +20,9 @@ const initial = {
 export default function StaffPage() {
   const { user } = useAuth();
   const allowManage = canManageStaff(user);
-  const [shops, setShops] = useState([]);
-  const [branches, setBranches] = useState([]);
+  const { data: shops = [], error: shopsError } = useShopsQuery();
   const [shopId, setShopId] = useState("");
+  const { data: branches = [] } = useBranchesQuery(shopId);
   const [staff, setStaff] = useState([]);
   const [form, setForm] = useState(initial);
   const [editing, setEditing] = useState(null);
@@ -31,37 +33,28 @@ export default function StaffPage() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      api
-        .get("/shops")
-        .then((response) => {
-          const nextShops = response.data.data.shops;
-          setShops(nextShops);
-          setShopId(nextShops[0]?.id || "");
-        })
-        .catch((error) => setLoadError(getApiErrorMessage(error, "Unable to load shops.")))
-        .finally(() => setLoading(false));
+      if (shops.length && !shopId) {
+        setShopId(shops[0].id);
+      }
+      if (shopsError) {
+        setLoadError(getApiErrorMessage(shopsError, "Unable to load shops."));
+      }
     }, 0);
-
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [shopId, shops, shopsError]);
 
   const load = useCallback(() => {
     if (!shopId) {
       setStaff([]);
-      setBranches([]);
       return Promise.resolve();
     }
 
     setLoading(true);
     setLoadError("");
 
-    return Promise.all([
-      api.get(`/shops/${shopId}/staff`),
-      api.get(`/shops/${shopId}/branches`),
-    ])
-      .then(([staffResponse, branchesResponse]) => {
+    return api.get(`/shops/${shopId}/staff`)
+      .then((staffResponse) => {
         setStaff(staffResponse.data.data.staff);
-        setBranches(branchesResponse.data.data.branches);
       })
       .catch((error) => setLoadError(getApiErrorMessage(error, "Unable to load staff.")))
       .finally(() => setLoading(false));

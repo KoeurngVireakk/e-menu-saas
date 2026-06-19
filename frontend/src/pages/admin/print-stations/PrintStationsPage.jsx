@@ -4,6 +4,8 @@ import api, { getApiErrorMessage } from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
 import { alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
+import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import AppBadge from "../../../design-system/components/AppBadge";
 import AppButton from "../../../design-system/components/AppButton";
 import AppCard from "../../../design-system/components/AppCard";
@@ -40,17 +42,16 @@ const paperSizes = [
 export default function PrintStationsPage() {
   const { user } = useAuth();
   const allowManage = canManagePrintStations(user);
-  const [shops, setShops] = useState([]);
+  const { data: shops = [], isLoading: shopsLoading } = useShopsQuery();
   const [shopId, setShopId] = useState("");
-  const [branches, setBranches] = useState([]);
+  const { data: branches = [] } = useBranchesQuery(shopId);
 
   useEffect(() => {
-    api.get("/shops").then((response) => {
-      const loaded = response.data.data.shops;
-      setShops(loaded);
-      setShopId(loaded[0]?.id || "");
-    });
-  }, []);
+    if (shops.length && !shopId) {
+      const timer = window.setTimeout(() => setShopId(shops[0].id), 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [shopId, shops]);
 
   const [stations, setStations] = useState([]);
   const [form, setForm] = useState(initial);
@@ -64,7 +65,6 @@ export default function PrintStationsPage() {
 
   const load = useCallback(() => {
     if (!shopId) {
-      setBranches([]);
       setStations([]);
       return Promise.resolve();
     }
@@ -72,12 +72,8 @@ export default function PrintStationsPage() {
     setLoading(true);
     setLoadError("");
 
-    return Promise.all([
-      api.get(`/shops/${shopId}/branches`),
-      api.get(`/shops/${shopId}/print-stations`),
-    ])
-      .then(([branchesResponse, stationsResponse]) => {
-        setBranches(branchesResponse.data.data.branches);
+    return api.get(`/shops/${shopId}/print-stations`)
+      .then((stationsResponse) => {
         setStations(stationsResponse.data.data.print_stations);
       })
       .catch((error) => setLoadError(getApiErrorMessage(error, "Unable to load print stations.")))
@@ -85,8 +81,8 @@ export default function PrintStationsPage() {
   }, [shopId]);
 
   useEffect(() => {
-    const timer = setTimeout(load, 0);
-    return () => clearTimeout(timer);
+    const timer = window.setTimeout(load, 0);
+    return () => window.clearTimeout(timer);
   }, [load]);
 
   const filteredStations = useMemo(() => {
@@ -167,7 +163,7 @@ export default function PrintStationsPage() {
     }
     : undefined;
 
-  if (!shops.length && !loading) {
+  if (!shops.length && !loading && !shopsLoading) {
     return (
       <AppEmptyState
         icon={Printer}

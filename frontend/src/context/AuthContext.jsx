@@ -1,39 +1,40 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import api from "../api/axios";
 import { toastSuccess } from "../components/ui";
+import { useCurrentUser } from "../hooks/useApiQueries";
+import { queryKeys } from "../lib/queryKeys";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem("emenu_token")));
+  const queryClient = useQueryClient();
+  const hasToken = Boolean(localStorage.getItem("emenu_token"));
+  const [sessionUser, setSessionUser] = useState(null);
+  const currentUser = useCurrentUser(hasToken);
+  const user = sessionUser || currentUser.data || null;
+  const loading = hasToken && currentUser.isPending;
 
   useEffect(() => {
-    const token = localStorage.getItem("emenu_token");
-
-    if (!token) {
-      return;
+    if (currentUser.isError) {
+      localStorage.removeItem("emenu_token");
     }
-
-    api
-      .get("/auth/me")
-      .then((response) => setUser(response.data.data.user))
-      .catch(() => localStorage.removeItem("emenu_token"))
-      .finally(() => setLoading(false));
-  }, []);
+  }, [currentUser.isError]);
 
   const login = async (payload) => {
     const response = await api.post("/auth/login", payload);
     localStorage.setItem("emenu_token", response.data.data.token);
-    setUser(response.data.data.user);
+    setSessionUser(response.data.data.user);
+    queryClient.setQueryData(queryKeys.currentUser, response.data.data.user);
     await toastSuccess(response.data.message || "Signed in");
   };
 
   const register = async (payload) => {
     const response = await api.post("/auth/register", payload);
     localStorage.setItem("emenu_token", response.data.data.token);
-    setUser(response.data.data.user);
+    setSessionUser(response.data.data.user);
+    queryClient.setQueryData(queryKeys.currentUser, response.data.data.user);
     await toastSuccess(response.data.message || "Account created");
   };
 
@@ -43,14 +44,13 @@ export function AuthProvider({ children }) {
       await toastSuccess("Signed out");
     } finally {
       localStorage.removeItem("emenu_token");
-      setUser(null);
+      setSessionUser(null);
+      queryClient.removeQueries({ queryKey: queryKeys.currentUser });
+      queryClient.removeQueries({ queryKey: queryKeys.shops });
     }
   };
 
-  const value = useMemo(
-    () => ({ user, loading, authenticated: Boolean(user), login, register, logout }),
-    [user, loading],
-  );
+  const value = { user, loading, authenticated: Boolean(user), login, register, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -7,6 +7,9 @@ import { AppButton, AppCard, AppEmptyState, AppPageHeader, AppStatusBadge } from
 import OperationStatusTabs from "../../../design-system/operations/OperationStatusTabs";
 import BaseKitchenOrderCard from "../../../design-system/operations/KitchenOrderCard";
 import useOperationsRealtime from "../../../hooks/useOperationsRealtime";
+import { useShopCategories } from "../../../hooks/useApiQueries";
+import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
+import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import { getKitchenSoundMuted, playKitchenBeep, setKitchenSoundMuted } from "../../../utils/kitchenSound";
 import { canManageKitchenStations, canUpdateKitchenOrder } from "../../../utils/permissions";
 
@@ -25,9 +28,7 @@ export default function KitchenPage() {
   const { user } = useAuth();
   const allowUpdate = canUpdateKitchenOrder(user);
   const allowStations = canManageKitchenStations(user);
-  const [shops, setShops] = useState([]);
-  const [branches, setBranches] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const { data: shops = [] } = useShopsQuery();
   const [stations, setStations] = useState([]);
   const [orders, setOrders] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -42,33 +43,34 @@ export default function KitchenPage() {
   const [loadError, setLoadError] = useState("");
   const seenOrderIds = useRef(new Set());
   const firstLoad = useRef(true);
+  const { data: branches = [] } = useBranchesQuery(filters.shop_id);
+  const { data: categories = [] } = useShopCategories(filters.shop_id);
 
   useEffect(() => {
-    api.get("/shops").then((response) => {
-      const loaded = response.data.data.shops;
-      setShops(loaded);
-      setFilters((current) => ({ ...current, shop_id: loaded[0]?.id || "" }));
-    });
-  }, []);
+    if (shops.length && !filters.shop_id) {
+      const timer = window.setTimeout(() => {
+        setFilters((current) => ({ ...current, shop_id: shops[0].id }));
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [filters.shop_id, shops]);
 
   useEffect(() => {
     if (!filters.shop_id) return;
 
-    Promise.all([
-      api.get(`/shops/${filters.shop_id}/branches`),
-      api.get(`/shops/${filters.shop_id}/categories`),
-      api.get(`/shops/${filters.shop_id}/kitchen-stations`),
-    ]).then(([branchesResponse, categoriesResponse, stationsResponse]) => {
-      const loadedBranches = branchesResponse.data.data.branches;
-      setBranches(loadedBranches);
-      setCategories(categoriesResponse.data.data.categories);
+    api.get(`/shops/${filters.shop_id}/kitchen-stations`).then((stationsResponse) => {
       setStations(stationsResponse.data.data.kitchen_stations);
-      setFilters((current) => ({
-        ...current,
-        branch_id: user?.role === "cashier" || user?.role === "waiter" ? loadedBranches[0]?.id || "" : current.branch_id,
-      }));
     });
-  }, [filters.shop_id, user?.role]);
+  }, [filters.shop_id]);
+
+  useEffect(() => {
+    if (branches.length && (user?.role === "cashier" || user?.role === "waiter") && !filters.branch_id) {
+      const timer = window.setTimeout(() => {
+        setFilters((current) => ({ ...current, branch_id: branches[0].id }));
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [branches, filters.branch_id, user?.role]);
 
   const detectNewOrders = useCallback((loaded) => {
     const ids = loaded.map((order) => order.id);

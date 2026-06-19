@@ -7,6 +7,7 @@ import { useAuth } from "../../../context/AuthContext";
 import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
 import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "../../../lib/queryKeys";
 import useLanguage from "../../../i18n/useLanguage";
 import {
   AppCard,
@@ -54,7 +55,7 @@ export default function BranchesPage() {
 
   const load = useCallback(() => {
     if (shopId) {
-      queryClient.invalidateQueries({ queryKey: ["branches", shopId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.shopBranches(shopId) });
     }
   }, [queryClient, shopId]);
 

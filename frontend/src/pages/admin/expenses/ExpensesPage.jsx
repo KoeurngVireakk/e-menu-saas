@@ -4,6 +4,8 @@ import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
 import { Button, Card, ErrorState, Input, LoadingState, Modal, Select, StatCard, Textarea, alertError, confirmAction, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
+import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import { formatCurrency } from "../../../utils/currency";
 import { canApproveExpenses, canManageExpenses } from "../../../utils/permissions";
 
@@ -25,8 +27,7 @@ export default function ExpensesPage() {
   const { user } = useAuth();
   const allowManage = canManageExpenses(user);
   const allowApprove = canApproveExpenses(user);
-  const [shops, setShops] = useState([]);
-  const [branches, setBranches] = useState([]);
+  const { data: shops = [] } = useShopsQuery();
   const [categories, setCategories] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -36,30 +37,34 @@ export default function ExpensesPage() {
   const [categoryForm, setCategoryForm] = useState(initialCategory);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const { data: branches = [] } = useBranchesQuery(filters.shop_id);
 
   useEffect(() => {
-    api.get("/shops").then((response) => {
-      const loaded = response.data.data.shops;
-      setShops(loaded);
-      setFilters((current) => ({ ...current, shop_id: loaded[0]?.id || "" }));
-    });
-  }, []);
+    if (shops.length && !filters.shop_id) {
+      const timer = window.setTimeout(() => {
+        setFilters((current) => ({ ...current, shop_id: shops[0].id }));
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [filters.shop_id, shops]);
 
   useEffect(() => {
     if (!filters.shop_id) return;
 
-    Promise.all([
-      api.get(`/shops/${filters.shop_id}/branches`),
-      api.get("/expense-categories", { params: { shop_id: filters.shop_id, status: "active" } }),
-    ]).then(([branchesResponse, categoriesResponse]) => {
-      setBranches(branchesResponse.data.data.branches);
+    api.get("/expense-categories", { params: { shop_id: filters.shop_id, status: "active" } })
+      .then((categoriesResponse) => {
       setCategories(categoriesResponse.data.data.categories);
-      setFilters((current) => ({
-        ...current,
-        branch_id: user?.role === "cashier" ? branchesResponse.data.data.branches[0]?.id || "" : current.branch_id,
-      }));
     });
-  }, [filters.shop_id, user?.role]);
+  }, [filters.shop_id]);
+
+  useEffect(() => {
+    if (branches.length && user?.role === "cashier" && !filters.branch_id) {
+      const timer = window.setTimeout(() => {
+        setFilters((current) => ({ ...current, branch_id: branches[0].id }));
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [branches, filters.branch_id, user?.role]);
 
   const selectedShop = useMemo(() => shops.find((shop) => String(shop.id) === String(filters.shop_id)), [shops, filters.shop_id]);
   const currency = selectedShop?.currency_code || "KHR";

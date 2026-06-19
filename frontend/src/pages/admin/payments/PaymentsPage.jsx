@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
-import api, { getApiErrorMessage } from "../../../api/axios";
+import api from "../../../api/axios";
 import { confirmAction, promptText, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { usePayments } from "../../../hooks/useApiQueries";
+import { queryKeys } from "../../../lib/queryKeys";
 import useLanguage from "../../../i18n/useLanguage";
 import {
   AppButton,
@@ -30,33 +33,20 @@ const paymentStatuses = [
 ];
 
 export default function PaymentsPage() {
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const { t } = useLanguage();
   const allowPaymentActions = canManagePayments(user);
-  const [payments, setPayments] = useState([]);
+  const paymentsQuery = usePayments();
+  const payments = useMemo(() => paymentsQuery.data?.payments || [], [paymentsQuery.data?.payments]);
   const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [methodFilter, setMethodFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [loadError, setLoadError] = useState("");
-
-  const load = useCallback(() => {
-    setLoading(true);
-    setLoadError("");
-
-    return api
-      .get("/payments")
-      .then((response) => setPayments(response.data.data.payments))
-      .catch((error) => setLoadError(getApiErrorMessage(error, "Unable to load payments.")))
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    const timer = window.setTimeout(load, 0);
-    return () => window.clearTimeout(timer);
-  }, [load]);
+  const loading = paymentsQuery.isLoading;
+  const loadError = paymentsQuery.error?.userMessage || paymentsQuery.error?.response?.data?.message || "";
+  const load = paymentsQuery.refetch;
 
   const methods = useMemo(() => Array.from(new Set(payments.map((payment) => payment.payment_method).filter(Boolean))), [payments]);
   const statusCounts = useMemo(() => {
@@ -91,7 +81,7 @@ export default function PaymentsPage() {
     await api.put(`/payments/${payment.id}/confirm`);
     toastSuccess("Payment marked as paid.");
     setSelected((current) => current?.id === payment.id ? { ...current, status: "confirmed" } : current);
-    load();
+    await queryClient.invalidateQueries({ queryKey: queryKeys.payments() });
   };
 
   const reject = async (payment) => {
@@ -100,7 +90,7 @@ export default function PaymentsPage() {
     await api.put(`/payments/${payment.id}/reject`, { reason: result.value });
     toastSuccess("Payment was rejected.");
     setSelected((current) => current?.id === payment.id ? { ...current, status: "rejected", failure_reason: result.value } : current);
-    load();
+    await queryClient.invalidateQueries({ queryKey: queryKeys.payments() });
   };
 
   const columns = [

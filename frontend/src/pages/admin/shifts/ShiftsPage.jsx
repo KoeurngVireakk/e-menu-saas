@@ -5,6 +5,8 @@ import StatusBadge from "../../../components/StatusBadge";
 import ShiftReportPrint from "../../../components/print/ShiftReportPrint";
 import { Button, Card, ErrorState, Input, LoadingState, Modal, Select, StatCard, Textarea, alertError, confirmAction, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
+import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import { formatCurrency } from "../../../utils/currency";
 import { canAddCashMovement, canCloseShift, canManageShift, canOpenShift } from "../../../utils/permissions";
 
@@ -16,8 +18,7 @@ export default function ShiftsPage() {
   const allowMovement = canAddCashMovement(user);
   const allowClose = canCloseShift(user);
   const allowManage = canManageShift(user);
-  const [shops, setShops] = useState([]);
-  const [branches, setBranches] = useState([]);
+  const { data: shops = [] } = useShopsQuery();
   const [filters, setFilters] = useState({ shop_id: "", branch_id: "", status: "", date: today() });
   const [openingFloat, setOpeningFloat] = useState("");
   const [openNote, setOpenNote] = useState("");
@@ -30,29 +31,25 @@ export default function ShiftsPage() {
   const [shifts, setShifts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const { data: branches = [] } = useBranchesQuery(filters.shop_id);
 
   useEffect(() => {
-    api.get("/shops").then((response) => {
-      const loaded = response.data.data.shops;
-      setShops(loaded);
-      setFilters((current) => ({ ...current, shop_id: loaded[0]?.id || "" }));
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!filters.shop_id) {
-      return;
+    if (shops.length && !filters.shop_id) {
+      const timer = window.setTimeout(() => {
+        setFilters((current) => ({ ...current, shop_id: shops[0].id }));
+      }, 0);
+      return () => window.clearTimeout(timer);
     }
+  }, [filters.shop_id, shops]);
 
-    api.get(`/shops/${filters.shop_id}/branches`).then((response) => {
-      const loaded = response.data.data.branches;
-      setBranches(loaded);
-      setFilters((current) => ({
-        ...current,
-        branch_id: current.branch_id || loaded[0]?.id || "",
-      }));
-    });
-  }, [filters.shop_id]);
+  useEffect(() => {
+    if (branches.length && !filters.branch_id) {
+      const timer = window.setTimeout(() => {
+        setFilters((current) => ({ ...current, branch_id: branches[0].id }));
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [branches, filters.branch_id]);
 
   const selectedShop = useMemo(() => shops.find((shop) => String(shop.id) === String(filters.shop_id)), [shops, filters.shop_id]);
   const currency = selectedShop?.currency_code || "KHR";

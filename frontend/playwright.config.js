@@ -1,6 +1,9 @@
 /* global process */
 import { defineConfig, devices } from "@playwright/test";
 
+const port = process.env.PLAYWRIGHT_PORT || "5173";
+const baseURL = process.env.PLAYWRIGHT_BASE_URL || `http://127.0.0.1:${port}`;
+
 export default defineConfig({
   testDir: "./e2e",
   outputDir: "test-results/e2e",
@@ -9,7 +12,7 @@ export default defineConfig({
   workers: 1,
   reporter: [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:5173",
+    baseURL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
@@ -18,8 +21,8 @@ export default defineConfig({
     channel: process.env.CI ? undefined : "chrome",
   },
   webServer: {
-    command: "npm run dev -- --host 127.0.0.1",
-    url: "http://127.0.0.1:5173",
+    command: `npm run dev -- --host 127.0.0.1 --port ${port}`,
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },
