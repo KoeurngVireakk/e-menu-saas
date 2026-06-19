@@ -147,6 +147,22 @@ export default function Dashboard() {
     return Object.entries(counts).map(([name, quantity]) => ({ name, quantity })).slice(0, 5);
   }, [orders]);
 
+  const busiestHour = useMemo(() => {
+    const counts = orders.reduce((items, order) => {
+      const hour = order.created_at ? new Date(order.created_at).getHours() : null;
+      if (hour === null || Number.isNaN(hour)) return items;
+      const label = `${String(hour).padStart(2, "0")}:00`;
+      items[label] = (items[label] || 0) + 1;
+      return items;
+    }, {});
+
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0] || null;
+  }, [orders]);
+
+  const pendingPayments = useMemo(() => (
+    orders.filter((order) => order.payment_status && order.payment_status !== "paid").length
+  ), [orders]);
+
   const attentionItems = useMemo(() => {
     const unpaidOrders = orders.filter((order) => order.payment_status && order.payment_status !== "paid").length;
     const pendingOrders = Number(summary.pending_count || 0);
@@ -279,6 +295,30 @@ export default function Dashboard() {
           </div>
         </AppCard>
       </section>
+
+      <AppCard
+        title="Analytics snapshot"
+        description="A compact read of loaded order data. Open reports for full tenant-scoped analytics."
+        action={<AppButton as={Link} to="/admin/reports" variant="secondary">View reports</AppButton>}
+      >
+        <div className="grid gap-3 p-1 md:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+            <p className="text-xs font-black uppercase text-slate-500">Top product</p>
+            <p className="mt-2 text-lg font-black text-slate-950">{topProducts[0]?.name || "No product sales yet"}</p>
+            <p className="mt-1 text-sm text-slate-500">{topProducts[0] ? `${topProducts[0].quantity} items in loaded orders` : "Completed product data appears after orders."}</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+            <p className="text-xs font-black uppercase text-slate-500">Busiest hour</p>
+            <p className="mt-2 text-lg font-black text-slate-950">{busiestHour ? busiestHour[0] : "No activity yet"}</p>
+            <p className="mt-1 text-sm text-slate-500">{busiestHour ? `${busiestHour[1]} orders in loaded sample` : "Orders will reveal hourly activity."}</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+            <p className="text-xs font-black uppercase text-slate-500">Pending payments</p>
+            <p className="mt-2 text-lg font-black text-slate-950">{pendingPayments}</p>
+            <p className="mt-1 text-sm text-slate-500">{pendingPayments ? "Review payments before closing." : "No pending payments in loaded orders."}</p>
+          </div>
+        </div>
+      </AppCard>
 
       <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
         <AppCard title="Quick actions" description="Common tasks for restaurant operators and staff.">

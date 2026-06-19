@@ -55,6 +55,14 @@ Route::middleware(['auth:sanctum', 'throttle:admin-api'])->group(function () {
     Route::get('/system/health', [HealthController::class, 'index']);
 
     Route::get('/reports/sales-summary', [ReportController::class, 'salesSummary']);
+    Route::get('/reports/summary', [ReportController::class, 'summary']);
+    Route::get('/reports/analytics', [ReportController::class, 'analyticsOverview']);
+    Route::get('/reports/sales-trend', [ReportController::class, 'salesTrend']);
+    Route::get('/reports/order-status', [ReportController::class, 'orderStatus']);
+    Route::get('/reports/top-products', [ReportController::class, 'topProducts']);
+    Route::get('/reports/branch-performance', [ReportController::class, 'branchPerformance']);
+    Route::get('/reports/hourly-activity', [ReportController::class, 'hourlyActivity']);
+    Route::get('/reports/export-summary', [ReportController::class, 'exportSummary']);
     Route::get('/reports/product-sales', [ReportController::class, 'productSales']);
     Route::get('/reports/payment-methods', [ReportController::class, 'paymentMethods']);
     Route::get('/reports/daily-closing', [ReportController::class, 'dailyClosing']);

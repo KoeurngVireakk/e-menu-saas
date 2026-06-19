@@ -12,6 +12,7 @@ use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Shop;
 use App\Services\CashLedgerService;
+use App\Services\Reports\AnalyticsReportService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -20,8 +21,116 @@ use Illuminate\Validation\Rule;
 
 class ReportController extends Controller
 {
-    public function __construct(private readonly CashLedgerService $ledger)
+    public function __construct(
+        private readonly CashLedgerService $ledger,
+        private readonly AnalyticsReportService $analytics,
+    )
     {
+    }
+
+    public function summary(Request $request)
+    {
+        $filters = $this->analyticsFilters($request);
+
+        return $this->success('Report summary loaded', [
+            'summary' => $this->analytics->summary($request->user(), $filters),
+        ]);
+    }
+
+    public function salesTrend(Request $request)
+    {
+        $filters = $this->analyticsFilters($request);
+
+        return $this->success('Sales trend loaded', [
+            'sales_trend' => $this->analytics->salesTrend($request->user(), $filters),
+        ]);
+    }
+
+    public function orderStatus(Request $request)
+    {
+        $filters = $this->analyticsFilters($request);
+
+        return $this->success('Order status report loaded', [
+            'order_status' => $this->analytics->orderStatus($request->user(), $filters),
+        ]);
+    }
+
+    public function topProducts(Request $request)
+    {
+        $filters = $this->analyticsFilters($request);
+
+        return $this->success('Top products loaded', [
+            'top_products' => $this->analytics->topProducts($request->user(), $filters),
+        ]);
+    }
+
+    public function branchPerformance(Request $request)
+    {
+        $filters = $this->analyticsFilters($request);
+
+        return $this->success('Branch performance loaded', [
+            'branch_performance' => $this->analytics->branchPerformance($request->user(), $filters),
+        ]);
+    }
+
+    public function hourlyActivity(Request $request)
+    {
+        $filters = $this->analyticsFilters($request);
+
+        return $this->success('Hourly activity loaded', [
+            'hourly_activity' => $this->analytics->hourlyActivity($request->user(), $filters),
+        ]);
+    }
+
+    public function analyticsOverview(Request $request)
+    {
+        $filters = $this->analyticsFilters($request);
+
+        return $this->success('Analytics overview loaded', [
+            'reports' => $this->analytics->all($request->user(), $filters),
+            'filters' => [
+                'shop_id' => $filters['shop_id'],
+                'branch_id' => $filters['branch_id'],
+                'date_from' => $filters['date_from']->toDateString(),
+                'date_to' => $filters['date_to']->toDateString(),
+                'period' => $filters['period'],
+                'payment_status' => $filters['payment_status'],
+                'order_status' => $filters['order_status'],
+            ],
+        ]);
+    }
+
+    public function exportSummary(Request $request)
+    {
+        $filters = $this->analyticsFilters($request);
+        abort_unless($request->user()->canExportReports(), 403);
+        $summary = $this->analytics->summary($request->user(), $filters);
+        $products = $this->analytics->topProducts($request->user(), $filters);
+        $rows = [
+            ['Metric', 'Value'],
+            ['Total sales', $summary['total_sales']],
+            ['Order count', $summary['order_count']],
+            ['Average order value', $summary['average_order_value']],
+            ['Paid amount', $summary['paid_amount']],
+            ['Unpaid amount', $summary['unpaid_amount']],
+            ['Pending payments', $summary['pending_payments']],
+            [],
+            ['Top product', 'Quantity sold', 'Revenue', 'Share'],
+            ...collect($products)->map(fn (array $product) => [
+                $product['product_name'],
+                $product['quantity_sold'],
+                $product['revenue'],
+                $product['share'].'%',
+            ])->all(),
+        ];
+        $csv = collect($rows)
+            ->map(fn (array $row) => collect($row)->map(fn ($value) => '"'.str_replace('"', '""', (string) $value).'"')->implode(','))
+            ->implode("\n");
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="menudigi-report-summary.csv"',
+        ]);
     }
 
     public function salesSummary(Request $request)
@@ -196,6 +305,68 @@ class ReportController extends Controller
         $this->authorizeReports($request, $filters);
 
         return $filters;
+    }
+
+    private function analyticsFilters(Request $request): array
+    {
+        abort_unless($request->user()->canViewReports(), 403);
+
+        $validated = $request->validate([
+            'shop_id' => ['nullable', 'integer', 'exists:shops,id'],
+            'branch_id' => ['nullable', 'integer'],
+            'period' => ['nullable', Rule::in(['today', 'yesterday', 'last_7_days', 'last_30_days', 'this_month', 'custom'])],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+            'payment_status' => ['nullable', Rule::in(['unpaid', 'pending', 'paid', 'failed'])],
+            'order_status' => ['nullable', Rule::in(['pending', 'accepted', 'preparing', 'ready', 'completed', 'cancelled'])],
+        ]);
+
+        $shopIds = $this->accessibleShopIds($request);
+        if (isset($validated['shop_id'])) {
+            abort_unless(in_array((int) $validated['shop_id'], $shopIds, true), 403);
+            $shopIds = [(int) $validated['shop_id']];
+        }
+
+        $period = $validated['period'] ?? 'last_7_days';
+        [$dateFrom, $dateTo] = $this->analyticsDateRange($period, $validated);
+        abort_unless($dateFrom->diffInDays($dateTo) <= 366, 422, 'Report date range cannot exceed 366 days.');
+
+        $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
+        foreach ($shopIds as $shopId) {
+            abort_unless($request->user()->canAccessShop($shopId, $branchId), 403);
+        }
+
+        if ($request->user()->role === 'cashier') {
+            abort_unless(isset($validated['shop_id']) && $branchId !== null, 403);
+        }
+
+        return [
+            'shop_id' => $validated['shop_id'] ?? null,
+            'shop_ids' => $shopIds,
+            'branch_id' => $branchId,
+            'period' => $period,
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+            'payment_status' => $validated['payment_status'] ?? null,
+            'order_status' => $validated['order_status'] ?? null,
+        ];
+    }
+
+    private function analyticsDateRange(string $period, array $validated): array
+    {
+        $today = CarbonImmutable::today();
+
+        return match ($period) {
+            'today' => [$today->startOfDay(), $today->endOfDay()],
+            'yesterday' => [$today->subDay()->startOfDay(), $today->subDay()->endOfDay()],
+            'last_30_days' => [$today->subDays(29)->startOfDay(), $today->endOfDay()],
+            'this_month' => [$today->startOfMonth(), $today->endOfDay()],
+            'custom' => [
+                CarbonImmutable::parse($validated['date_from'] ?? $today->toDateString())->startOfDay(),
+                CarbonImmutable::parse($validated['date_to'] ?? $today->toDateString())->endOfDay(),
+            ],
+            default => [$today->subDays(6)->startOfDay(), $today->endOfDay()],
+        };
     }
 
     private function authorizeReports(Request $request, array $filters): void

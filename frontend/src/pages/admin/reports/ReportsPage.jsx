@@ -1,30 +1,49 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Download, RefreshCw } from "lucide-react";
 import api, { getApiErrorMessage } from "../../../api/axios";
-import DataTable from "../../../components/DataTable";
-import SalesReportPrint from "../../../components/print/SalesReportPrint";
-import { Button, Card, ErrorState, Input, LoadingState, Select, StatCard } from "../../../components/ui";
+import { ErrorState, Input, LoadingState, Select } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import { AppButton, AppCard, AppEmptyState, AppMetricCard, AppPageHeader } from "../../../design-system/components";
+import ReportChartCard from "../../../design-system/charts/ReportChartCard";
+import { useLanguage } from "../../../i18n";
+import { exportReportSummary, getAnalyticsOverview } from "../../../services/reportService";
 import { formatCurrency } from "../../../utils/currency";
 import { canExportReports } from "../../../utils/permissions";
 
+const SalesTrendChart = lazy(() => import("../../../design-system/charts/SalesTrendChart"));
+const OrderStatusBreakdownChart = lazy(() => import("../../../design-system/charts/OrderStatusBreakdownChart"));
+const TopProductsChart = lazy(() => import("../../../design-system/charts/TopProductsChart"));
+const PaymentMethodsChart = lazy(() => import("../../../design-system/charts/PaymentMethodsChart"));
+const HourlyActivityChart = lazy(() => import("../../../design-system/charts/HourlyActivityChart"));
+const BranchPerformanceTable = lazy(() => import("../../../design-system/charts/BranchPerformanceTable"));
+
+const initialFilters = {
+  shop_id: "",
+  branch_id: "",
+  period: "last_7_days",
+  date_from: "",
+  date_to: "",
+  order_status: "",
+  payment_status: "",
+};
+
 export default function ReportsPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const allowExport = canExportReports(user);
   const [shops, setShops] = useState([]);
-  const [branches, setBranches] = useState([]);
-  const [filters, setFilters] = useState({ shop_id: "", branch_id: "", date: today() });
-  const [summary, setSummary] = useState(null);
-  const [payments, setPayments] = useState(null);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [branches, setBranches] = useState({ shopId: "", items: [] });
+  const [filters, setFilters] = useState(initialFilters);
+  const [reports, setReports] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     api.get("/shops").then((response) => {
-      const loaded = response.data.data.shops;
+      const loaded = response.data.data.shops || [];
       setShops(loaded);
       setFilters((current) => ({ ...current, shop_id: loaded[0]?.id || "" }));
-    });
+    }).catch((error) => setLoadError(getApiErrorMessage(error, "Unable to load shops.")));
   }, []);
 
   useEffect(() => {
@@ -32,37 +51,32 @@ export default function ReportsPage() {
       return;
     }
 
+    let ignore = false;
     api.get(`/shops/${filters.shop_id}/branches`).then((response) => {
-      const loaded = response.data.data.branches;
-      setBranches(loaded);
+      if (ignore) return;
+      const loaded = response.data.data.branches || [];
+      setBranches({ shopId: filters.shop_id, items: loaded });
       setFilters((current) => ({
         ...current,
         branch_id: user?.role === "cashier" ? loaded[0]?.id || "" : current.branch_id,
       }));
     });
-  }, [filters.shop_id, user?.role]);
 
-  const selectedShop = useMemo(() => shops.find((shop) => String(shop.id) === String(filters.shop_id)), [shops, filters.shop_id]);
+    return () => {
+      ignore = true;
+    };
+  }, [filters.shop_id, user?.role]);
 
   const load = useCallback(() => {
     if (!filters.shop_id || (user?.role === "cashier" && !filters.branch_id)) {
+      setLoading(false);
       return;
     }
 
     setLoading(true);
     setLoadError("");
-    const params = cleanParams(filters);
-
-    Promise.all([
-      api.get("/reports/sales-summary", { params }),
-      api.get("/reports/payment-methods", { params }),
-      api.get("/reports/product-sales", { params }),
-    ])
-      .then(([summaryResponse, paymentsResponse, productsResponse]) => {
-        setSummary(summaryResponse.data.data.summary);
-        setPayments(paymentsResponse.data.data.payment_methods);
-        setProducts(productsResponse.data.data.products);
-      })
+    getAnalyticsOverview(filters)
+      .then((payload) => setReports(payload.reports))
       .catch((error) => setLoadError(getApiErrorMessage(error, "Unable to load reports.")))
       .finally(() => setLoading(false));
   }, [filters, user?.role]);
@@ -72,106 +86,217 @@ export default function ReportsPage() {
     return () => window.clearTimeout(timer);
   }, [load]);
 
-  const report = { shop: selectedShop, summary, payment_methods: payments, products };
+  const selectedShop = useMemo(() => shops.find((shop) => String(shop.id) === String(filters.shop_id)), [filters.shop_id, shops]);
+  const branchOptions = String(branches.shopId) === String(filters.shop_id) ? branches.items : [];
+  const summary = reports?.summary;
   const currency = summary?.currency_code || selectedShop?.currency_code || "KHR";
+  const hasData = Boolean(summary?.order_count || summary?.total_sales || reports?.top_products?.length);
+  const topProductRows = useMemo(() => (reports?.top_products || []).map((product) => ({
+    name: product.product_name,
+    quantity: product.quantity_sold,
+  })), [reports?.top_products]);
+  const insights = useMemo(() => buildInsights(reports, currency), [reports, currency]);
 
-  const exportCsv = () => {
-    const rows = [
-      ["Product", "Quantity", "Gross", "Discount", "Net"],
-      ...products.map((product) => [product.product_name, product.quantity_sold, product.gross_total, product.discount_total, product.net_total]),
-    ];
-    const csv = rows.map((row) => row.map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const setFilter = (key, value) => {
+    setFilters((current) => ({
+      ...current,
+      [key]: value,
+      ...(key === "shop_id" ? { branch_id: "" } : {}),
+      ...(key === "period" && value !== "custom" ? { date_from: "", date_to: "" } : {}),
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters((current) => ({
+      ...initialFilters,
+      shop_id: current.shop_id,
+      branch_id: user?.role === "cashier" ? current.branch_id : "",
+    }));
+  };
+
+  const exportCsv = async () => {
+    const blob = await exportReportSummary(filters);
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `sales-report-${filters.date}.csv`;
+    link.download = "menudigi-report-summary.csv";
     link.click();
     URL.revokeObjectURL(url);
   };
 
   return (
     <div className="grid gap-6">
-      <Card className="grid gap-4 p-4 no-print">
-        <div className="flex flex-wrap items-end gap-3">
-          <Select label="Shop" value={filters.shop_id} onChange={(event) => setFilters({ ...filters, shop_id: event.target.value, branch_id: "" })}>
+      <AppPageHeader
+        eyebrow={t("reports.analytics", "Analytics")}
+        title={t("reports.title", "Reports & Analytics")}
+        description={t("reports.description", "Review sales, orders, payments, products, branches, and hourly activity from real scoped restaurant data.")}
+        secondaryActions={(
+          <div className="flex flex-wrap gap-2">
+            <AppButton type="button" variant="secondary" iconLeft={<RefreshCw className="h-4 w-4" />} onClick={load}>
+              {t("reports.refresh", "Refresh")}
+            </AppButton>
+            {allowExport && hasData ? (
+              <AppButton type="button" iconLeft={<Download className="h-4 w-4" />} onClick={exportCsv}>
+                {t("reports.export", "Export")}
+              </AppButton>
+            ) : null}
+          </div>
+        )}
+      />
+
+      <AppCard title={t("reports.dateRange", "Date range")} description={t("reports.filterDescription", "Filter analytics by shop, branch, date period, order status, and payment status.")}>
+        <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-7">
+          <Select label="Shop" value={filters.shop_id} onChange={(event) => setFilter("shop_id", event.target.value)}>
             {shops.map((shop) => <option key={shop.id} value={shop.id}>{shop.name}</option>)}
           </Select>
-          <Select label="Branch" value={filters.branch_id} onChange={(event) => setFilters({ ...filters, branch_id: event.target.value })}>
+          <Select label="Branch" value={filters.branch_id} onChange={(event) => setFilter("branch_id", event.target.value)}>
             {user?.role !== "cashier" ? <option value="">All branches</option> : null}
-            {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
+            {branchOptions.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
           </Select>
-          <Input label="Date" type="date" value={filters.date} onChange={(event) => setFilters({ ...filters, date: event.target.value })} />
-          <Button type="button" onClick={load}>Refresh</Button>
-          {summary ? <Button type="button" variant="secondary" onClick={() => window.print()}>Print</Button> : null}
-          {allowExport && products.length ? <Button type="button" variant="secondary" onClick={exportCsv}>Export CSV</Button> : null}
+          <Select label={t("reports.period", "Period")} value={filters.period} onChange={(event) => setFilter("period", event.target.value)}>
+            <option value="today">Today</option>
+            <option value="yesterday">Yesterday</option>
+            <option value="last_7_days">Last 7 days</option>
+            <option value="last_30_days">Last 30 days</option>
+            <option value="this_month">This month</option>
+            <option value="custom">Custom</option>
+          </Select>
+          <Input label="From" type="date" disabled={filters.period !== "custom"} value={filters.date_from} onChange={(event) => setFilter("date_from", event.target.value)} />
+          <Input label="To" type="date" disabled={filters.period !== "custom"} value={filters.date_to} onChange={(event) => setFilter("date_to", event.target.value)} />
+          <Select label={t("reports.orderStatus", "Order status")} value={filters.order_status} onChange={(event) => setFilter("order_status", event.target.value)}>
+            <option value="">All statuses</option>
+            {["pending", "accepted", "preparing", "ready", "completed", "cancelled"].map((status) => <option key={status} value={status}>{status}</option>)}
+          </Select>
+          <Select label="Payment" value={filters.payment_status} onChange={(event) => setFilter("payment_status", event.target.value)}>
+            <option value="">All payments</option>
+            {["unpaid", "pending", "paid", "failed"].map((status) => <option key={status} value={status}>{status}</option>)}
+          </Select>
+          <div className="md:col-span-2 xl:col-span-7">
+            <AppButton type="button" variant="ghost" onClick={clearFilters}>{t("reports.clearFilters", "Clear filters")}</AppButton>
+          </div>
         </div>
-      </Card>
+      </AppCard>
 
-      {loading ? <LoadingState message="Loading report..." /> : null}
+      {loading ? <LoadingState message="Loading analytics..." /> : null}
       {loadError ? <ErrorState message={loadError} onRetry={load} /> : null}
 
-      {summary && !loading && !loadError ? (
+      {!loading && !loadError && summary ? (
         <>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4 no-print">
-            <StatCard label="Net sales" value={formatCurrency(summary.net_sales, currency)} tone="green" />
-            <StatCard label="Net after expenses" value={formatCurrency(summary.net_after_expenses, currency)} tone="blue" />
-            <StatCard label="Expenses" value={formatCurrency(summary.total_expenses, currency)} />
-            <StatCard label="Paid total" value={formatCurrency(summary.paid_total, currency)} tone="blue" />
-            <StatCard label="Unpaid total" value={formatCurrency(summary.unpaid_total, currency)} />
-            <StatCard label="Completed orders" value={summary.completed_orders} note={`${summary.cancelled_orders} cancelled`} />
-          </div>
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+            <AppMetricCard title={t("reports.totalSales", "Total sales")} value={formatCurrency(summary.total_sales, currency)} description="Completed and paid orders" />
+            <AppMetricCard title={t("reports.orders", "Orders")} value={summary.order_count} description="Non-cancelled orders" />
+            <AppMetricCard title={t("reports.averageOrderValue", "Average order value")} value={formatCurrency(summary.average_order_value, currency)} description="Across active orders" />
+            <AppMetricCard title={t("reports.paidAmount", "Paid amount")} value={formatCurrency(summary.paid_amount, currency)} description="Confirmed payments" />
+            <AppMetricCard title={t("reports.pendingPayments", "Pending payments")} value={summary.pending_payments} description={formatCurrency(summary.pending_payment_amount, currency)} />
+            <AppMetricCard title={t("reports.cancelledOrders", "Cancelled orders")} value={summary.cancelled_orders} description="Excluded from completed sales" />
+          </section>
 
-          <div className="grid gap-4 lg:grid-cols-[1fr_360px] no-print">
-            <Card className="p-4">
-              <h2 className="text-lg font-bold text-slate-950">Payment Methods</h2>
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                {Object.entries(payments?.methods || {}).map(([method, data]) => (
-                  <div key={method} className="rounded-md border border-slate-200 p-3">
-                    <p className="text-xs font-bold uppercase text-slate-500">{method}</p>
-                    <p className="mt-2 text-xl font-black text-slate-950">{formatCurrency(data.paid_total, currency)}</p>
-                    <p className="text-xs text-slate-500">{data.count} payments</p>
-                  </div>
-                ))}
-              </div>
-            </Card>
-            <Card className="p-4">
-              <h2 className="text-lg font-bold text-slate-950">Order Status</h2>
-              <div className="mt-4 grid gap-2">
-                {summary.order_statuses?.map((row) => (
-                  <div key={row.status} className="flex justify-between rounded-md bg-slate-50 px-3 py-2 text-sm">
-                    <span>{row.status}</span>
-                    <strong>{row.count}</strong>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
-
-          <div className="no-print">
-            <DataTable
-              columns={[
-                { key: "product_name", label: "Product" },
-                { key: "quantity_sold", label: "Qty" },
-                { key: "gross_total", label: "Gross", render: (row) => formatCurrency(row.gross_total, currency) },
-                { key: "discount_total", label: "Discount", render: (row) => formatCurrency(row.discount_total, currency) },
-                { key: "net_total", label: "Net", render: (row) => formatCurrency(row.net_total, currency) },
-              ]}
-              rows={products}
-              emptyMessage="No product sales for this period."
+          {!hasData ? (
+            <AppEmptyState
+              title={t("reports.noReportData", "No report data")}
+              description="No matching orders or payments were found. Create products, generate table QR codes, receive orders, or adjust filters."
+              actionLabel={t("reports.clearFilters", "Clear filters")}
+              onAction={clearFilters}
             />
-          </div>
+          ) : null}
 
-          <SalesReportPrint report={report} />
+          <section className="grid gap-4 xl:grid-cols-3">
+            {insights.map((insight) => (
+              <AppCard key={insight.title} title={insight.title} description={insight.description} bodyClassName="p-4">
+                <p className="text-2xl font-black text-slate-950">{insight.value}</p>
+              </AppCard>
+            ))}
+          </section>
+
+          <section className="grid gap-4 xl:grid-cols-2">
+            <ReportChartCard title={t("reports.salesTrend", "Sales trend")} description="Daily paid sales and order count." summary={trendSummary(reports.sales_trend, currency)}>
+              <Suspense fallback={<ChartFallback />}>
+                <SalesTrendChart data={reports.sales_trend || []} />
+              </Suspense>
+            </ReportChartCard>
+            <ReportChartCard title={t("reports.orderStatus", "Order status")} description="Order workflow distribution." summary={statusSummary(reports.order_status)}>
+              <Suspense fallback={<ChartFallback />}>
+                <OrderStatusBreakdownChart data={reports.order_status || []} />
+              </Suspense>
+            </ReportChartCard>
+            <ReportChartCard title={t("reports.topProducts", "Top products")} description="Quantity sold from completed paid orders." summary={topProductSummary(reports.top_products)}>
+              <Suspense fallback={<ChartFallback />}>
+                <TopProductsChart data={topProductRows} />
+              </Suspense>
+            </ReportChartCard>
+            <ReportChartCard title={t("reports.paymentMethods", "Payment methods")} description="Paid and pending amount by method." summary={paymentSummary(reports.payment_methods, currency)}>
+              <Suspense fallback={<ChartFallback />}>
+                <PaymentMethodsChart data={reports.payment_methods || []} />
+              </Suspense>
+            </ReportChartCard>
+            <ReportChartCard title={t("reports.hourlyActivity", "Hourly activity")} description="Order count by hour of day." summary={busiestHourSummary(reports.hourly_activity)}>
+              <Suspense fallback={<ChartFallback />}>
+                <HourlyActivityChart data={reports.hourly_activity || []} />
+              </Suspense>
+            </ReportChartCard>
+            <AppCard title={t("reports.branchPerformance", "Branch performance")} description="Sales, orders, average order value, and pending payments by branch." bodyClassName="p-0">
+              <Suspense fallback={<ChartFallback />}>
+                <BranchPerformanceTable rows={reports.branch_performance || []} currency={currency} />
+              </Suspense>
+            </AppCard>
+          </section>
         </>
       ) : null}
     </div>
   );
 }
 
-function cleanParams(values) {
-  return Object.fromEntries(Object.entries(values).filter(([, value]) => value !== "" && value !== null && value !== undefined));
+function ChartFallback() {
+  return <div className="h-full animate-pulse rounded-2xl bg-slate-100" aria-label="Loading chart" />;
 }
 
-function today() {
-  return new Date().toISOString().slice(0, 10);
+function buildInsights(reports, currency) {
+  if (!reports) return [];
+
+  const busiest = (reports.hourly_activity || []).reduce((best, row) => (row.orders > (best?.orders || 0) ? row : best), null);
+  const pending = reports.summary?.pending_payments || 0;
+  const completed = reports.summary?.completed_orders || 0;
+
+  return [
+    {
+      title: "Busiest hour",
+      value: busiest?.orders ? `${busiest.label} (${busiest.orders} orders)` : "No activity yet",
+      description: busiest?.orders ? "Use this to plan staffing and kitchen prep." : "Orders will reveal peak hours after customers start ordering.",
+    },
+    {
+      title: "Payment review",
+      value: pending ? `${pending} pending` : "Clear",
+      description: pending ? "Pending payments need review before daily closing." : "No pending payments in this period.",
+    },
+    {
+      title: "Completed sales",
+      value: completed ? formatCurrency(reports.summary.total_sales, currency) : "No completed orders",
+      description: completed ? "Completed and paid orders only." : "Completed paid sales will appear after orders are served and paid.",
+    },
+  ];
+}
+
+function trendSummary(rows = [], currency) {
+  const total = rows.reduce((sum, row) => sum + Number(row.sales || 0), 0);
+  return `Trend total: ${formatCurrency(total, currency)}.`;
+}
+
+function statusSummary(rows = []) {
+  const total = rows.reduce((sum, row) => sum + Number(row.count || 0), 0);
+  return `${total} orders represented across statuses.`;
+}
+
+function topProductSummary(rows = []) {
+  const top = rows[0];
+  return top ? `${top.product_name} leads with ${top.quantity_sold} sold.` : "No completed paid product sales in this period.";
+}
+
+function paymentSummary(rows = [], currency) {
+  const paid = rows.reduce((sum, row) => sum + Number(row.paid_total || 0), 0);
+  return `Paid total by method: ${formatCurrency(paid, currency)}.`;
+}
+
+function busiestHourSummary(rows = []) {
+  const busiest = rows.reduce((best, row) => (row.orders > (best?.orders || 0) ? row : best), null);
+  return busiest?.orders ? `Busiest hour is ${busiest.label}.` : "No hourly activity in this period.";
 }
