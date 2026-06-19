@@ -4,6 +4,7 @@ import api from "../../../api/axios";
 import ConfirmButton from "../../../components/ConfirmButton";
 import { alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import useLanguage from "../../../i18n/useLanguage";
 import {
   AppButton,
   AppCard,
@@ -24,6 +25,7 @@ const initial = { table_name: "", table_code: "", status: "active" };
 
 export default function TablesPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const allowCreate = canCreate(user, "tables");
   const allowUpdate = canUpdate(user, "tables");
   const allowDelete = canDelete(user, "tables");
@@ -156,9 +158,9 @@ export default function TablesPage() {
     <div className="grid gap-5">
       <AppPageHeader
         eyebrow="QR operations"
-        title="Tables"
-        description="Create table QR codes from a clean list view. Create and edit forms open in a centered modal while QR previews stay separate."
-        primaryAction={allowCreate ? { children: "Add Table", onClick: openCreate, iconLeft: <Plus className="h-4 w-4" /> } : null}
+        title={t("pageTitles.tablesTitle")}
+        description={t("pageTitles.tablesSubtitle")}
+        primaryAction={allowCreate ? { children: t("pageTitles.tablesCta"), onClick: openCreate, iconLeft: <Plus className="h-4 w-4" /> } : null}
         secondaryActions={<AppButton type="button" variant="secondary" iconLeft={<Printer className="h-4 w-4" />} onClick={() => window.print()}>Bulk print</AppButton>}
       />
 
@@ -214,11 +216,11 @@ export default function TablesPage() {
 
       <CrudFormModal
         open={modalOpen}
-        title={editing ? "Edit table" : "Add table"}
-        description="Table codes should be short and easy for staff to recognize."
+        title={editing ? t("crudForms.editTable") : t("crudForms.addTable")}
+        description={t("crudForms.tableHelper")}
         onClose={closeModal}
         onSubmit={submit}
-        submitLabel={editing ? "Save changes" : "Create table"}
+        submitLabel={editing ? t("common.save") : t("common.create")}
         loading={saving}
         disabled={!branchId || (editing ? !allowUpdate : !allowCreate)}
         maxWidth="max-w-2xl"

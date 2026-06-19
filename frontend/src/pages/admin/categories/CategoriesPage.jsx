@@ -7,6 +7,7 @@ import { alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
 import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
+import useLanguage from "../../../i18n/useLanguage";
 import {
   AppCard,
   AppEmptyState,
@@ -25,6 +26,7 @@ const initial = { name: "", branch_id: "", sort_order: 0, status: "active", imag
 
 export default function CategoriesPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const allowCreate = canCreate(user, "categories");
   const allowUpdate = canUpdate(user, "categories");
   const allowDelete = canDelete(user, "categories");
@@ -150,9 +152,9 @@ export default function CategoriesPage() {
     <div className="grid gap-5">
       <AppPageHeader
         eyebrow="Menu setup"
-        title="Categories"
-        description="Organize menu sections with a list-first workflow. Add or edit categories in a focused centered form while the list stays behind it."
-        primaryAction={allowCreate ? { children: "Add Category", onClick: openCreate, iconLeft: <Plus className="h-4 w-4" /> } : null}
+        title={t("pageTitles.categoriesTitle")}
+        description={t("pageTitles.categoriesSubtitle")}
+        primaryAction={allowCreate ? { children: t("pageTitles.categoriesCta"), onClick: openCreate, iconLeft: <Plus className="h-4 w-4" /> } : null}
       />
 
       <CrudToolbar
@@ -212,11 +214,11 @@ export default function CategoriesPage() {
 
       <CrudFormModal
         open={modalOpen}
-        title={editing ? "Edit category" : "Add category"}
-        description="Keep category names short and easy for customers to scan on mobile menus."
+        title={editing ? t("crudForms.editCategory") : t("crudForms.addCategory")}
+        description={t("crudForms.categoryHelper")}
         onClose={closeModal}
         onSubmit={submit}
-        submitLabel={editing ? "Save changes" : "Create category"}
+        submitLabel={editing ? t("common.save") : t("common.create")}
         loading={saving}
         disabled={!shopId || (editing ? !allowUpdate : !allowCreate)}
         maxWidth="max-w-xl"

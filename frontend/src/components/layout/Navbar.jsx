@@ -9,17 +9,18 @@ import AppLogo from "../common/AppLogo";
 import LanguageToggle from "../common/LanguageToggle";
 
 const pageContext = [
-  ["/admin/products", "common.products", "navbar.catalogWork"],
-  ["/admin/categories", "common.categories", "navbar.catalogWork"],
-  ["/admin/branches", "common.branches", "navbar.workspaceSetup"],
-  ["/admin/tables", "common.tables", "navbar.workspaceSetup"],
-  ["/admin/orders", "common.orders", "navbar.liveOperations"],
-  ["/admin/kitchen", "common.kitchen", "navbar.liveOperations"],
-  ["/admin/payments", "common.payments", "navbar.liveOperations"],
-  ["/admin/settings", "common.settings", "navbar.workspaceSetup"],
-  ["/admin/staff", "nav.staff", "navbar.workspaceSetup"],
-  ["/admin/reports", "common.reports", "navbar.businessReview"],
-  ["/admin", "common.dashboard", "navbar.controlTower"],
+  ["/admin/products", "pageTitles.productsTitle", "navbar.catalogWork"],
+  ["/admin/categories", "pageTitles.categoriesTitle", "navbar.catalogWork"],
+  ["/admin/branches", "pageTitles.branchesTitle", "navbar.workspaceSetup"],
+  ["/admin/tables", "pageTitles.tablesTitle", "navbar.workspaceSetup"],
+  ["/admin/orders", "pageTitles.ordersTitle", "navbar.liveOperations"],
+  ["/admin/kitchen", "pageTitles.kitchenTitle", "navbar.liveOperations"],
+  ["/admin/payments", "pageTitles.paymentsTitle", "navbar.liveOperations"],
+  ["/admin/settings", "pageTitles.settingsTitle", "navbar.workspaceSetup"],
+  ["/admin/staff", "pageTitles.staffTitle", "navbar.workspaceSetup"],
+  ["/admin/reports", "pageTitles.reportsTitle", "navbar.businessReview"],
+  ["/admin/system-health", "pageTitles.systemHealthTitle", "navbar.workspaceSetup"],
+  ["/admin", "pageTitles.dashboardTitle", "navbar.controlTower"],
 ];
 
 function getPageContext(pathname) {
@@ -45,8 +46,8 @@ export default function Navbar({ onOpenCommand }) {
           <UserCircle className="h-5 w-5" aria-hidden="true" />
         </div>
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{t(eyebrowKey)}</p>
-          <h1 className="truncate text-lg font-black text-slate-950">{t(titleKey)}</h1>
+          <p className="khmer-label text-xs font-bold uppercase tracking-wide text-slate-500">{t(eyebrowKey)}</p>
+          <h1 className="khmer-heading truncate text-lg font-black text-slate-950">{t(titleKey)}</h1>
         </div>
       </div>
       <button

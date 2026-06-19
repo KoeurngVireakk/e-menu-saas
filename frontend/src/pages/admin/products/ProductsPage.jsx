@@ -254,9 +254,9 @@ export default function ProductsPage() {
     <div className="grid gap-5">
       <AppPageHeader
         eyebrow="Menu catalog"
-        title="Products"
-        description="Manage menu items in a professional catalog view. Product forms open in a large centered modal with focused tabs."
-        primaryAction={allowCreate ? { children: "Add Product", onClick: openCreate, iconLeft: <Plus className="h-4 w-4" /> } : null}
+        title={t("pageTitles.productsTitle")}
+        description={t("pageTitles.productsSubtitle")}
+        primaryAction={allowCreate ? { children: t("pageTitles.productsCta"), onClick: openCreate, iconLeft: <Plus className="h-4 w-4" /> } : null}
       />
 
       <CrudToolbar
@@ -320,11 +320,11 @@ export default function ProductsPage() {
 
       <CrudFormModal
         open={modalOpen}
-        title={editing ? "Edit product" : "Add product"}
-        description="Use tabs to keep product setup focused. Options still accept the existing JSON format for compatibility."
+        title={editing ? t("crudForms.editProduct") : t("crudForms.addProduct")}
+        description={t("crudForms.productHelper")}
         onClose={closeModal}
         onSubmit={submit}
-        submitLabel={editing ? "Save changes" : "Create product"}
+        submitLabel={editing ? t("common.save") : t("crudForms.createProduct")}
         loading={saving}
         disabled={!shopId || (editing ? !allowUpdate : !allowCreate)}
         maxWidth="max-w-3xl"

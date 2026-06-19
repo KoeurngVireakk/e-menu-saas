@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import api from "../../../api/axios";
+import { LanguageProvider } from "../../../i18n";
 import PaymentsPage from "./PaymentsPage";
 
 vi.mock("../../../api/axios", () => ({
@@ -44,7 +45,11 @@ describe("PaymentsPage", () => {
       },
     });
 
-    render(<PaymentsPage />);
+    render(
+      <LanguageProvider>
+        <PaymentsPage />
+      </LanguageProvider>,
+    );
 
     await waitFor(() => expect(screen.getByText("ORD-100")).toBeInTheDocument());
     expect(screen.getByRole("button", { name: /All\s*1/ })).toBeInTheDocument();

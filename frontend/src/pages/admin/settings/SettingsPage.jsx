@@ -7,6 +7,7 @@ import AppBadge from "../../../design-system/components/AppBadge";
 import AppButton from "../../../design-system/components/AppButton";
 import AppCard from "../../../design-system/components/AppCard";
 import AppPageHeader from "../../../design-system/components/AppPageHeader";
+import useLanguage from "../../../i18n/useLanguage";
 import { canManageTenantSettings } from "../../../utils/permissions";
 
 const initial = {
@@ -47,6 +48,7 @@ const sectionLinks = [
 
 export default function SettingsPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const allowManage = canManageTenantSettings(user);
   const [shops, setShops] = useState([]);
   const [shopId, setShopId] = useState("");
@@ -143,11 +145,11 @@ export default function SettingsPage() {
     <div className="grid gap-6">
       <AppPageHeader
         eyebrow="Settings"
-        title="Shop settings"
-        description="Control the restaurant identity, brand colors, receipt defaults, and operational notification preferences."
+        title={t("pageTitles.settingsTitle")}
+        description={t("pageTitles.settingsSubtitle")}
         secondaryActions={!allowManage ? <AppBadge status="warning">Owner-only editing</AppBadge> : null}
         primaryAction={allowManage ? {
-          children: "Save settings",
+          children: t("pageTitles.settingsCta"),
           type: "submit",
           form: "settings-form",
           loading: saving,

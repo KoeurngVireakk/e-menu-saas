@@ -3,6 +3,7 @@ import { RefreshCw } from "lucide-react";
 import api, { getApiErrorMessage } from "../../../api/axios";
 import { confirmAction, promptText, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import useLanguage from "../../../i18n/useLanguage";
 import {
   AppButton,
   AppCard,
@@ -30,6 +31,7 @@ const paymentStatuses = [
 
 export default function PaymentsPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const allowPaymentActions = canManagePayments(user);
   const [payments, setPayments] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -137,9 +139,9 @@ export default function PaymentsPage() {
     <div className="grid gap-5">
       <AppPageHeader
         eyebrow="Finance operations"
-        title="Payments"
-        description="Review customer payments, verify proof images, inspect references, and confirm or reject payments safely."
-        primaryAction={{ children: "Refresh", onClick: () => load(), iconLeft: <RefreshCw className="h-4 w-4" />, variant: "secondary" }}
+        title={t("pageTitles.paymentsTitle")}
+        description={t("pageTitles.paymentsSubtitle")}
+        primaryAction={{ children: t("pageTitles.paymentsCta"), onClick: () => load(), iconLeft: <RefreshCw className="h-4 w-4" />, variant: "secondary" }}
       />
 
       <OperationStatusTabs

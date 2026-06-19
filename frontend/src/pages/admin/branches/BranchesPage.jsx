@@ -7,6 +7,7 @@ import { useAuth } from "../../../context/AuthContext";
 import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
 import { useQueryClient } from "@tanstack/react-query";
+import useLanguage from "../../../i18n/useLanguage";
 import {
   AppCard,
   AppEmptyState,
@@ -25,6 +26,7 @@ const initial = { name: "", phone: "", address: "", google_map_url: "", opening_
 
 export default function BranchesPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const allowCreate = canCreate(user, "branches");
   const allowUpdate = canUpdate(user, "branches");
   const allowDelete = canDelete(user, "branches");
@@ -127,9 +129,9 @@ export default function BranchesPage() {
     <div className="grid gap-5">
       <AppPageHeader
         eyebrow="Operations"
-        title="Branches"
-        description="Manage restaurant locations from a focused list-first workspace. Branch details open in a centered form so the list remains scannable."
-        primaryAction={allowCreate ? { children: "Add Branch", onClick: openCreate, iconLeft: <Plus className="h-4 w-4" /> } : null}
+        title={t("pageTitles.branchesTitle")}
+        description={t("pageTitles.branchesSubtitle")}
+        primaryAction={allowCreate ? { children: t("pageTitles.branchesCta"), onClick: openCreate, iconLeft: <Plus className="h-4 w-4" /> } : null}
       />
 
       <CrudToolbar
@@ -186,11 +188,11 @@ export default function BranchesPage() {
 
       <CrudFormModal
         open={modalOpen}
-        title={editing ? "Edit branch" : "Add branch"}
-        description="Branch details are used for operations, kitchen filtering, reports, and table QR menus."
+        title={editing ? t("crudForms.editBranch") : t("crudForms.addBranch")}
+        description={t("crudForms.branchHelper")}
         onClose={closeModal}
         onSubmit={submit}
-        submitLabel={editing ? "Save changes" : "Create branch"}
+        submitLabel={editing ? t("common.save") : t("common.create")}
         loading={saving}
         disabled={!shopId || (editing ? !allowUpdate : !allowCreate)}
         maxWidth="max-w-xl"

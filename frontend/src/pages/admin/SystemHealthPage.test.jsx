@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import api from "../../api/axios";
+import { LanguageProvider } from "../../i18n";
 import SystemHealthPage from "./SystemHealthPage";
 
 vi.mock("../../api/axios", () => ({
@@ -31,7 +32,11 @@ describe("SystemHealthPage", () => {
       },
     });
 
-    render(<SystemHealthPage />);
+    render(
+      <LanguageProvider>
+        <SystemHealthPage />
+      </LanguageProvider>,
+    );
 
     await waitFor(() => expect(api.get).toHaveBeenCalledWith("/system/health"));
     expect(screen.getByRole("heading", { name: "System Health" })).toBeInTheDocument();

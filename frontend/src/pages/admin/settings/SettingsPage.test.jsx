@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { LanguageProvider } from "../../../i18n";
 import SettingsPage from "./SettingsPage";
 
 vi.mock("../../../context/AuthContext", () => ({
@@ -39,9 +40,13 @@ describe("SettingsPage", () => {
   });
 
   it("renders Telegram notification settings", async () => {
-    render(<SettingsPage />);
+    render(
+      <LanguageProvider>
+        <SettingsPage />
+      </LanguageProvider>,
+    );
 
-    await waitFor(() => expect(screen.getByRole("heading", { name: "Shop settings" })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Shop Settings" })).toBeInTheDocument());
     expect(screen.getByRole("heading", { name: "Identity" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Branding" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Billing defaults" })).toBeInTheDocument();

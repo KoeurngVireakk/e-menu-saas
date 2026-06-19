@@ -32,7 +32,7 @@ export default function AppButton({
   return (
     <Component
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-2xl font-bold transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:translate-y-0 disabled:opacity-55",
+        "khmer-button inline-flex items-center justify-center gap-2 rounded-2xl font-bold transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:translate-y-0 disabled:opacity-55",
         "min-w-0 whitespace-nowrap motion-reduce:transition-none motion-reduce:hover:translate-y-0",
         variants[variant] || variants.primary,
         sizes[size] || sizes.md,

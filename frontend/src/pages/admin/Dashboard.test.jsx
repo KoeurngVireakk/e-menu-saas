@@ -84,7 +84,8 @@ describe("Dashboard", () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() => expect(screen.getByText(/Welcome back, Owner/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Operations Dashboard" })).toBeInTheDocument());
+    expect(screen.getByText("Track today's sales, orders, payments, and kitchen activity.")).toBeInTheDocument();
     expect(screen.getByText("Today sales")).toBeInTheDocument();
     expect(screen.getByText("ORD-1")).toBeInTheDocument();
     expect(screen.getByText("MenuDIGI Cafe")).toBeInTheDocument();

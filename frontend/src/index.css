@@ -9,8 +9,9 @@ body {
   min-width: 320px;
   background: #f8fafc;
   font-family:
-    Inter, "Noto Sans Khmer", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Inter, "Khmer OS Battambang", "Noto Sans Khmer", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
+  line-height: 1.5;
 }
 
 button,
@@ -18,6 +19,57 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+html[lang="km"] body {
+  font-family:
+    Inter, "Khmer OS Battambang", "Noto Sans Khmer", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  line-height: 1.75;
+}
+
+html[lang="km"] h1,
+html[lang="km"] h2,
+html[lang="km"] h3,
+html[lang="km"] h4,
+html[lang="km"] h5,
+html[lang="km"] h6,
+.khmer-heading {
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+html[lang="km"] button,
+html[lang="km"] [role="button"],
+.khmer-button {
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+html[lang="km"] label,
+html[lang="km"] .khmer-label,
+.khmer-label {
+  line-height: 1.55;
+  letter-spacing: 0;
+}
+
+html[lang="km"] p,
+html[lang="km"] li,
+html[lang="km"] dd,
+html[lang="km"] td,
+html[lang="km"] th,
+html[lang="km"] input,
+html[lang="km"] select,
+html[lang="km"] textarea,
+.khmer-text {
+  line-height: 1.75;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+html[lang="km"] .uppercase {
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 button {

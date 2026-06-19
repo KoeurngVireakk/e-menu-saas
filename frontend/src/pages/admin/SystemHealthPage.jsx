@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import api, { getApiErrorMessage } from "../../api/axios";
 import { Badge, Button, Card, ErrorState, LoadingState, PageHeader } from "../../components/ui";
+import useLanguage from "../../i18n/useLanguage";
 
 const statusTone = {
   ok: "green",
@@ -10,6 +11,7 @@ const statusTone = {
 };
 
 export default function SystemHealthPage() {
+  const { t } = useLanguage();
   const [health, setHealth] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -52,11 +54,11 @@ export default function SystemHealthPage() {
     <div className="grid gap-6">
       <PageHeader
         eyebrow="Observability"
-        title="System Health"
-        description="Check production-critical API, database, storage, cache, and queue readiness."
+        title={t("pageTitles.systemHealthTitle")}
+        description={t("pageTitles.systemHealthSubtitle")}
         actions={
           <Button type="button" variant="dark" onClick={load} disabled={loading}>
-            {loading ? "Refreshing..." : "Refresh"}
+            {loading ? "Refreshing..." : t("pageTitles.systemHealthCta")}
           </Button>
         }
       />

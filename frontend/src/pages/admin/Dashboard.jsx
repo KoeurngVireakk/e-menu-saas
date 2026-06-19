@@ -7,7 +7,6 @@ import AutomationInsightCard from "../../components/automation/AutomationInsight
 import SetupChecklist from "../../components/onboarding/SetupChecklist";
 import RealtimeStatusBadge from "../../components/realtime/RealtimeStatusBadge";
 import { toastSuccess } from "../../components/ui";
-import { useAuth } from "../../context/AuthContext";
 import {
   AppButton,
   AppCard,
@@ -21,13 +20,14 @@ import ChartCard from "../../design-system/charts/ChartCard";
 import { pageTransition, staggerContainer, staggerItem } from "../../design-system/motion/variants";
 import useOperationsRealtime from "../../hooks/useOperationsRealtime";
 import { useShopsQuery } from "../../hooks/useShopsQuery";
+import useLanguage from "../../i18n/useLanguage";
 
 const OrderStatusChart = lazy(() => import("../../design-system/charts/OrderStatusChart"));
 const SalesLineChart = lazy(() => import("../../design-system/charts/SalesLineChart"));
 const TopProductsChart = lazy(() => import("../../design-system/charts/TopProductsChart"));
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { t } = useLanguage();
   const { data: shops = [] } = useShopsQuery();
   const [orders, setOrders] = useState([]);
   const [summary, setSummary] = useState({ new_count: 0, pending_count: 0, today_revenue: 0 });
@@ -223,8 +223,8 @@ export default function Dashboard() {
     <motion.div className="grid gap-6" variants={pageTransition} initial="hidden" animate="visible">
       <AppPageHeader
         eyebrow="Operations"
-        title={`Welcome back${user?.name ? `, ${user.name}` : ""}`}
-        description="Monitor live order activity, shop performance, kitchen work, and payment operations from one clean workspace."
+        title={t("pageTitles.dashboardTitle")}
+        description={t("pageTitles.dashboardSubtitle")}
         secondaryActions={<RealtimeStatusBadge status={realtimeStatus} />}
       />
 

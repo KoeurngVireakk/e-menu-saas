@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import api from "../../../api/axios";
+import { LanguageProvider } from "../../../i18n";
 import OrdersPage from "./OrdersPage";
 
 vi.mock("../../../api/axios", () => ({
@@ -52,7 +53,9 @@ describe("OrdersPage", () => {
 
     render(
       <MemoryRouter>
-        <OrdersPage />
+        <LanguageProvider>
+          <OrdersPage />
+        </LanguageProvider>
       </MemoryRouter>,
     );
 

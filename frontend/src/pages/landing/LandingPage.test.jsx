@@ -22,7 +22,7 @@ describe("LandingPage", () => {
   it("renders hero CTAs and navigation links", () => {
     renderLanding();
 
-    expect(screen.getByRole("heading", { name: /Digital menus, orders, and payments/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Run your restaurant menu, orders, and payments/i })).toBeInTheDocument();
     expect(screen.getByText(/For restaurant owners, cashiers, waiters/i)).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /Get started/i }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("link", { name: /View QR menu demo/i }).length).toBeGreaterThan(0);
@@ -49,7 +49,7 @@ describe("LandingPage", () => {
     fireEvent.click(screen.getAllByRole("button", { name: /Switch language to ខ្មែរ/ })[0]);
 
     expect(localStorage.getItem("menudigi_language")).toBe("km");
-    expect(screen.getByRole("heading", { level: 1, name: /ម៉ឺនុយឌីជីថល/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: /គ្រប់គ្រងម៉ឺនុយ/ })).toBeInTheDocument();
     expect(screen.getAllByText("តុ A01").length).toBeGreaterThan(0);
   });
 });

@@ -6,6 +6,7 @@ import KitchenTicketPrint from "../../../components/print/KitchenTicketPrint";
 import ReceiptPrint from "../../../components/print/ReceiptPrint";
 import { confirmAction, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
+import useLanguage from "../../../i18n/useLanguage";
 import {
   AppButton,
   AppCard,
@@ -34,6 +35,7 @@ const orderStatuses = [
 
 export default function OrdersPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const allowStatusUpdate = canManageOrders(user);
   const allowInvoiceActions = canManageInvoices(user);
   const allowKitchenPrint = canPrintKitchenTicket(user);
@@ -181,9 +183,9 @@ export default function OrdersPage() {
     <div className="grid gap-5">
       <AppPageHeader
         eyebrow="Operations"
-        title="Orders"
-        description="Track live restaurant orders, update fulfillment status, and open receipts or kitchen tickets from one operations workspace."
-        primaryAction={{ children: "Refresh", onClick: () => load(), iconLeft: <RefreshCw className="h-4 w-4" />, variant: "secondary" }}
+        title={t("pageTitles.ordersTitle")}
+        description={t("pageTitles.ordersSubtitle")}
+        primaryAction={{ children: t("pageTitles.ordersCta"), onClick: () => load(), iconLeft: <RefreshCw className="h-4 w-4" />, variant: "secondary" }}
       />
 
       <section className="grid gap-4 sm:grid-cols-3">

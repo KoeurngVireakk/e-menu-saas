@@ -14,7 +14,7 @@ export function Field({ label, children, description, error, required = false })
 
   return (
     <div className="grid gap-1.5">
-      <label htmlFor={children.props.id || fieldId} className="text-sm font-bold leading-6 text-slate-700">
+      <label htmlFor={children.props.id || fieldId} className="khmer-label text-sm font-bold leading-6 text-slate-700">
         {label}{required ? <span className="text-rose-600" aria-hidden="true"> *</span> : null}
       </label>
       {cloneElement(children, {
@@ -23,8 +23,8 @@ export function Field({ label, children, description, error, required = false })
         "aria-describedby": describedBy,
         "aria-invalid": error ? true : children.props["aria-invalid"],
       })}
-      {description ? <span id={descriptionId} className="text-xs font-medium leading-5 text-slate-500">{description}</span> : null}
-      {error ? <span id={errorId} className="text-xs font-bold leading-5 text-rose-600" role="alert">{error}</span> : null}
+      {description ? <span id={descriptionId} className="khmer-text text-xs font-medium leading-5 text-slate-500">{description}</span> : null}
+      {error ? <span id={errorId} className="khmer-text text-xs font-bold leading-5 text-rose-600" role="alert">{error}</span> : null}
     </div>
   );
 }

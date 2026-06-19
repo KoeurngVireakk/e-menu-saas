@@ -170,3 +170,16 @@
 - Form accessibility checklist: every input needs a label, helper/error copy should be readable, required state should be visible, and upload controls should keep clear focus rings.
 - Empty/no-results action checklist: first-time empty states should expose the safe Add action when permissions allow, while filtered no-results should offer Clear filters.
 - Performance checklist: do not add heavy UI libraries, charts, global realtime imports, or global SweetAlert2 imports while polishing landing, shell, or CRUD modal UI.
+
+## Module 50 Khmer-First Typography QA
+
+- Khmer OS Battambang checklist: global font stack should include `Inter, "Khmer OS Battambang", "Noto Sans Khmer", system-ui, sans-serif` without committing font binaries.
+- Khmer line-height checklist: body Khmer text should breathe around 1.75, headings around 1.4, labels around 1.55, and buttons around 1.4.
+- Khmer uppercase checklist: when `html[lang="km"]` is active, uppercase utility styling should not force Khmer labels into all-caps or tracked letter spacing.
+- Khmer wrapping checklist: page titles, navbar labels, modal helpers, form labels, customer menu labels, and buttons should wrap naturally at 375px and 430px.
+- Page title checklist: each major feature should have a clear title, helpful subtitle, and action-led primary CTA in English and Khmer.
+- Landing hero checklist: hero copy should explain the QR menu, ordering, and payment system quickly in both languages without fake metrics or copied marketing claims.
+- Sidebar/navbar checklist: grouped navigation and command trigger must remain permission-aware, keyboard accessible, and readable in Khmer.
+- Centered CRUD modal checklist: modal title, helper copy, labels, errors, and footer buttons must remain readable in Khmer and English.
+- Form accessibility checklist: labels remain at least 14px-15px equivalent, helper text is readable, focus rings remain visible, and disabled/loading states are clear.
+- Performance checklist: typography changes must not add font binaries, new UI libraries, global chart imports, global realtime imports, or large bundle warnings.
