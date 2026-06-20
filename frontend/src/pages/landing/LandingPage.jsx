@@ -263,15 +263,16 @@ function DashboardMockup() {
           </div>
         ))}
       </div>
-      <div className="mt-5 grid gap-4 sm:grid-cols-[1fr_0.85fr]">
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <div className="flex h-28 items-end gap-2">
-            {[42, 60, 48, 78, 66, 92, 76].map((height, index) => (
-              <div key={height + index} className="flex-1 rounded-t-xl bg-blue-500/80" style={{ height: `${height}%` }} />
-            ))}
-          </div>
+      <div className="mt-5 grid gap-4 sm:grid-cols-[0.85fr_1.15fr]">
+        <div className="grid content-start gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          {metrics.slice(1).map(([label, value], index) => (
+            <div key={label} className="flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 text-xs font-bold text-slate-600">
+              <span>{label}</span>
+              <span className={index === 0 ? "text-emerald-700" : index === 1 ? "text-amber-700" : "text-blue-700"}>{value}</span>
+            </div>
+          ))}
         </div>
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <p className="text-xs font-black uppercase text-slate-500">{t("landing.recentOrders")}</p>
           {["A01", "B04", "C02"].map((table, index) => (
             <div key={table} className="flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700">

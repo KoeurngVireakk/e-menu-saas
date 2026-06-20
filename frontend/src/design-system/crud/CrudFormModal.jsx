@@ -18,6 +18,7 @@ export default function CrudFormModal({
   disabled = false,
   maxWidth = "max-w-xl",
   closeLabel = "Close form",
+  eyebrow = "Form",
 }) {
   const formId = useId();
   const titleId = useId();
@@ -31,7 +32,7 @@ export default function CrudFormModal({
     const previousOverflow = document.body.style.overflow;
     const focusTimer = window.setTimeout(() => dialogRef.current?.focus(), 0);
     const handleKeyDown = (event) => {
-      if (event.key === "Escape") onClose?.();
+      if (event.key === "Escape" && !loading) onClose?.();
     };
 
     document.body.style.overflow = "hidden";
@@ -43,7 +44,7 @@ export default function CrudFormModal({
       document.body.style.overflow = previousOverflow;
       previouslyFocused?.focus?.();
     };
-  }, [open, onClose]);
+  }, [loading, open, onClose]);
 
   if (!open) return null;
 
@@ -51,7 +52,7 @@ export default function CrudFormModal({
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-3 backdrop-blur-[3px] sm:p-6"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose?.();
+        if (event.target === event.currentTarget && !loading) onClose?.();
       }}
     >
       <motion.section
@@ -60,6 +61,7 @@ export default function CrudFormModal({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
+        aria-busy={loading || undefined}
         tabIndex={-1}
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -72,13 +74,14 @@ export default function CrudFormModal({
       >
         <header className="flex items-start justify-between gap-4 border-b border-slate-100 bg-white px-5 py-4 sm:px-6">
           <div className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-wide text-blue-600">Form</p>
-            <h2 id={titleId} className="mt-1 text-xl font-black leading-7 text-slate-950">{title}</h2>
-            {description ? <p id={descriptionId} className="mt-1 text-sm leading-6 text-slate-500">{description}</p> : null}
+            <p className="khmer-label text-xs font-black uppercase tracking-wide text-blue-600">{eyebrow}</p>
+            <h2 id={titleId} className="khmer-heading mt-1 text-xl font-black leading-7 text-slate-950">{title}</h2>
+            {description ? <p id={descriptionId} className="khmer-text mt-1 text-sm leading-6 text-slate-500">{description}</p> : null}
           </div>
           <button
             type="button"
             aria-label={closeLabel}
+            disabled={loading}
             className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             onClick={onClose}
           >

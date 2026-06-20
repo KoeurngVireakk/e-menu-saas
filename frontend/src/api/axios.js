@@ -76,6 +76,16 @@ export function normalizeApiError(error) {
     };
   }
 
+  if (error?.code === "ECONNABORTED") {
+    return {
+      status: 0,
+      message: "The request took too long. Check your connection and try again.",
+      errors: {},
+      code: "ECONNABORTED",
+      isCanceled: false,
+    };
+  }
+
   const status = error?.response?.status || 0;
   const data = error?.response?.data || {};
   const errors = normalizeValidationErrors(data.errors);

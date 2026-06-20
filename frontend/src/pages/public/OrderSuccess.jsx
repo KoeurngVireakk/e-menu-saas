@@ -70,9 +70,9 @@ export default function OrderSuccess() {
           return;
         }
 
-        setError(!online ? "Reconnect to refresh order status." : requestError.response?.data?.message || "Order could not be loaded.");
+        setError(!online ? t(locale, "reconnectOrderStatus") : requestError.response?.data?.message || "Order could not be loaded.");
       });
-  }, [orderNumber, online]);
+  }, [locale, orderNumber, online]);
 
   if (error) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4">{!online ? <OfflineBanner locale={locale} /> : null}<ErrorState message={error} /></div>;
   if (!order) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4">{!online ? <OfflineBanner locale={locale} /> : null}<PublicPageSkeleton label="Loading order..." /></div>;
@@ -90,7 +90,7 @@ export default function OrderSuccess() {
       {!online ? <OfflineBanner locale={locale} /> : null}
       {cachedStatus ? (
         <p className="mb-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900" role="status">
-          Showing last known order status. Reconnect to refresh order status.
+          {t(locale, "cachedOrderStatus")}
         </p>
       ) : null}
       <AppCard className="mt-6" bodyClassName="p-6">
@@ -98,7 +98,7 @@ export default function OrderSuccess() {
           <CheckCircle2 className="h-9 w-9" aria-hidden="true" />
         </div>
         <h1 className="mt-5 text-3xl font-black text-slate-950">{t(locale, "orderSubmitted")}</h1>
-        <p className="mt-2 text-slate-500">Your order has been sent to the restaurant. Please wait while the kitchen prepares your food.</p>
+        <p className="mt-2 text-slate-500">{t(locale, "orderReceivedDescription")}</p>
         <p className="mt-3 text-lg font-black text-slate-950">{order.order_number}</p>
         <div className="mt-4 flex justify-center gap-2">
           <AppBadge status={order.order_status}>{order.order_status}</AppBadge>
@@ -107,21 +107,21 @@ export default function OrderSuccess() {
         {online ? <div className="mt-3 flex justify-center">
           <LiveOrderStatus order={order} onStatusChanged={updateOrderStatus} onPaymentConfirmed={updatePaymentStatus} />
         </div> : (
-          <p className="mt-3 text-sm font-semibold text-amber-800">Reconnect to refresh order status.</p>
+          <p className="mt-3 text-sm font-semibold text-amber-800">{t(locale, "reconnectOrderStatus")}</p>
         )}
         <p className="mt-6 text-4xl font-black text-blue-700">
           {formatDualCurrency(order.grand_total, order.currency_code, order.secondary_currency_total, order.secondary_currency_code)}
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
           <AppButton type="button" variant="secondary" iconLeft={<ReceiptText className="h-4 w-4" />} onClick={() => setShowReceipt((value) => !value)}>
-            {showReceipt ? "Hide receipt" : "View receipt"}
+            {showReceipt ? t(locale, "hideReceipt") : t(locale, "viewReceipt")}
           </AppButton>
-          <AppButton type="button" variant="secondary" iconLeft={<Printer className="h-4 w-4" />} onClick={() => window.print()}>Print/Save</AppButton>
+          <AppButton type="button" variant="secondary" iconLeft={<Printer className="h-4 w-4" />} onClick={() => window.print()}>{t(locale, "printSave")}</AppButton>
         </div>
-        {showReceipt ? <CustomerReceipt order={order} /> : null}
+        {showReceipt ? <CustomerReceipt order={order} locale={locale} /> : null}
         {order.payment_status !== "paid" && order.payment_status !== "confirmed" ? (
           <AppButton as={Link} size="lg" className="mt-6" iconLeft={<CreditCard className="h-4 w-4" />} to={`/payment/${order.order_number}?locale=${locale}`}>
-            Continue to payment
+            {t(locale, "continuePayment")}
           </AppButton>
         ) : null}
       </AppCard>
@@ -134,7 +134,7 @@ export default function OrderSuccess() {
   );
 }
 
-function CustomerReceipt({ order }) {
+function CustomerReceipt({ order, locale }) {
   return (
     <div className="receipt-print mt-5 rounded-md border border-slate-200 bg-white p-4 text-left text-sm print:border-0">
       <style>{`
@@ -157,11 +157,11 @@ function CustomerReceipt({ order }) {
         ))}
       </div>
       <div className="mt-4 grid gap-1 border-t border-dashed border-slate-300 pt-3">
-        <SummaryRow label="Subtotal" value={formatCurrency(order.subtotal, order.currency_code)} />
-        <SummaryRow label="Discount" value={`-${formatCurrency(order.discount_total, order.currency_code)}`} />
-        <SummaryRow label="Service" value={formatCurrency(order.service_charge, order.currency_code)} />
-        <SummaryRow label="VAT/Tax" value={formatCurrency(order.tax_total, order.currency_code)} />
-        <SummaryRow label="Total" value={formatDualCurrency(order.grand_total, order.currency_code, order.secondary_currency_total, order.secondary_currency_code)} strong />
+        <SummaryRow label={t(locale, "subtotal")} value={formatCurrency(order.subtotal, order.currency_code)} />
+        <SummaryRow label={t(locale, "discount")} value={`-${formatCurrency(order.discount_total, order.currency_code)}`} />
+        <SummaryRow label={t(locale, "service")} value={formatCurrency(order.service_charge, order.currency_code)} />
+        <SummaryRow label={t(locale, "tax")} value={formatCurrency(order.tax_total, order.currency_code)} />
+        <SummaryRow label={t(locale, "total")} value={formatDualCurrency(order.grand_total, order.currency_code, order.secondary_currency_total, order.secondary_currency_code)} strong />
       </div>
     </div>
   );

@@ -194,7 +194,7 @@ export default function MenuPage() {
         <section className="mt-5">
           <SectionTitle eyebrow={t(selectedLocale, "featured")} title={t(selectedLocale, "popularNow")} />
           <div className="mt-3 grid gap-3 md:grid-cols-2">
-            {featuredProducts.map((product) => <PublicProductCard key={`featured-${product.id}`} product={product} onAdd={setSelected} onView={setSelected} />)}
+            {featuredProducts.map((product) => <PublicProductCard key={`featured-${product.id}`} product={product} locale={selectedLocale} onAdd={setSelected} onView={setSelected} />)}
           </div>
         </section>
       ) : null}
@@ -204,7 +204,7 @@ export default function MenuPage() {
           <section key={category.id} id={`category-${category.id}`} className="scroll-mt-32">
             <SectionTitle eyebrow={t(selectedLocale, "menu")} title={category.name} />
             <div className="mt-3 grid gap-3 md:grid-cols-2">
-              {category.products.map((product) => <PublicProductCard key={product.id} product={product} onAdd={setSelected} onView={setSelected} />)}
+              {category.products.map((product) => <PublicProductCard key={product.id} product={product} locale={selectedLocale} onAdd={setSelected} onView={setSelected} />)}
             </div>
           </section>
         ))}
@@ -222,6 +222,7 @@ export default function MenuPage() {
       />
       <StickyCartBar
         cart={cart}
+        locale={selectedLocale}
         label={t(selectedLocale, "checkout")}
         helper={t(selectedLocale, "reviewCartBeforeCheckout")}
         onClick={() => navigate(`/cart?${checkoutParams.toString()}`)}

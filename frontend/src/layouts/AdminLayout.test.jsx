@@ -46,4 +46,20 @@ describe("AdminLayout", () => {
     await waitFor(() => expect(screen.getByRole("dialog", { name: "Command palette" })).toBeInTheDocument());
     expect(screen.getByRole("button", { name: /Go to orders/i })).toBeInTheDocument();
   });
+
+  it("opens and closes the accessible mobile navigation", () => {
+    render(
+      <MemoryRouter>
+        <LanguageProvider>
+          <AdminLayout />
+        </LanguageProvider>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Open admin navigation" }));
+    expect(screen.getAllByRole("button", { name: "Close admin navigation" }).length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Close admin navigation" })[0]);
+    expect(screen.queryByRole("button", { name: "Close admin navigation" })).not.toBeInTheDocument();
+  });
 });

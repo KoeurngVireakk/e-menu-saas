@@ -3,7 +3,8 @@ import api, { getApiErrorMessage } from "../../../api/axios";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
 import ShiftReportPrint from "../../../components/print/ShiftReportPrint";
-import { Button, Card, ErrorState, Input, LoadingState, Modal, Select, StatCard, Textarea, alertError, confirmAction, toastSuccess } from "../../../components/ui";
+import { Button, Card, ErrorState, Input, LoadingState, Select, StatCard, Textarea, alertError, confirmAction, toastSuccess } from "../../../components/ui";
+import CrudFormModal from "../../../design-system/crud/CrudFormModal";
 import { useAuth } from "../../../context/AuthContext";
 import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
 import { useShopsQuery } from "../../../hooks/useShopsQuery";
@@ -27,6 +28,8 @@ export default function ShiftsPage() {
   const [movement, setMovement] = useState(movementInitial);
   const [movementShift, setMovementShift] = useState(null);
   const [closeShift, setCloseShift] = useState(null);
+  const [openShiftModal, setOpenShiftModal] = useState(false);
+  const [actionSaving, setActionSaving] = useState(false);
   const [selectedShift, setSelectedShift] = useState(null);
   const [shifts, setShifts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -76,6 +79,7 @@ export default function ShiftsPage() {
 
   const openShift = async () => {
     try {
+      setActionSaving(true);
       await api.post("/shifts/open", {
         shop_id: filters.shop_id,
         branch_id: filters.branch_id,
@@ -84,10 +88,13 @@ export default function ShiftsPage() {
       });
       setOpeningFloat("");
       setOpenNote("");
+      setOpenShiftModal(false);
       toastSuccess("Shift opened.");
       load();
     } catch (error) {
       alertError(error, "Unable to open shift.");
+    } finally {
+      setActionSaving(false);
     }
   };
 
@@ -95,6 +102,7 @@ export default function ShiftsPage() {
     if (!movementShift) return;
 
     try {
+      setActionSaving(true);
       const response = await api.post(`/shifts/${movementShift.id}/cash-movement`, movement);
       setMovement(movementInitial);
       setMovementShift(null);
@@ -103,6 +111,8 @@ export default function ShiftsPage() {
       load();
     } catch (error) {
       alertError(error, "Unable to add cash movement.");
+    } finally {
+      setActionSaving(false);
     }
   };
 
@@ -110,6 +120,7 @@ export default function ShiftsPage() {
     if (!closeShift) return;
 
     try {
+      setActionSaving(true);
       const response = await api.post(`/shifts/${closeShift.id}/close`, {
         counted_cash_total: countedCash,
         note: closeNote,
@@ -122,6 +133,8 @@ export default function ShiftsPage() {
       load();
     } catch (error) {
       alertError(error, "Unable to close shift.");
+    } finally {
+      setActionSaving(false);
     }
   };
 
@@ -179,13 +192,12 @@ export default function ShiftsPage() {
           </div>
         </Card>
       ) : allowOpen ? (
-        <Card className="grid gap-4 p-4 no-print">
-          <h1 className="text-xl font-black text-slate-950">Open Shift</h1>
-          <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
-            <Input label="Opening float" type="number" min="0" step="0.01" value={openingFloat} onChange={(event) => setOpeningFloat(event.target.value)} />
-            <Input label="Note" value={openNote} onChange={(event) => setOpenNote(event.target.value)} />
-            <Button type="button" className="self-end" disabled={!filters.branch_id} onClick={openShift}>Open shift</Button>
+        <Card className="flex flex-wrap items-center justify-between gap-4 p-4 no-print">
+          <div>
+            <h1 className="text-xl font-black text-slate-950">No active shift</h1>
+            <p className="mt-1 text-sm text-slate-500">Open a cashier shift before recording cash payments or drawer movements.</p>
           </div>
+          <Button type="button" disabled={!filters.branch_id} onClick={() => setOpenShiftModal(true)}>Open shift</Button>
         </Card>
       ) : null}
 
@@ -228,13 +240,30 @@ export default function ShiftsPage() {
         </Card>
       ) : null}
 
-      <Modal
+      <CrudFormModal
+        open={openShiftModal}
+        title="Open Shift"
+        description="Record the opening cash float for the selected branch."
+        onClose={() => setOpenShiftModal(false)}
+        onSubmit={(event) => { event.preventDefault(); openShift(); }}
+        submitLabel="Open shift"
+        loading={actionSaving}
+        disabled={!filters.branch_id}
+      >
+        <Input label="Opening float" type="number" min="0" step="0.01" value={openingFloat} onChange={(event) => setOpeningFloat(event.target.value)} />
+        <Textarea label="Note" rows={3} value={openNote} onChange={(event) => setOpenNote(event.target.value)} />
+      </CrudFormModal>
+
+      <CrudFormModal
         open={Boolean(movementShift)}
         title="Cash Movement"
+        description="Record cash added to or removed from this drawer."
         onClose={() => setMovementShift(null)}
-        footer={<Button type="button" onClick={addMovement}>Save movement</Button>}
+        onSubmit={(event) => { event.preventDefault(); addMovement(); }}
+        submitLabel="Save movement"
+        loading={actionSaving}
+        disabled={!movement.amount || !movement.reason}
       >
-        <div className="grid gap-3 p-4">
           <Select label="Type" value={movement.type} onChange={(event) => setMovement({ ...movement, type: event.target.value })}>
             <option value="cash_in">Cash in</option>
             <option value="cash_out">Cash out</option>
@@ -242,20 +271,21 @@ export default function ShiftsPage() {
           <Input label="Amount" type="number" min="0.01" step="0.01" value={movement.amount} onChange={(event) => setMovement({ ...movement, amount: event.target.value })} />
           <Input label="Reason" value={movement.reason} onChange={(event) => setMovement({ ...movement, reason: event.target.value })} />
           <Textarea label="Note" rows={3} value={movement.note} onChange={(event) => setMovement({ ...movement, note: event.target.value })} />
-        </div>
-      </Modal>
+      </CrudFormModal>
 
-      <Modal
+      <CrudFormModal
         open={Boolean(closeShift)}
         title="Close Shift"
+        description="Enter the counted cash to calculate and review the drawer difference."
         onClose={() => setCloseShift(null)}
-        footer={<Button type="button" onClick={submitClose}>Close shift</Button>}
+        onSubmit={(event) => { event.preventDefault(); submitClose(); }}
+        submitLabel="Close shift"
+        loading={actionSaving}
+        disabled={countedCash === ""}
       >
-        <div className="grid gap-3 p-4">
           <Input label="Counted cash" type="number" min="0" step="0.01" value={countedCash} onChange={(event) => setCountedCash(event.target.value)} />
           <Textarea label="Note" rows={3} value={closeNote} onChange={(event) => setCloseNote(event.target.value)} />
-        </div>
-      </Modal>
+      </CrudFormModal>
     </div>
   );
 }

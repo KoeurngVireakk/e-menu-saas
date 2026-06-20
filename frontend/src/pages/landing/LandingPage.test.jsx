@@ -27,6 +27,7 @@ describe("LandingPage", () => {
     expect(screen.getAllByRole("link", { name: /Get started/i }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("link", { name: /View QR menu demo/i }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("link", { name: /Sign in/i }).length).toBeGreaterThan(0);
+    expect(screen.getByText("QR menu + ordering + payment")).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Features" })[0]).toHaveAttribute("href", "#features");
   });
 

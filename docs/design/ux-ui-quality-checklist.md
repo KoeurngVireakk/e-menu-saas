@@ -183,3 +183,15 @@
 - Centered CRUD modal checklist: modal title, helper copy, labels, errors, and footer buttons must remain readable in Khmer and English.
 - Form accessibility checklist: labels remain at least 14px-15px equivalent, helper text is readable, focus rings remain visible, and disabled/loading states are clear.
 - Performance checklist: typography changes must not add font binaries, new UI libraries, global chart imports, global realtime imports, or large bundle warnings.
+
+## Module 52 Full-Feature Refinement QA
+
+- Khmer typography: verify body line-height, heading rhythm, natural wrapping, and no forced uppercase/tracking at every major breakpoint.
+- Sidebar scroll: verify desktop navigation scrolls independently and the bottom workspace card remains reachable; verify the mobile drawer opens, closes, and dismisses after route selection.
+- Navbar page title: verify every admin route shows the correct title/workflow context and the command trigger never implies backend record search.
+- Centered CRUD modal: verify Add/Edit opens an accessible centered dialog with description, close control, Escape behavior, and sticky save/cancel footer.
+- Mobile modal: verify one-column form flow and reachable footer actions at 375 px and 430 px without horizontal overflow.
+- Empty-state action: verify first-time states offer one safe primary action and filtered no-results offer a clear-filter action.
+- API loading/retry state: verify skeletons preserve layout, previous data remains visible during refresh, timeout copy is actionable, and errors offer retry without raw server details.
+- Customer QR tap target: verify product, category, quantity, cart, checkout, payment, and proof controls remain comfortable for one-handed use.
+- i18n hardcoded strings: switch landing, admin shell, CRUD forms, public menu, cart, payment, and order-success flows to Khmer and record any remaining English-only operational copy.

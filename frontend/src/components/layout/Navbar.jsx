@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bell, ChevronDown, LogOut, Search, UserCircle } from "lucide-react";
+import { Bell, ChevronDown, LogOut, Menu, Search, UserCircle } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import RealtimeStatusBadge from "../realtime/RealtimeStatusBadge";
 import { confirmAction } from "../ui";
@@ -8,29 +8,37 @@ import useLanguage from "../../i18n/useLanguage";
 import LanguageToggle from "../common/LanguageToggle";
 
 const pageContext = [
-  ["/admin/products", "pageTitles.productsTitle", "navbar.catalogWork"],
-  ["/admin/categories", "pageTitles.categoriesTitle", "navbar.catalogWork"],
-  ["/admin/branches", "pageTitles.branchesTitle", "navbar.workspaceSetup"],
-  ["/admin/tables", "pageTitles.tablesTitle", "navbar.workspaceSetup"],
-  ["/admin/orders", "pageTitles.ordersTitle", "navbar.liveOperations"],
-  ["/admin/kitchen", "pageTitles.kitchenTitle", "navbar.liveOperations"],
-  ["/admin/payments", "pageTitles.paymentsTitle", "navbar.liveOperations"],
-  ["/admin/settings", "pageTitles.settingsTitle", "navbar.workspaceSetup"],
-  ["/admin/staff", "pageTitles.staffTitle", "navbar.workspaceSetup"],
-  ["/admin/reports", "pageTitles.reportsTitle", "navbar.businessReview"],
-  ["/admin/system-health", "pageTitles.systemHealthTitle", "navbar.workspaceSetup"],
-  ["/admin", "pageTitles.dashboardTitle", "navbar.controlTower"],
+  ["/admin/products", "pageTitles.productsTitle", "navbar.catalogWork", "pageTitles.productsSubtitle"],
+  ["/admin/categories", "pageTitles.categoriesTitle", "navbar.catalogWork", "pageTitles.categoriesSubtitle"],
+  ["/admin/branches", "pageTitles.branchesTitle", "navbar.workspaceSetup", "pageTitles.branchesSubtitle"],
+  ["/admin/tables", "pageTitles.tablesTitle", "navbar.workspaceSetup", "pageTitles.tablesSubtitle"],
+  ["/admin/orders", "pageTitles.ordersTitle", "navbar.liveOperations", "pageTitles.ordersSubtitle"],
+  ["/admin/kitchen", "pageTitles.kitchenTitle", "navbar.liveOperations", "pageTitles.kitchenSubtitle"],
+  ["/admin/payments", "pageTitles.paymentsTitle", "navbar.liveOperations", "pageTitles.paymentsSubtitle"],
+  ["/admin/shops", "pageTitles.shopsTitle", "navbar.workspaceSetup", "pageTitles.shopsSubtitle"],
+  ["/admin/print-stations", "pageTitles.printStationsTitle", "navbar.liveOperations", "pageTitles.printStationsSubtitle"],
+  ["/admin/translations", "pageTitles.translationsTitle", "navbar.catalogWork", "pageTitles.translationsSubtitle"],
+  ["/admin/shifts", "pageTitles.shiftsTitle", "navbar.businessReview", "pageTitles.shiftsSubtitle"],
+  ["/admin/daily-closing", "pageTitles.dailyClosingTitle", "navbar.businessReview", "pageTitles.dailyClosingSubtitle"],
+  ["/admin/invoices", "pageTitles.invoicesTitle", "navbar.businessReview", "pageTitles.invoicesSubtitle"],
+  ["/admin/expenses", "pageTitles.expensesTitle", "navbar.businessReview", "pageTitles.expensesSubtitle"],
+  ["/admin/cash-ledger", "pageTitles.cashLedgerTitle", "navbar.businessReview", "pageTitles.cashLedgerSubtitle"],
+  ["/admin/settings", "pageTitles.settingsTitle", "navbar.workspaceSetup", "pageTitles.settingsSubtitle"],
+  ["/admin/staff", "pageTitles.staffTitle", "navbar.workspaceSetup", "pageTitles.staffSubtitle"],
+  ["/admin/reports", "pageTitles.reportsTitle", "navbar.businessReview", "pageTitles.reportsSubtitle"],
+  ["/admin/system-health", "pageTitles.systemHealthTitle", "navbar.workspaceSetup", "pageTitles.systemHealthSubtitle"],
+  ["/admin", "pageTitles.dashboardTitle", "navbar.controlTower", "pageTitles.dashboardSubtitle"],
 ];
 
 function getPageContext(pathname) {
   return pageContext.find(([path]) => pathname === path || (path !== "/admin" && pathname.startsWith(path))) || pageContext.at(-1);
 }
 
-export default function Navbar({ onOpenCommand }) {
+export default function Navbar({ onOpenCommand, onToggleNavigation }) {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
   const { pathname } = useLocation();
-  const [, titleKey, eyebrowKey] = getPageContext(pathname);
+  const [, titleKey, eyebrowKey, subtitleKey] = getPageContext(pathname);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const notificationsRef = useRef(null);
@@ -73,13 +81,17 @@ export default function Navbar({ onOpenCommand }) {
 
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-white/70 bg-white/85 px-4 py-3 shadow-sm shadow-slate-900/5 backdrop-blur-xl md:px-6">
-      <div className="flex min-w-0 items-center gap-3">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <button type="button" aria-label={t("navbar.openNavigation")} aria-controls="admin-navigation" className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 lg:hidden" onClick={onToggleNavigation}>
+          <Menu className="h-5 w-5" aria-hidden="true" />
+        </button>
         <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-blue-50 text-blue-600">
           <UserCircle className="h-5 w-5" aria-hidden="true" />
         </div>
         <div className="min-w-0">
           <p className="khmer-label text-xs font-bold uppercase tracking-wide text-slate-500">{t(eyebrowKey)}</p>
-          <h1 className="khmer-heading truncate text-lg font-black text-slate-950">{t(titleKey)}</h1>
+          <h1 className="khmer-heading line-clamp-2 text-base font-black text-slate-950 sm:text-lg">{t(titleKey)}</h1>
+          <p className="khmer-text hidden max-w-lg truncate text-xs text-slate-500 2xl:block">{t(subtitleKey)}</p>
         </div>
       </div>
       <button

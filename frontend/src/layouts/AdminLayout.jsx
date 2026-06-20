@@ -8,6 +8,7 @@ const AppCommandPalette = lazy(() => import("../components/command/AppCommandPal
 
 export default function AdminLayout() {
   const [commandOpen, setCommandOpen] = useState(false);
+  const [navigationOpen, setNavigationOpen] = useState(false);
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -24,9 +25,9 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.08),transparent_28%),linear-gradient(180deg,#F8FAFC,#EEF2F7)] text-left text-slate-900">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[260px_1fr]">
-        <Sidebar />
+        <Sidebar mobileOpen={navigationOpen} onClose={() => setNavigationOpen(false)} />
         <div className="min-w-0">
-          <Navbar onOpenCommand={() => setCommandOpen(true)} />
+          <Navbar onOpenCommand={() => setCommandOpen(true)} onToggleNavigation={() => setNavigationOpen((open) => !open)} />
           <motion.main
             className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8"
             initial={{ opacity: 0, y: 10 }}

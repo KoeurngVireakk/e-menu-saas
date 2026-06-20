@@ -25,6 +25,7 @@ describe("Navbar", () => {
     expect(screen.getAllByRole("button", { name: "Jump to page or action" }).length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Notifications" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Account menu" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open admin navigation" })).toBeInTheDocument();
     expect(screen.getByText("Sokha Owner")).toBeInTheDocument();
   });
 

@@ -109,4 +109,12 @@ describe("API error normalization", () => {
       isCanceled: true,
     });
   });
+
+  it("gives timed-out requests an actionable retry message", () => {
+    expect(normalizeApiError({ code: "ECONNABORTED" })).toMatchObject({
+      status: 0,
+      code: "ECONNABORTED",
+      message: "The request took too long. Check your connection and try again.",
+    });
+  });
 });
