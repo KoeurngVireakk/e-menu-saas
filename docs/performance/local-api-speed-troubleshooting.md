@@ -2,24 +2,50 @@
 
 This guide describes how to identify, debug, and fix slow API response times in your local development environment for MenuDIGI.
 
-## 1. Local Database Connection Delay (Windows DNS Resolution)
+## 1. Verify the displayed duration
 
 ### Symptoms
-Local API requests take ~500ms (e.g., `/api/auth/me` ~510ms, `/api/shops` ~504ms), while duplicate preflight calls (OPTIONS) take ~0.1ms.
+`php artisan serve` prints request durations near 500 ms, 1 s, or 2 s, while `X-Request-Time-Ms` is much lower.
 
 ### Root Cause
-When running local MySQL on Windows, using `DB_HOST=localhost` in your `.env` file forces PHP to attempt an IPv6 DNS lookup for `localhost` before failing back to IPv4 (`127.0.0.1`). On Windows, this lookup can time out or delay for exactly 500ms per database connection instantiation.
+Laravel's `ServeCommand` polls its child process every 500 ms. The console duration is calculated while those output lines are consumed, so the displayed value is quantized and is not a reliable HTTP benchmark on Windows. Measure wall time with curl and compare it with Laravel's timing header:
+
+```powershell
+curl.exe -s -D - -o NUL -w "total=%{time_total}s`n" http://127.0.0.1:8000/api/health/live
+```
+
+The timing header starts after Laravel has booted. A low `X-Request-Time-Ms` with high curl wall time points to PHP bootstrap/runtime overhead rather than the controller query.
 
 ### Fix
-Update your backend `.env` file to use the direct IPv4 loopback address instead of `localhost`:
+Still use direct IPv4 addresses locally so database and generated API URLs do not depend on hostname resolution:
 
 ```ini
 DB_HOST=127.0.0.1
+APP_URL=http://127.0.0.1:8000
 ```
+
+## 2. Enable PHP OPcache
+
+On the tested Windows PHP 8.4 installation, OPcache was present at `ext/php_opcache.dll` but disabled in `C:\php-8.4.12\php.ini`. Eight warm health requests averaged 285.6 ms without OPcache and 43.6 ms with it.
+
+Enable these local-development settings in the PHP configuration reported by `php --ini`:
+
+```ini
+zend_extension=opcache
+opcache.enable=1
+opcache.enable_cli=1
+opcache.memory_consumption=128
+opcache.interned_strings_buffer=16
+opcache.max_accelerated_files=20000
+opcache.validate_timestamps=1
+opcache.revalidate_freq=0
+```
+
+Restart `php artisan serve` after saving `php.ini`, then confirm `Zend OPcache` appears in `php -v` and `php -m`.
 
 ---
 
-## 2. API Response Timing Diagnostics
+## 3. API Response Timing Diagnostics
 
 To verify whether a slow response is caused by PHP processing time or external network delays, you can enable the `X-Request-Time-Ms` response header.
 
@@ -37,7 +63,7 @@ When enabled, all `/api/*` responses will include the `X-Request-Time-Ms` header
 
 ---
 
-## 3. Laravel Optimization Caching
+## 4. Laravel Optimization Caching
 
 If changes to configuration, routes, or settings are not reflecting, or if you need to clear compiled views and cache:
 
@@ -49,7 +75,7 @@ php artisan optimize:clear
 
 ---
 
-## 4. Frontend Deduplication with React Query
+## 5. Frontend Deduplication with React Query
 
 In development, React's `StrictMode` mounts components twice, which can duplicate initial queries if they are fetched directly in raw `useEffect` hooks. 
 

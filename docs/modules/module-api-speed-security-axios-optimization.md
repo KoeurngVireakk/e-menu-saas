@@ -2,7 +2,9 @@
 
 ## Root cause findings
 
-The repeated ~500 ms durations are not caused by controller sleeps or the slow-request middleware. With `API_TIMING_HEADERS=true`, eight sequential requests to `GET /api/health/live` spent 10–19 ms inside Laravel while wall-clock requests through `php artisan serve` on Windows took approximately 249–506 ms. The increasing ~1 s/~2 s pattern under bursts is consistent with requests queueing behind the PHP development server. Page-level duplicate requests amplified that transport cost.
+The repeated ~500 ms durations are not caused by controller sleeps or the slow-request middleware. With `API_TIMING_HEADERS=true`, sequential requests to `GET /api/health/live` spent about 12 ms inside Laravel while wall-clock requests through the Windows PHP development server took approximately 257–355 ms. Laravel's `ServeCommand` polls child-process output every 500 ms, so its printed request durations are quantized and should not be treated as HTTP measurements. Page-level duplicate requests amplify the single-worker transport cost.
+
+The installed PHP runtime included OPcache but had it disabled. A controlled eight-request warm benchmark averaged 285.6 ms without OPcache and 43.6 ms with OPcache. Enable OPcache in the loaded `php.ini` for the largest local bootstrap improvement.
 
 Use a production-style local server (Laravel Octane, FrankenPHP, nginx/Apache with PHP-FPM, or a container matching production) when evaluating concurrency. `php artisan serve` remains suitable for basic development but is not a concurrency benchmark.
 
@@ -30,7 +32,7 @@ Filter objects are normalized by removing empty values and sorting keys.
 
 ## Axios and React Query
 
-The single Axios client uses `VITE_API_BASE_URL` (with the existing compatibility fallback), a 10-second timeout, JSON headers, conditional bearer authentication, AbortSignal request cancellation, safe error normalization, cancellation detection, and one interceptor registration path. UI errors do not expose stack traces, SQL details, or raw exception paths.
+The single Axios client uses `VITE_API_BASE_URL` (with the existing compatibility fallback), a 10-second timeout, an `Accept: application/json` default, conditional bearer authentication, AbortSignal request cancellation, safe error normalization, cancellation detection, and one interceptor registration path. Axios derives request content types from submitted bodies, avoiding unnecessary global preflight-triggering headers. UI errors do not expose stack traces, SQL details, or raw exception paths.
 
 React Query defaults retain data for 30 seconds, garbage collect after five minutes, keep previous data, avoid focus refetches, refetch after reconnect, and retry safe transient failures once. It does not retry 401, 403, 404, or 422 responses (or other 4xx responses).
 
@@ -48,7 +50,8 @@ Public menu responses continue to use explicit allowlisted arrays. Tenant-scope,
 
 ## Before/after observations
 
-- Direct local health check: Laravel processing 10–19 ms versus 249–506 ms wall time through `php artisan serve` on Windows.
+- Direct local health check: Laravel processing about 12 ms versus 257–355 ms wall time through the existing Windows development server.
+- Controlled PHP runtime benchmark: 285.6 ms average without OPcache versus 43.6 ms with OPcache.
 - Before: page-local mount effects repeatedly fetched shared shop/branch data and could duplicate under StrictMode.
 - After: the StrictMode shared-current-user test renders two consumers and observes exactly one `/auth/me` call.
 - After: `/shops` and branch reads have one canonical hook and cache key across admin pages.
