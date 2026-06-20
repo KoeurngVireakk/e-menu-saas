@@ -14,7 +14,7 @@ describe("API client defaults", () => {
     expect(api.defaults.timeout).toBe(API_TIMEOUT_MS);
   });
 
-  it("attaches JSON and auth headers without secrets", async () => {
+  it("attaches Accept and auth headers without forcing preflight headers", async () => {
     localStorage.setItem("emenu_token", "test-token");
 
     const response = await api.get("/health", {
@@ -28,8 +28,9 @@ describe("API client defaults", () => {
     });
 
     expect(response.data.headers.Accept).toBe("application/json");
-    expect(response.data.headers["X-Requested-With"]).toBe("XMLHttpRequest");
     expect(response.data.headers.Authorization).toBe("Bearer test-token");
+    expect(response.data.headers["X-Requested-With"]).toBeUndefined();
+    expect(response.data.headers["Content-Type"]).toBeUndefined();
     expect(response.data.headers["X-Api-Key"]).toBeUndefined();
 
     localStorage.removeItem("emenu_token");

@@ -13,7 +13,7 @@ import AppCard from "../../../design-system/components/AppCard";
 import AppEmptyState from "../../../design-system/components/AppEmptyState";
 import AppPageHeader from "../../../design-system/components/AppPageHeader";
 import AppTable from "../../../design-system/components/AppTable";
-import CreateEditDrawer from "../../../design-system/crud/CreateEditDrawer";
+import CrudFormModal from "../../../design-system/crud/CrudFormModal";
 import CrudToolbar from "../../../design-system/crud/CrudToolbar";
 import { Field, FileInput, SelectInput, TextArea, TextInput } from "../../../design-system/crud/FormControls";
 import { canCreate, canDelete, canUpdate } from "../../../utils/permissions";
@@ -264,7 +264,7 @@ export default function ShopsPage() {
         <BrandPreview form={form} selectedShop={editing || shops[0]} />
       </div>
 
-      <CreateEditDrawer
+      <CrudFormModal
         open={drawerOpen}
         title={editing ? "Edit shop" : "Add shop"}
         description={editing ? "Update customer-facing identity, branding, and shop contact details." : "Create the restaurant profile customers will see on the QR menu."}
@@ -324,7 +324,7 @@ export default function ShopsPage() {
           </Field>
         </div>
         <BrandPreview form={form} compact />
-      </CreateEditDrawer>
+      </CrudFormModal>
 
       {!shops.length && !loading && !loadError && !allowCreate ? (
         <AppEmptyState

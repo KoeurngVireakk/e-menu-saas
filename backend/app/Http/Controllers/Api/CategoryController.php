@@ -22,7 +22,7 @@ class CategoryController extends Controller
         $this->authorizeShop($request, $shop);
         $query = $this->scopeBranchAccess(
             $request,
-            $shop->categories()->with('branch')->orderBy('sort_order'),
+            $shop->categories()->with('branch:id,name')->orderBy('sort_order'),
             $shop->id,
             'branch_id',
             true

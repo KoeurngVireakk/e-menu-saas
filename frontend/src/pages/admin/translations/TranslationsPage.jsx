@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import api, { getApiErrorMessage } from "../../../api/axios";
-import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, Select, Textarea, alertError, toastSuccess } from "../../../components/ui";
+import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Select, Textarea, alertError, toastSuccess } from "../../../components/ui";
+import CrudFormModal from "../../../design-system/crud/CrudFormModal";
 import { supportedLocales } from "../../../utils/localization";
 import { useShopsQuery } from "../../../hooks/useShopsQuery";
 
@@ -205,8 +206,16 @@ function TranslationModal({ editor, saving, onClose, onChange, onSave }) {
   };
 
   return (
-    <Modal open title={editor.title} onClose={onClose}>
-      <form onSubmit={onSave} className="grid gap-4 p-4">
+    <CrudFormModal
+      open
+      title={editor.title}
+      description="Add customer-facing English and Khmer text without changing the base catalog name."
+      onClose={onClose}
+      onSubmit={onSave}
+      submitLabel="Save translations"
+      loading={saving}
+      maxWidth="max-w-3xl"
+    >
         <div className="rounded-md bg-slate-50 p-3 text-sm">
           <p className="font-semibold text-slate-950">Base text</p>
           <p className="mt-1 text-slate-600">{editor.entity.name}</p>
@@ -240,12 +249,7 @@ function TranslationModal({ editor, saving, onClose, onChange, onSave }) {
             ) : null}
           </div>
         ))}
-        <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
-          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Save translations"}</Button>
-        </div>
-      </form>
-    </Modal>
+    </CrudFormModal>
   );
 }
 

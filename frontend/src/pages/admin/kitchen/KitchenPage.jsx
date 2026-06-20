@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import api, { getApiErrorMessage } from "../../../api/axios";
 import RealtimeStatusBadge from "../../../components/realtime/RealtimeStatusBadge";
-import { Button, ErrorState, Input, LoadingState, Modal, Select, alertError, toastSuccess } from "../../../components/ui";
+import { Button, ErrorState, Input, LoadingState, Select, alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
 import { AppButton, AppCard, AppEmptyState, AppPageHeader, AppStatusBadge } from "../../../design-system/components";
+import CrudFormModal from "../../../design-system/crud/CrudFormModal";
 import OperationStatusTabs from "../../../design-system/operations/OperationStatusTabs";
 import BaseKitchenOrderCard from "../../../design-system/operations/KitchenOrderCard";
 import useOperationsRealtime from "../../../hooks/useOperationsRealtime";
@@ -333,13 +334,17 @@ export default function KitchenPage() {
         </AppCard>
       ) : null}
 
-      <Modal
+      <CrudFormModal
         open={stationModal}
         title={editingStation ? "Edit Kitchen Station" : "Add Kitchen Station"}
+        description="Route categories and branch orders to the correct preparation station."
         onClose={closeStationModal}
-        footer={<Button type="button" onClick={submitStation}>Save station</Button>}
+        onSubmit={(event) => {
+          event.preventDefault();
+          submitStation();
+        }}
+        submitLabel="Save station"
       >
-        <div className="grid gap-3 p-4">
           <Input label="Station name" value={stationForm.name} onChange={(event) => setStationForm({ ...stationForm, name: event.target.value })} />
           <Select label="Type" value={stationForm.type} onChange={(event) => setStationForm({ ...stationForm, type: event.target.value })}>
             {["general", "kitchen", "bar", "dessert"].map((type) => <option key={type} value={type}>{type}</option>)}
@@ -366,8 +371,7 @@ export default function KitchenPage() {
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </Select>
-        </div>
-      </Modal>
+      </CrudFormModal>
     </div>
   );
 }

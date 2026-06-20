@@ -19,7 +19,14 @@ class BranchController extends Controller
     public function index(Request $request, Shop $shop)
     {
         $this->authorizeShop($request, $shop);
-        $query = $this->scopeBranchAccess($request, $shop->branches()->latest(), $shop->id, 'id');
+        $query = $this->scopeBranchAccess(
+            $request,
+            $shop->branches()
+                ->select(['id', 'shop_id', 'name', 'phone', 'address', 'google_map_url', 'opening_time', 'closing_time', 'status'])
+                ->latest('id'),
+            $shop->id,
+            'id'
+        );
 
         return $this->success('Branches loaded', [
             'branches' => $query->get(),

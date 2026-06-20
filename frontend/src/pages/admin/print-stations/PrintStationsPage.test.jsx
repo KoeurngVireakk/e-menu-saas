@@ -20,7 +20,7 @@ describe("PrintStationsPage", () => {
     api.delete.mockReset();
   });
 
-  it("renders station filters and opens the add station drawer", async () => {
+  it("renders station filters and opens the centered add station modal", async () => {
     api.get
       .mockResolvedValueOnce({ data: { data: { shops: [{ id: 1, name: "QA Cafe" }] } } })
       .mockResolvedValueOnce({ data: { data: { branches: [{ id: 2, name: "Main" }] } } })
@@ -41,7 +41,7 @@ describe("PrintStationsPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /add station/i }));
 
-    await waitFor(() => expect(screen.getByRole("heading", { name: "Add print station" })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("dialog", { name: "Add print station" })).toBeInTheDocument());
     expect(screen.getByLabelText(/station name/i)).toBeInTheDocument();
     expect(screen.getByLabelText("Branch")).toBeInTheDocument();
   });

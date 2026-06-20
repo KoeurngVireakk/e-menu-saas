@@ -16,9 +16,7 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT_MS,
   headers: {
-    "Content-Type": "application/json",
     Accept: "application/json",
-    "X-Requested-With": "XMLHttpRequest",
   },
 });
 
@@ -27,7 +25,6 @@ api.interceptors.request.use((config) => {
 
   config.headers = config.headers || {};
   config.headers.Accept = "application/json";
-  config.headers["X-Requested-With"] = "XMLHttpRequest";
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

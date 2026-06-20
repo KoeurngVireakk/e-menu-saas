@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import api from "../api/axios";
 import { queryKeys, stableFilters } from "../lib/queryKeys";
 
@@ -15,6 +15,7 @@ export function useCurrentUser(enabled = true) {
     queryFn: () => getData("/auth/me").then((data) => data.user),
     enabled,
     retry: false,
+    staleTime: 60 * 1000,
   });
 }
 
@@ -23,6 +24,7 @@ export function useShopCategories(shopId) {
     queryKey: queryKeys.shopCategories(shopId),
     queryFn: ({ signal }) => getData(`/shops/${shopId}/categories`, undefined, signal).then((data) => data.categories),
     enabled: Boolean(shopId),
+    staleTime: 60 * 1000,
   });
 }
 
@@ -32,6 +34,8 @@ export function useShopProducts(shopId, filters = {}) {
     queryKey: queryKeys.shopProducts(shopId, params),
     queryFn: ({ signal }) => getData(`/shops/${shopId}/products`, params, signal).then((data) => data.products),
     enabled: Boolean(shopId),
+    staleTime: 30 * 1000,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -40,6 +44,8 @@ export function useOrders(filters = {}, options = {}) {
   return useQuery({
     queryKey: queryKeys.orders(params),
     queryFn: ({ signal }) => getData("/orders", params, signal),
+    staleTime: 10 * 1000,
+    placeholderData: keepPreviousData,
     ...options,
   });
 }
@@ -49,6 +55,8 @@ export function usePayments(filters = {}, options = {}) {
   return useQuery({
     queryKey: queryKeys.payments(params),
     queryFn: ({ signal }) => getData("/payments", params, signal),
+    staleTime: 10 * 1000,
+    placeholderData: keepPreviousData,
     ...options,
   });
 }

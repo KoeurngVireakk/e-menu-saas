@@ -29,6 +29,15 @@ describe("Sidebar", () => {
     </MemoryRouter>,
   );
 
+  it("keeps the desktop shell fixed while the navigation remains scrollable", () => {
+    const { container } = renderSidebar();
+    const aside = container.querySelector("aside");
+    const navigation = screen.getByRole("navigation");
+
+    expect(aside).toHaveClass("lg:flex", "lg:h-screen", "lg:flex-col", "lg:overflow-hidden");
+    expect(navigation).toHaveClass("lg:min-h-0", "lg:flex-1", "lg:overflow-y-auto", "lg:overflow-x-hidden");
+  });
+
   it("shows owner-only navigation for shop owners", () => {
     renderSidebar();
 

@@ -12,7 +12,7 @@ import AppCard from "../../../design-system/components/AppCard";
 import AppEmptyState from "../../../design-system/components/AppEmptyState";
 import AppPageHeader from "../../../design-system/components/AppPageHeader";
 import AppTable from "../../../design-system/components/AppTable";
-import CreateEditDrawer from "../../../design-system/crud/CreateEditDrawer";
+import CrudFormModal from "../../../design-system/crud/CrudFormModal";
 import CrudToolbar from "../../../design-system/crud/CrudToolbar";
 import { Field, SelectInput, TextInput, ToggleField } from "../../../design-system/crud/FormControls";
 import { canManagePrintStations } from "../../../utils/permissions";
@@ -313,7 +313,7 @@ export default function PrintStationsPage() {
         </AppCard>
       </div>
 
-      <CreateEditDrawer
+      <CrudFormModal
         open={drawerOpen}
         title={editing ? "Edit print station" : "Add print station"}
         description="Configure where operational tickets and receipts should be routed."
@@ -365,7 +365,7 @@ export default function PrintStationsPage() {
           checked={Boolean(form.is_default)}
           onChange={(value) => setForm({ ...form, is_default: value })}
         />
-      </CreateEditDrawer>
+      </CrudFormModal>
     </div>
   );
 }

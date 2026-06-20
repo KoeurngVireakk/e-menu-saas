@@ -23,7 +23,7 @@ class ProductController extends Controller
         $this->authorizeShop($request, $shop);
         $query = $this->scopeBranchAccess(
             $request,
-            $shop->products()->with(['category', 'branch', 'options.values'])->latest(),
+            $shop->products()->with(['category:id,name', 'branch:id,name', 'options.values'])->latest(),
             $shop->id,
             'branch_id',
             true

@@ -42,7 +42,9 @@ class OrderController extends Controller
             ]);
         }
 
-        $ordersQuery = Order::with(['items', 'shop', 'branch', 'diningTable', 'payment.logs'])
+        // List rows only need the payment summary. Audit/provider logs remain on the
+        // authorized detail endpoint and are not repeated for every order row.
+        $ordersQuery = Order::with(['items', 'shop', 'branch', 'diningTable', 'payment'])
             ->whereIn('shop_id', $shopIds)
             ->when($request->query('shop_id'), fn ($query, $shopId) => $query->where('shop_id', $shopId))
             ->when($request->query('branch_id'), fn ($query, $branchId) => $query->where('branch_id', $branchId))

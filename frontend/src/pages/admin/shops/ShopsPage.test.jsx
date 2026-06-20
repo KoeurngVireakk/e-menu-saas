@@ -27,7 +27,7 @@ describe("ShopsPage", () => {
     api.delete.mockReset();
   });
 
-  it("renders list actions and opens the edit shop drawer", async () => {
+  it("renders list actions and opens the centered edit shop modal", async () => {
     api.get.mockResolvedValue({
       data: {
         data: {
@@ -55,11 +55,11 @@ describe("ShopsPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /edit/i }));
 
-    await waitFor(() => expect(screen.getByRole("heading", { name: "Edit shop" })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("dialog", { name: "Edit shop" })).toBeInTheDocument());
     expect(screen.getByLabelText(/shop name/i)).toHaveValue("QA Cafe");
   });
 
-  it("shows an empty state action that opens the add shop drawer", async () => {
+  it("shows an empty state action that opens the centered add shop modal", async () => {
     api.get.mockResolvedValue({ data: { data: { shops: [] } } });
 
     renderWithQuery(<ShopsPage />);
@@ -68,7 +68,7 @@ describe("ShopsPage", () => {
 
     fireEvent.click(screen.getAllByRole("button", { name: /add shop/i })[0]);
 
-    await waitFor(() => expect(screen.getByRole("heading", { name: "Add shop" })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("dialog", { name: "Add shop" })).toBeInTheDocument());
     expect(screen.getByPlaceholderText("MenuDIGI Cafe")).toBeInTheDocument();
   });
 });

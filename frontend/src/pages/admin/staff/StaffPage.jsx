@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import api, { getApiErrorMessage } from "../../../api/axios";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
-import { Badge, Button, Card, Input, Modal, Select, alertError, confirmAction, toastSuccess } from "../../../components/ui";
+import { Badge, Button, Card, Input, Select, alertError, confirmAction, toastSuccess } from "../../../components/ui";
+import CrudFormModal from "../../../design-system/crud/CrudFormModal";
 import { useAuth } from "../../../context/AuthContext";
 import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
 import { useShopsQuery } from "../../../hooks/useShopsQuery";
@@ -174,8 +175,15 @@ export default function StaffPage() {
         ) : undefined}
       />
 
-      <Modal open={modalOpen} title={editing ? "Edit staff" : "Add staff"} onClose={() => setModalOpen(false)}>
-        <form onSubmit={submit} className="grid gap-4 p-4">
+      <CrudFormModal
+        open={modalOpen}
+        title={editing ? "Edit staff" : "Add staff"}
+        description="Configure the staff role and branch access for this shop."
+        onClose={() => setModalOpen(false)}
+        onSubmit={submit}
+        submitLabel={editing ? "Save changes" : "Add staff"}
+        disabled={!allowManage}
+      >
           {!editing ? (
             <>
               <Input label="Name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
@@ -198,12 +206,7 @@ export default function StaffPage() {
             </div>
           ) : null}
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="secondary" onClick={() => setModalOpen(false)}>Cancel</Button>
-            <Button type="submit">{editing ? "Save changes" : "Add staff"}</Button>
-          </div>
-        </form>
-      </Modal>
+      </CrudFormModal>
     </div>
   );
 }

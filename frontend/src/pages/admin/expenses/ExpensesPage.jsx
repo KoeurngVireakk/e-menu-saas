@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import api, { getApiErrorMessage } from "../../../api/axios";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
-import { Button, Card, ErrorState, Input, LoadingState, Modal, Select, StatCard, Textarea, alertError, confirmAction, toastSuccess } from "../../../components/ui";
+import { Button, Card, ErrorState, Input, LoadingState, Select, StatCard, Textarea, alertError, confirmAction, toastSuccess } from "../../../components/ui";
+import CrudFormModal from "../../../design-system/crud/CrudFormModal";
 import { useAuth } from "../../../context/AuthContext";
 import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
 import { useShopsQuery } from "../../../hooks/useShopsQuery";
@@ -35,6 +36,7 @@ export default function ExpensesPage() {
   const [expenseForm, setExpenseForm] = useState(initialExpense);
   const [editingExpense, setEditingExpense] = useState(null);
   const [categoryForm, setCategoryForm] = useState(initialCategory);
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState("");
   const { data: branches = [] } = useBranchesQuery(filters.shop_id);
@@ -92,6 +94,7 @@ export default function ExpensesPage() {
     try {
       await api.post("/expense-categories", { ...categoryForm, shop_id: filters.shop_id });
       setCategoryForm(initialCategory);
+      setCategoryModalOpen(false);
       const response = await api.get("/expense-categories", { params: { shop_id: filters.shop_id, status: "active" } });
       setCategories(response.data.data.categories);
       toastSuccess("Expense category saved.");
@@ -197,13 +200,12 @@ export default function ExpensesPage() {
       ) : null}
 
       {allowApprove ? (
-        <Card className="grid gap-3 p-4">
-          <h2 className="text-lg font-bold text-slate-950">Expense Categories</h2>
-          <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-            <Input label="Name" value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value })} />
-            <Input label="Description" value={categoryForm.description} onChange={(event) => setCategoryForm({ ...categoryForm, description: event.target.value })} />
-            <Button type="button" className="self-end" disabled={!filters.shop_id || !categoryForm.name} onClick={submitCategory}>Add category</Button>
+        <Card className="flex flex-wrap items-center justify-between gap-3 p-4">
+          <div>
+            <h2 className="text-lg font-bold text-slate-950">Expense Categories</h2>
+            <p className="mt-1 text-sm text-slate-500">Create reusable accounting labels for expense records.</p>
           </div>
+          <Button type="button" disabled={!filters.shop_id} onClick={() => setCategoryModalOpen(true)}>Add category</Button>
         </Card>
       ) : null}
 
@@ -235,13 +237,42 @@ export default function ExpensesPage() {
         )}
       />
 
-      <Modal
+      <CrudFormModal
+        open={categoryModalOpen}
+        title="Add expense category"
+        description="Create a reusable category for this shop's expense records."
+        onClose={() => {
+          setCategoryModalOpen(false);
+          setCategoryForm(initialCategory);
+        }}
+        onSubmit={(event) => {
+          event.preventDefault();
+          submitCategory();
+        }}
+        submitLabel="Add category"
+        disabled={!filters.shop_id || !categoryForm.name}
+      >
+        <Input label="Name" value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value })} />
+        <Input label="Description" value={categoryForm.description} onChange={(event) => setCategoryForm({ ...categoryForm, description: event.target.value })} />
+        <Select label="Status" value={categoryForm.status} onChange={(event) => setCategoryForm({ ...categoryForm, status: event.target.value })}>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </Select>
+      </CrudFormModal>
+
+      <CrudFormModal
         open={Boolean(editingExpense)}
         title={editingExpense?.id ? "Edit Expense" : "Add Expense"}
+        description="Record the vendor, amount, payment method, and accounting date."
         onClose={() => setEditingExpense(null)}
-        footer={<Button type="button" onClick={submitExpense}>Save expense</Button>}
+        onSubmit={(event) => {
+          event.preventDefault();
+          submitExpense();
+        }}
+        submitLabel="Save expense"
+        disabled={!allowManage}
+        maxWidth="max-w-3xl"
       >
-        <div className="grid gap-3 p-4">
           <Select label="Branch" value={expenseForm.branch_id} onChange={(event) => setExpenseForm({ ...expenseForm, branch_id: event.target.value })}>
             <option value="">All branches</option>
             {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
@@ -266,8 +297,7 @@ export default function ExpensesPage() {
             <option value="draft">Draft</option>
           </Select>
           <Textarea label="Note" rows={3} value={expenseForm.note} onChange={(event) => setExpenseForm({ ...expenseForm, note: event.target.value })} />
-        </div>
-      </Modal>
+      </CrudFormModal>
     </div>
   );
 }

@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { registerSW } from "virtual:pwa-register";
 import { AppButton } from "../../design-system/components";
+import useLanguage from "../../i18n/useLanguage";
 
 let updateServiceWorker;
 
 export default function AppUpdatePrompt() {
+  const { t } = useLanguage();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -31,13 +33,13 @@ export default function AppUpdatePrompt() {
             <RefreshCw className="h-5 w-5" aria-hidden="true" />
           </div>
           <div>
-            <p className="text-sm font-black text-slate-950">A new version is ready</p>
-            <p className="mt-1 text-xs leading-5 text-slate-500">Update now to get the latest MenuDIGI improvements.</p>
+            <p className="text-sm font-black text-slate-950">{t("pwa.updateReady")}</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">{t("pwa.updateDescription")}</p>
           </div>
         </div>
         <div className="flex shrink-0 gap-2">
-          <AppButton type="button" variant="ghost" size="sm" onClick={() => setVisible(false)}>Later</AppButton>
-          <AppButton type="button" size="sm" onClick={() => updateServiceWorker(true)}>Update now</AppButton>
+          <AppButton type="button" variant="ghost" size="sm" onClick={() => setVisible(false)}>{t("pwa.later")}</AppButton>
+          <AppButton type="button" size="sm" onClick={() => updateServiceWorker(true)}>{t("pwa.updateNow")}</AppButton>
         </div>
       </div>
     </aside>

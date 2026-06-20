@@ -83,12 +83,12 @@ export default function Sidebar() {
     .filter((group) => group.links.length);
 
   return (
-    <aside className="border-b border-white/70 bg-white/90 p-4 shadow-sm shadow-slate-900/5 backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:border-white/70">
-      <div className="flex items-center gap-3 rounded-3xl border border-slate-100 bg-white p-2 shadow-sm shadow-slate-900/5 lg:mb-7">
+    <aside className="border-b border-white/70 bg-white/90 p-4 shadow-sm shadow-slate-900/5 backdrop-blur-xl lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:border-b-0 lg:border-r lg:border-white/70">
+      <div className="flex shrink-0 items-center gap-3 rounded-3xl border border-slate-100 bg-white p-2 shadow-sm shadow-slate-900/5 lg:mb-7">
         <AppLogo size="md" to="/admin" ariaLabel="Go to dashboard" />
         <LanguageToggle compact className="ml-auto lg:hidden" />
       </div>
-      <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:mt-0 lg:grid lg:gap-5 lg:overflow-visible lg:pb-0">
+      <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:mt-0 lg:grid lg:min-h-0 lg:flex-1 lg:content-start lg:gap-5 lg:overflow-x-hidden lg:overflow-y-auto lg:pr-1 lg:pb-0">
         {visibleGroups.map((group) => (
           <div key={group.labelKey} className="contents lg:block">
             <p className="mb-2 hidden px-3 text-[11px] font-black uppercase tracking-wide text-slate-400 lg:block">{t(group.labelKey)}</p>
@@ -114,7 +114,7 @@ export default function Sidebar() {
           </div>
         ))}
       </nav>
-      <div className="mt-6 hidden rounded-3xl border border-blue-100 bg-linear-to-br from-blue-50 to-white p-4 shadow-sm lg:block">
+      <div className="mt-6 hidden shrink-0 rounded-3xl border border-blue-100 bg-linear-to-br from-blue-50 to-white p-4 shadow-sm lg:block">
         <p className="text-xs font-black uppercase tracking-wide text-blue-600">Workspace</p>
         <p className="mt-1 text-sm font-black text-blue-950">MenuDIGI</p>
         <p className="mt-1 text-xs leading-5 text-blue-800">{t("common.orders")}, {t("common.payments")}, {t("common.products")}, {t("common.kitchen")}, and QR tools are available.</p>

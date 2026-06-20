@@ -244,6 +244,7 @@ class SecurityHardeningTest extends TestCase
         $this->assertContains('http://localhost:5173', config('cors.allowed_origins'));
         $this->assertContains('http://127.0.0.1:5173', config('cors.allowed_origins'));
         $this->assertNotContains('*', config('cors.allowed_origins'));
+        $this->assertSame(600, config('cors.max_age'));
     }
 
     private function createCatalog(): array

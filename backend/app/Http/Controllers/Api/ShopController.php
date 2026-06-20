@@ -13,7 +13,14 @@ class ShopController extends Controller
     public function index(Request $request)
     {
         return $this->success('Shops loaded', [
-            'shops' => Shop::whereIn('id', $this->accessibleShopIds($request))->latest()->get(),
+            'shops' => Shop::query()
+                ->select([
+                    'id', 'owner_id', 'name', 'slug', 'phone', 'email', 'address', 'description',
+                    'logo_path', 'cover_path', 'primary_color', 'secondary_color', 'currency_code', 'status',
+                ])
+                ->whereIn('id', $this->accessibleShopIds($request))
+                ->latest('id')
+                ->get(),
         ]);
     }
 
