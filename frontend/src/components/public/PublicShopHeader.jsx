@@ -12,7 +12,7 @@ export default function PublicShopHeader({ menu, locale, query, onQuery, onClear
     <section className="relative overflow-hidden rounded-b-[2rem] bg-slate-950 text-white shadow-sm" style={{ backgroundColor: menu.shop.primary_color || "#0f172a" }}>
       {coverUrl ? <img className="absolute inset-0 h-full w-full object-cover opacity-35" src={coverUrl} alt={`${menu.shop.name} cover`} /> : null}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 via-slate-950/20 to-slate-950/80" />
-      <div className="relative px-4 pb-6 pt-8 sm:px-6">
+      <div className="relative px-4 pb-6 pt-[max(2rem,env(safe-area-inset-top))] sm:px-6">
         <div className="mb-5 flex justify-end gap-2">
           {supportedLocales.map((item) => (
             <button
@@ -38,8 +38,8 @@ export default function PublicShopHeader({ menu, locale, query, onQuery, onClear
               {menu.table ? <AppBadge status="success">{menu.table.table_name}</AppBadge> : null}
               <AppBadge status={menu.shop.status === "inactive" ? "danger" : "success"}>{menu.shop.status || "active"}</AppBadge>
             </div>
-            <h1 className="mt-3 text-3xl font-black leading-tight tracking-tight sm:text-4xl">{menu.shop.name}</h1>
-            <p className="mt-1 text-sm leading-relaxed text-white/80">{menu.shop.description || t(locale, "freshMenu")}</p>
+            <h1 className="khmer-heading mt-3 text-3xl font-black leading-tight tracking-tight sm:text-4xl">{menu.shop.name}</h1>
+            <p className="khmer-text mt-1 text-sm leading-relaxed text-white/80">{menu.shop.description || t(locale, "freshMenu")}</p>
           </div>
         </div>
 

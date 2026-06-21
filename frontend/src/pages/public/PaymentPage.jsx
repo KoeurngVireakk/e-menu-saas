@@ -70,15 +70,15 @@ export default function PaymentPage() {
     }
   };
 
-  if (error) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4">{!online ? <OfflineBanner /> : null}<ErrorState message={error} /></div>;
-  if (!order) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4">{!online ? <OfflineBanner /> : null}<PublicPageSkeleton label="Loading payment..." /></div>;
+  if (error) return <div className="mx-auto min-h-dvh max-w-xl bg-slate-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{!online ? <OfflineBanner /> : null}<ErrorState message={error} /></div>;
+  if (!order) return <div className="mx-auto min-h-dvh max-w-xl bg-slate-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{!online ? <OfflineBanner /> : null}<PublicPageSkeleton label="Loading payment..." /></div>;
 
   return (
-    <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4 pb-24" lang={locale}>
+    <div className="mx-auto min-h-dvh max-w-xl bg-slate-50 p-4 pb-[calc(2rem+env(safe-area-inset-bottom))]" lang={locale}>
       {!online ? <OfflineBanner locale={locale} /> : null}
-      <p className="text-xs font-black uppercase tracking-wide text-blue-600">{t(locale, "payment")}</p>
-      <h1 className="mt-1 text-3xl font-black text-slate-950">{t(locale, "completePayment")}</h1>
-      <p className="mt-2 text-sm text-slate-500">{t(locale, "paymentPageDescription")}</p>
+      <p className="khmer-label text-xs font-black uppercase tracking-wide text-blue-600">{t(locale, "payment")}</p>
+      <h1 className="khmer-heading mt-1 text-3xl font-black text-slate-950">{t(locale, "completePayment")}</h1>
+      <p className="khmer-text mt-2 text-sm text-slate-500">{t(locale, "paymentPageDescription")}</p>
 
       <div className="mt-5">
         <PaymentStatusCard order={order} />
@@ -100,7 +100,7 @@ export default function PaymentPage() {
             <>
               <Input label={t(locale, "transactionReference")} placeholder={t(locale, "referenceNumber")} disabled={!online} value={form.transaction_reference} onChange={(event) => setForm({ ...form, transaction_reference: event.target.value })} />
               <Input label={t(locale, "proofImage")} type="file" accept="image/*" disabled={!online} onChange={(event) => setForm({ ...form, proof_image: event.target.files?.[0] || null })} />
-              {proofPreview ? <img className="max-h-80 w-full rounded-2xl border border-slate-200 object-contain" src={proofPreview} alt={t(locale, "proofPreviewAlt")} /> : null}
+              {proofPreview ? <img className="max-h-[min(20rem,50dvh)] w-full rounded-2xl border border-slate-200 bg-white object-contain" src={proofPreview} alt={t(locale, "proofPreviewAlt")} /> : null}
             </>
           ) : null}
           {form.payment_method === "bakong_khqr" ? (

@@ -16,8 +16,11 @@ describe("StickyCartBar", () => {
 
     expect(screen.getByText("2 items")).toBeInTheDocument();
     expect(screen.getByText("10,000 KHR")).toBeInTheDocument();
-    expect(screen.getByText("Review items and checkout")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "View cart" }));
+    expect(screen.getByText("Review items and checkout")).toHaveClass("khmer-text");
+    const action = screen.getByRole("button", { name: "View cart" });
+    expect(action).toHaveClass("w-full", "sm:w-auto");
+    expect(screen.getByRole("complementary", { name: "Cart summary" })).toHaveClass("pb-[calc(env(safe-area-inset-bottom)+0.75rem)]");
+    fireEvent.click(action);
     expect(onClick).toHaveBeenCalled();
   });
 });

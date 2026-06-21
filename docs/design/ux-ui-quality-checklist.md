@@ -8,7 +8,7 @@
 
 ## Typography
 
-- Use Inter, "Noto Sans Khmer", system-ui, sans-serif.
+- Use `Inter, "Khmer OS Battambang", "Noto Sans Khmer", system-ui, sans-serif` generally; when Khmer is active, prefer `"Khmer OS Battambang", "Noto Sans Khmer", Inter, system-ui, sans-serif`.
 - Reserve large display type for landing and page-level headings.
 - Keep labels short, direct, and scannable.
 - Khmer copy must have enough line height and should not be forced into tiny badges.
@@ -218,3 +218,15 @@
 - Customer review: confirm sticky cart and product-detail actions stack at narrow widths, do not cover content, and account for device safe areas.
 - Empty-state review: confirm primary and secondary actions become full-width on mobile while descriptions and Khmer copy wrap naturally.
 - Performance review: preserve route splitting, admin-only chart chunks, PWA behavior, reduced-motion support where present, and the Vitest/Playwright collection boundary.
+
+## Module 55 Real-Device and Khmer Mobile Hardening QA
+
+- Breakpoint artifacts: capture 375, 390, 430, 768, 1024, and 1440 px browser views; identify browser emulation separately from physical-device testing.
+- Safe-area review: verify `viewport-fit=cover`, modal/sheet footers, sticky cart, checkout actions, and full-height navigation account for relevant environment insets.
+- Khmer font review: on devices with Khmer OS Battambang installed, confirm it wins in Khmer mode; otherwise confirm Noto Sans Khmer fallback, natural wrapping, and comfortable heading/button/label/body line height.
+- Customer review: verify shop/table context, 44 px category and quantity targets, required-option feedback, stacked sticky cart/product actions, bounded proof previews, and an unobstructed order timeline.
+- Admin review: verify bounded navbar popovers, independently scrolling navigation, discoverable mobile Add actions, one-column centered CRUD forms, contained table scrolling, and charts with no page-level overflow.
+- State review: verify loading skeletons preserve layout, empty/error actions remain visible, retry copy is clear, and refetches do not produce blank screens.
+- Accessibility review: verify dialog/sheet naming, icon-button labels, upload labels, quantity labels, table scroll-region names, language state, and text equivalents for statuses.
+- Browser review: run both full Playwright E2E and the visual artifact command when Chrome is stable; do not commit large reports, traces, videos, or screenshot outputs.
+- Manual device TODO: test iOS Safari and Android Chrome with long Khmer catalog data, keyboard-open forms, display zoom, notch/home indicator, and installed-PWA mode.

@@ -17,4 +17,10 @@ describe("Modal", () => {
     fireEvent.keyDown(window, { key: "Escape" });
     expect(close).toHaveBeenCalledOnce();
   });
+
+  it("keeps footer actions above the mobile safe area", () => {
+    render(<Modal open title="Review order" footer={<button type="button">Continue</button>}>Order details</Modal>);
+
+    expect(screen.getByRole("button", { name: "Continue" }).parentElement).toHaveClass("pb-[max(1rem,env(safe-area-inset-bottom))]");
+  });
 });

@@ -14,6 +14,7 @@ function SheetHarness() {
         title="Edit product"
         description="Update menu availability."
         onClose={() => setOpen(false)}
+        footer={<button type="button">Save product</button>}
       >
         Product form
       </AppSheet>
@@ -31,6 +32,8 @@ describe("AppSheet", () => {
 
     const dialog = screen.getByRole("dialog", { name: "Edit product" });
     expect(dialog).toHaveAccessibleDescription("Update menu availability.");
+    expect(dialog).toHaveClass("h-dvh", "min-w-0", "overflow-hidden");
+    expect(screen.getByRole("button", { name: "Save product" }).closest("footer")).toHaveClass("pb-[max(1rem,env(safe-area-inset-bottom))]");
     await waitFor(() => expect(dialog).toHaveFocus());
 
     fireEvent.keyDown(window, { key: "Escape" });

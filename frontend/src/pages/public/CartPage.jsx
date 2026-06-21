@@ -78,13 +78,13 @@ export default function CartPage() {
   };
 
   return (
-    <div className="mx-auto min-h-screen max-w-2xl bg-slate-50 p-4 pb-32" lang={locale}>
+    <div className="mx-auto min-h-dvh max-w-2xl bg-slate-50 p-4 pb-[calc(8rem+env(safe-area-inset-bottom))]" lang={locale}>
       {!online ? <OfflineBanner locale={locale} /> : null}
       <header className="mb-5">
         <AppButton type="button" variant="ghost" size="sm" iconLeft={<ArrowLeft className="h-4 w-4" />} onClick={() => navigate(-1)}>{t(locale, "backToMenu")}</AppButton>
-        <p className="mt-4 text-xs font-black uppercase tracking-wide text-blue-600">{t(locale, "checkout")}</p>
-        <h1 className="mt-1 text-3xl font-black text-slate-950">{t(locale, "cart")}</h1>
-        <p className="mt-2 text-sm text-slate-500">{t(locale, "checkoutDescription")}</p>
+        <p className="khmer-label mt-4 text-xs font-black uppercase tracking-wide text-blue-600">{t(locale, "checkout")}</p>
+        <h1 className="khmer-heading mt-1 text-3xl font-black text-slate-950">{t(locale, "cart")}</h1>
+        <p className="khmer-text mt-2 text-sm text-slate-500">{t(locale, "checkoutDescription")}</p>
       </header>
 
       {!cart.length ? <PublicEmptyState title={t(locale, "cartEmpty")} description={t(locale, "emptyCartMessage")} actionLabel={t(locale, "returnToMenu")} onAction={() => navigate(-1)} /> : null}
@@ -112,7 +112,7 @@ export default function CartPage() {
           ) : null}
         </AppCard>
 
-        <div className="sticky bottom-[max(1rem,env(safe-area-inset-bottom))] flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-3 shadow-2xl sm:flex-row sm:items-center sm:justify-between">
+        <div className="sticky bottom-0 flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-2xl sm:bottom-4 sm:flex-row sm:items-center sm:justify-between sm:pb-3">
           <div>
             <p className="text-xs font-black uppercase tracking-wide text-blue-600">{t(locale, "total")}</p>
             <p className="text-xl font-black text-slate-950">{money(total)} KHR</p>

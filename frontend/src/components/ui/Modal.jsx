@@ -33,7 +33,7 @@ export default function Modal({ open, title, children, footer, onClose, classNam
   return (
     <AnimatePresence>
       {open ? (
-        <motion.div className="fixed inset-0 z-40 grid place-items-end overflow-hidden bg-slate-950/50 p-2 backdrop-blur-[3px] sm:place-items-center sm:p-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose?.(); }}>
+        <motion.div className="fixed inset-0 z-40 grid place-items-end overflow-hidden bg-slate-950/50 px-[max(0.5rem,env(safe-area-inset-left))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-[3px] sm:place-items-center sm:p-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose?.(); }}>
           <motion.div
             ref={dialogRef}
             className={`max-h-[calc(100dvh-1rem)] w-full min-w-0 max-w-lg overflow-y-auto overscroll-contain rounded-t-4xl border border-white/70 bg-white shadow-2xl shadow-slate-950/15 outline-none sm:max-h-[calc(100dvh-3rem)] sm:rounded-4xl ${className}`}
@@ -54,7 +54,7 @@ export default function Modal({ open, title, children, footer, onClose, classNam
               </div>
             ) : null}
             <div>{children}</div>
-            {footer ? <div className="sticky bottom-0 border-t border-slate-100 bg-white/95 p-4 shadow-[0_-14px_30px_rgba(15,23,42,0.06)] backdrop-blur">{footer}</div> : null}
+            {footer ? <div className="sticky bottom-0 border-t border-slate-100 bg-white/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-14px_30px_rgba(15,23,42,0.06)] backdrop-blur sm:pb-4">{footer}</div> : null}
           </motion.div>
         </motion.div>
       ) : null}

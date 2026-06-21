@@ -5,7 +5,7 @@ export default function PaymentMethodChart({ data = [] }) {
   const rows = data.length ? data : [{ method: "No data", amount: 0 }];
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%" minWidth={0} initialDimension={{ width: 1, height: 1 }}>
       <BarChart data={rows}>
         <XAxis dataKey="method" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
         <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />

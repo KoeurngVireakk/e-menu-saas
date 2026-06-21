@@ -6,8 +6,8 @@ describe("AppEmptyState", () => {
   it("renders empty-state copy", () => {
     render(<AppEmptyState title="No orders" description="Orders will appear here." />);
 
-    expect(screen.getByText("No orders")).toBeInTheDocument();
-    expect(screen.getByText("Orders will appear here.")).toBeInTheDocument();
+    expect(screen.getByText("No orders")).toHaveClass("khmer-heading");
+    expect(screen.getByText("Orders will appear here.")).toHaveClass("khmer-text");
   });
 
   it("renders next actions and practical checklist items", () => {

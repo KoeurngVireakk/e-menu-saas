@@ -74,8 +74,8 @@ export default function OrderSuccess() {
       });
   }, [locale, orderNumber, online]);
 
-  if (error) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4">{!online ? <OfflineBanner locale={locale} /> : null}<ErrorState message={error} /></div>;
-  if (!order) return <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4">{!online ? <OfflineBanner locale={locale} /> : null}<PublicPageSkeleton label="Loading order..." /></div>;
+  if (error) return <div className="mx-auto min-h-dvh max-w-xl bg-slate-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{!online ? <OfflineBanner locale={locale} /> : null}<ErrorState message={error} /></div>;
+  if (!order) return <div className="mx-auto min-h-dvh max-w-xl bg-slate-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{!online ? <OfflineBanner locale={locale} /> : null}<PublicPageSkeleton label="Loading order..." /></div>;
 
   const updateOrderStatus = (payload) => {
     setOrder((current) => current ? { ...current, order_status: payload.new_status } : current);
@@ -86,7 +86,7 @@ export default function OrderSuccess() {
   };
 
   return (
-    <div className="mx-auto min-h-screen max-w-xl bg-slate-50 p-4 pb-24 text-center" lang={locale}>
+    <div className="mx-auto min-h-dvh max-w-xl bg-slate-50 p-4 pb-[calc(2rem+env(safe-area-inset-bottom))] text-center" lang={locale}>
       {!online ? <OfflineBanner locale={locale} /> : null}
       {cachedStatus ? (
         <p className="mb-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900" role="status">
@@ -97,8 +97,8 @@ export default function OrderSuccess() {
         <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-100 text-emerald-700">
           <CheckCircle2 className="h-9 w-9" aria-hidden="true" />
         </div>
-        <h1 className="mt-5 text-3xl font-black text-slate-950">{t(locale, "orderSubmitted")}</h1>
-        <p className="mt-2 text-slate-500">{t(locale, "orderReceivedDescription")}</p>
+        <h1 className="khmer-heading mt-5 text-3xl font-black text-slate-950">{t(locale, "orderSubmitted")}</h1>
+        <p className="khmer-text mt-2 text-slate-500">{t(locale, "orderReceivedDescription")}</p>
         <p className="mt-3 text-lg font-black text-slate-950">{order.order_number}</p>
         <div className="mt-4 flex justify-center gap-2">
           <AppBadge status={order.order_status}>{order.order_status}</AppBadge>

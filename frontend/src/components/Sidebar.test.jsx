@@ -34,7 +34,7 @@ describe("Sidebar", () => {
     const aside = container.querySelector("aside");
     const navigation = screen.getByRole("navigation");
 
-    expect(aside).toHaveClass("lg:flex", "lg:h-screen", "lg:flex-col", "lg:overflow-hidden");
+    expect(aside).toHaveClass("h-dvh", "max-w-[calc(100vw-2rem)]", "lg:flex", "lg:h-dvh", "lg:flex-col", "lg:overflow-hidden");
     expect(navigation).toHaveClass("lg:min-h-0", "lg:flex-1", "lg:overflow-y-auto", "lg:overflow-x-hidden");
   });
 
