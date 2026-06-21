@@ -18,3 +18,17 @@ export async function mockAdmin(page) {
   await page.route("**/api/shops", (route) => route.fulfill(json({ shops: [menu.shop] })));
   await page.route("**/api/orders*", (route) => route.fulfill(json({ orders: [], summary: { new_count: 0, pending_count: 0, today_revenue: 0 } })));
 }
+
+export async function mockAdminSettings(page) {
+  await mockAdmin(page);
+  await page.route("**/api/shops/1/settings", (route) => route.fulfill(json({
+    shop: menu.shop,
+    settings: {
+      base_currency: "KHR",
+      secondary_currency: "USD",
+      exchange_rate: 4100,
+      order_auto_accept: false,
+      telegram_enabled: false,
+    },
+  })));
+}

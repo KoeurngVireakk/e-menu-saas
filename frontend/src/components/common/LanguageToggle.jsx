@@ -7,11 +7,12 @@ export default function LanguageToggle({ compact = false, className = "" }) {
 
   return (
     <div
-      className={`inline-flex items-center rounded-full border border-slate-200/80 bg-white/95 p-1 shadow-sm shadow-slate-900/5 ring-1 ring-white/70 backdrop-blur ${className}`}
+      className={`inline-flex max-w-full items-center rounded-xl border border-slate-200 bg-slate-100 p-1 ${className}`}
+      role="group"
       aria-label={t("common.language")}
     >
       {!compact ? (
-        <span className="ml-1.5 mr-1 hidden items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-slate-500 sm:inline-flex">
+        <span className="khmer-label ml-1 mr-1 hidden items-center gap-1.5 px-2 py-1 text-[11px] font-bold uppercase text-slate-500 sm:inline-flex">
           <Languages className="h-3.5 w-3.5" aria-hidden="true" />
           {t("common.language")}
         </span>
@@ -22,10 +23,10 @@ export default function LanguageToggle({ compact = false, className = "" }) {
           type="button"
           aria-label={`Switch language to ${item.name}`}
           aria-pressed={language === item.code}
-          className={`h-8 min-w-12 rounded-full px-3 text-xs font-black transition duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
+          className={`khmer-button min-h-8 min-w-12 rounded-lg px-3 text-xs font-bold transition duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${compact ? "flex-1" : ""} ${
             language === item.code
-              ? "bg-slate-950 text-white shadow-md shadow-slate-900/20"
-              : "text-slate-500 hover:bg-slate-100 hover:text-slate-950"
+              ? "bg-white text-blue-700 shadow-sm ring-1 ring-slate-200"
+              : "text-slate-500 hover:bg-white/70 hover:text-slate-950"
           }`}
           onClick={() => setLanguage(item.code)}
         >

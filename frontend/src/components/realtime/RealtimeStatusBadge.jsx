@@ -37,7 +37,7 @@ const fallbackTooltips = {
   error: "Realtime has an issue. Manual refresh still works.",
 };
 
-export default function RealtimeStatusBadge({ status = "disconnected", className = "" }) {
+export default function RealtimeStatusBadge({ status = "disconnected", compact = false, className = "" }) {
   const languageContext = useContext(LanguageContext);
   const label = languageContext?.t?.(labelKeys[status] || labelKeys.disconnected, fallbackLabels[status] || fallbackLabels.disconnected)
     || fallbackLabels[status]
@@ -48,7 +48,7 @@ export default function RealtimeStatusBadge({ status = "disconnected", className
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-black shadow-sm shadow-slate-900/5 ${tones[status] || tones.disconnected} ${className}`}
+      className={`inline-flex items-center rounded-full border text-xs font-black ${compact ? "h-8 gap-0 px-2" : "gap-1.5 px-3 py-1.5 shadow-sm shadow-slate-900/5"} ${tones[status] || tones.disconnected} ${className}`}
       aria-live="polite"
       role="status"
       title={tooltip}
@@ -57,7 +57,7 @@ export default function RealtimeStatusBadge({ status = "disconnected", className
         className={`h-1.5 w-1.5 rounded-full ${status === "connected" ? "bg-emerald-500" : status === "connecting" || status === "initialized" ? "animate-pulse bg-amber-500" : status === "error" ? "bg-rose-500" : "bg-current opacity-60"}`}
         aria-hidden="true"
       />
-      {label}
+      <span className={compact ? "sr-only" : ""}>{label}</span>
     </span>
   );
 }

@@ -230,3 +230,15 @@
 - Accessibility review: verify dialog/sheet naming, icon-button labels, upload labels, quantity labels, table scroll-region names, language state, and text equivalents for statuses.
 - Browser review: run both full Playwright E2E and the visual artifact command when Chrome is stable; do not commit large reports, traces, videos, or screenshot outputs.
 - Manual device TODO: test iOS Safari and Android Chrome with long Khmer catalog data, keyboard-open forms, display zoom, notch/home indicator, and installed-PWA mode.
+
+## Module 55.1 Admin Shell, Account Menu, and Settings QA
+
+- Navbar density: keep the sticky shell around 64–72 px, use a small route icon and compact context, bound the route/action command trigger, and prevent the user trigger from becoming the dominant control.
+- Title hierarchy: navbar context stays compact while the page body owns the primary heading, subtitle, and action hierarchy.
+- Account menu: constrain the panel to roughly 320–360 px and the viewport, show compact profile details, use permission-aware existing links, keep language switching segmented, and style logout as a restrained danger outline.
+- Account accessibility: preserve click-outside/Escape dismissal, `aria-expanded`, popup semantics, visible keyboard focus, readable logout text, and non-color status text.
+- Language toggle: preserve `aria-pressed`, natural Khmer wrapping, Khmer font inheritance, equal compact segments, and safe width in sidebar/account contexts.
+- Settings rhythm: place the workspace selector close to the page header, use existing supported fields only, group content into profile/branding/operations-notifications, and keep section navigation locally scrollable on narrow screens.
+- Settings actions: provide clear Cancel/Save hierarchy without allowing a sticky footer to cover fields; keep mobile actions full width and safe-area aware.
+- Settings recovery: when no shop exists, explain the prerequisite and provide one action to the existing Shops route.
+- Responsive review: capture `/admin/settings` and its account menu at 375, 430, 768, 1024, and 1440 px in English and Khmer where practical.

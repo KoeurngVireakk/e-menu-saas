@@ -1,5 +1,6 @@
 import { Bell, CreditCard, Palette, Save, ShieldCheck, Store } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api, { getApiErrorMessage } from "../../../api/axios";
 import { ErrorState, Input, LoadingState, Select, Textarea, alertError, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
@@ -7,6 +8,7 @@ import AppBadge from "../../../design-system/components/AppBadge";
 import AppButton from "../../../design-system/components/AppButton";
 import AppCard from "../../../design-system/components/AppCard";
 import AppPageHeader from "../../../design-system/components/AppPageHeader";
+import AppEmptyState from "../../../design-system/components/AppEmptyState";
 import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import useLanguage from "../../../i18n/useLanguage";
 import { canManageTenantSettings } from "../../../utils/permissions";
@@ -41,14 +43,15 @@ const initial = {
 };
 
 const sectionLinks = [
-  ["identity", "Identity", Store],
+  ["profile", "Shop profile", Store],
   ["branding", "Branding", Palette],
-  ["billing", "Billing", CreditCard],
-  ["telegram", "Telegram", Bell],
+  ["operations", "Operations & billing", CreditCard],
+  ["notifications", "Notifications", Bell],
 ];
 
 export default function SettingsPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const allowManage = canManageTenantSettings(user);
   const { data: shops = [], isLoading: shopsLoading, error: shopsError } = useShopsQuery();
@@ -134,9 +137,10 @@ export default function SettingsPage() {
 
   if (loading && !form.name) return <LoadingState message="Loading settings..." />;
   if (visibleError && !form.name) return <ErrorState message={visibleError} onRetry={load} />;
+  if (!loading && !shops.length) return <AppEmptyState title="Create a shop before configuring settings" description="Shop settings are connected to a restaurant workspace. Create the shop first, then return here to configure its profile and operations." actionLabel="Go to shops" onAction={() => navigate("/admin/shops")} />;
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-4">
       <AppPageHeader
         eyebrow="Settings"
         title={t("pageTitles.settingsTitle")}
@@ -152,8 +156,8 @@ export default function SettingsPage() {
         } : null}
       />
 
-      <AppCard bodyClassName="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,360px)_1fr] sm:items-end">
+      <AppCard className="shadow-sm shadow-slate-900/[0.05]" bodyClassName="grid gap-3 p-3 sm:p-4">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,320px)_1fr] lg:items-end">
           <Select
             label="Shop"
             value={shopId}
@@ -161,21 +165,21 @@ export default function SettingsPage() {
             options={shops.map((shop) => [shop.id, shop.name])}
             description="Choose the shop workspace to configure."
           />
-          <div className="flex flex-wrap gap-2">
+          <nav className="flex min-w-0 gap-1 overflow-x-auto rounded-2xl bg-slate-100 p-1" aria-label="Settings sections">
             {sectionLinks.map(([id, label, Icon]) => (
-              <a key={id} href={`#${id}`} className="inline-flex h-10 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
-                <Icon className="h-4 w-4 text-blue-600" aria-hidden="true" />
+              <a key={id} href={`#${id}`} className="khmer-button inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-sm font-bold text-slate-600 transition hover:bg-white hover:text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+                <Icon className="h-4 w-4 text-slate-400" aria-hidden="true" />
                 {label}
               </a>
             ))}
-          </div>
+          </nav>
         </div>
         {!allowManage ? <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold leading-6 text-amber-800">You can view settings, but only owners can edit them.</p> : null}
       </AppCard>
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
-        <form id="settings-form" onSubmit={submit} className="grid gap-6">
-          <AppCard id="identity" title="Identity" description="Customer-facing restaurant details used across QR menu and receipts." labelled bodyClassName="grid gap-4">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <form id="settings-form" onSubmit={submit} className="grid min-w-0 gap-4">
+          <AppCard id="profile" className="scroll-mt-24" title="Shop profile" description="Customer-facing restaurant details used across the QR menu and receipts." labelled bodyClassName="grid gap-4">
             <Input disabled={!allowManage} label="Shop name" required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
             <div className="grid gap-4 sm:grid-cols-2">
               <Input disabled={!allowManage} label="Phone" value={form.phone || ""} onChange={(event) => setForm({ ...form, phone: event.target.value })} />
@@ -185,7 +189,7 @@ export default function SettingsPage() {
             <Textarea disabled={!allowManage} label="Description" description="Short public copy that helps customers before ordering." value={form.description || ""} onChange={(event) => setForm({ ...form, description: event.target.value })} />
           </AppCard>
 
-          <AppCard id="branding" title="Branding" description="Keep colors readable and images sized for menu previews." labelled bodyClassName="grid gap-4">
+          <AppCard id="branding" className="scroll-mt-24" title="Branding" description="Keep colors readable and images sized for menu previews." labelled bodyClassName="grid gap-4">
             <div className="grid gap-4 sm:grid-cols-3">
               <Input disabled={!allowManage} label="Primary color" type="color" value={form.primary_color || "#f97316"} onChange={(event) => setForm({ ...form, primary_color: event.target.value })} />
               <Input disabled={!allowManage} label="Secondary color" type="color" value={form.secondary_color || "#111827"} onChange={(event) => setForm({ ...form, secondary_color: event.target.value })} />
@@ -202,7 +206,7 @@ export default function SettingsPage() {
             ) : null}
           </AppCard>
 
-          <AppCard id="billing" title="Billing defaults" description="Configure receipt totals, charges, currency display, and document prefixes." labelled bodyClassName="grid gap-4">
+          <AppCard id="operations" className="scroll-mt-24" title="Operations & billing" description="Configure order handling, receipt totals, currency display, and document prefixes." labelled bodyClassName="grid gap-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <ToggleRow disabled={!allowManage} checked={Boolean(form.order_auto_accept)} onChange={(checked) => setForm({ ...form, order_auto_accept: checked })} label="Auto-accept new orders" description="Use only when staff can process every submitted order immediately." />
               <ToggleRow disabled={!allowManage} checked={Boolean(form.display_secondary_currency)} onChange={(checked) => setForm({ ...form, display_secondary_currency: checked })} label="Show secondary currency on receipts" description="Helpful when receipts show both KHR and USD totals." />
@@ -224,7 +228,7 @@ export default function SettingsPage() {
             <Textarea disabled={!allowManage} label="Receipt footer" value={form.receipt_footer_text || ""} onChange={(event) => setForm({ ...form, receipt_footer_text: event.target.value })} />
           </AppCard>
 
-          <AppCard id="telegram" title="Telegram notifications" description="Send operational alerts for new orders, payment updates, and paid invoices." labelled action={allowManage ? <AppButton type="button" variant="secondary" disabled={!shopId || testingTelegram} loading={testingTelegram} onClick={testTelegram}>Test Telegram</AppButton> : null} bodyClassName="grid gap-4">
+          <AppCard id="notifications" className="scroll-mt-24" title="Telegram notifications" description="Send operational alerts for new orders, payment updates, and paid invoices." labelled action={allowManage ? <AppButton type="button" variant="secondary" disabled={!shopId || testingTelegram} loading={testingTelegram} onClick={testTelegram}>Test Telegram</AppButton> : null} bodyClassName="grid gap-4">
             <ToggleRow disabled={!allowManage} checked={Boolean(form.telegram_enabled)} onChange={(checked) => setForm({ ...form, telegram_enabled: checked })} label="Enable Telegram notifications" description="Telegram sends only when a valid chat ID and notification types are enabled." />
             <Input disabled={!allowManage} label="Telegram chat ID" value={form.telegram_chat_id || ""} onChange={(event) => setForm({ ...form, telegram_chat_id: event.target.value })} />
             <div className="grid gap-3 sm:grid-cols-3">
@@ -242,10 +246,13 @@ export default function SettingsPage() {
           </AppCard>
 
           {allowManage ? (
-            <div className="sticky bottom-4 z-10 rounded-3xl border border-slate-200 bg-white/95 p-3 shadow-lg shadow-slate-900/10 backdrop-blur">
+            <div className="rounded-3xl border border-slate-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-sm shadow-slate-900/5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm font-semibold text-slate-600">Saving updates the selected shop settings only.</p>
-                <AppButton type="submit" loading={saving} disabled={saving || !shopId} iconLeft={<Save className="h-4 w-4" aria-hidden="true" />}>Save settings</AppButton>
+                <p className="khmer-text text-sm font-semibold text-slate-600">Changes apply only to the selected shop.</p>
+                <div className="flex flex-col-reverse gap-2 sm:flex-row">
+                  <AppButton type="button" variant="secondary" className="w-full sm:w-auto" disabled={saving} onClick={load}>Cancel</AppButton>
+                  <AppButton type="submit" className="w-full sm:w-auto" loading={saving} disabled={saving || !shopId} iconLeft={<Save className="h-4 w-4" aria-hidden="true" />}>Save changes</AppButton>
+                </div>
               </div>
             </div>
           ) : null}
