@@ -14,7 +14,7 @@ export default function AppMetricCard({ title, value, icon: Icon, trend, descrip
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <p id={titleId} className="text-xs font-black uppercase tracking-wide text-slate-500">{title}</p>
+              <p id={titleId} className="khmer-label text-xs font-black uppercase tracking-wide text-slate-500">{title}</p>
               {status ? <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-black text-blue-700">{status}</span> : null}
             </div>
             <p className="mt-3 text-2xl font-black tabular-nums text-slate-950">{value}</p>

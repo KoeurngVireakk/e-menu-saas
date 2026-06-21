@@ -35,13 +35,14 @@ export default function Register() {
 
   return (
     <div className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.16),transparent_30%),linear-gradient(135deg,#F8FAFC,#EEF2F7)] p-4 text-left">
-      <div className="grid w-full max-w-5xl overflow-hidden rounded-4xl border border-white/70 bg-white shadow-2xl shadow-slate-900/10 lg:grid-cols-[1.05fr_0.95fr]">
+      <div className="w-full max-w-xl overflow-hidden rounded-4xl border border-slate-200/80 bg-white shadow-xl shadow-slate-900/[0.08]">
         <form onSubmit={submit} className="p-6 sm:p-8">
           <div className="mb-8 flex items-center justify-between gap-3">
             <AppLogo size="lg" to="/register" ariaLabel="Go to home" />
             <LanguageToggle compact />
           </div>
-          <h1 className="text-3xl font-black text-slate-950">{t("auth.createWorkspace")}</h1>
+          <p className="khmer-label text-xs font-black uppercase tracking-wide text-blue-600">{t("auth.secureWorkspace")}</p>
+          <h1 className="khmer-heading mt-2 text-3xl font-black text-slate-950">{t("auth.createWorkspace")}</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">{t("auth.accountHint")}</p>
           <div className="mt-7 grid gap-4 sm:grid-cols-2">
             <AuthField icon={UserRound} label={t("auth.name")} required value={form.name} onChange={(event) => update("name", event.target.value)} />
@@ -59,18 +60,6 @@ export default function Register() {
             {t("auth.alreadyRegistered")} <Link className="font-black text-blue-700 hover:text-blue-800" to="/login">{t("common.signIn")}</Link>
           </p>
         </form>
-        <aside className="hidden bg-slate-950 p-8 text-white lg:block">
-          <div className="flex h-full flex-col justify-between">
-            <div>
-              <h2 className="text-4xl font-black leading-tight">{t("auth.registerHero")}</h2>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {[t("common.products"), t("common.tables"), t("common.orders"), t("common.payments")].map((item) => (
-                <div key={item} className="rounded-3xl border border-white/10 bg-white/5 p-4 text-sm font-black text-blue-100">{item}</div>
-              ))}
-            </div>
-          </div>
-        </aside>
       </div>
     </div>
   );
@@ -80,7 +69,7 @@ function AuthField({ icon: Icon, label, className = "", ...props }) {
   return (
     <label className={`block text-sm font-bold text-slate-700 ${className}`}>
       {label}
-      <span className="mt-2 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 transition focus-within:border-blue-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-50">
+      <span className="mt-2 flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 transition hover:border-slate-300 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-50">
         <Icon className="h-4 w-4 text-slate-400" aria-hidden="true" />
         <input className="w-full bg-transparent outline-none" {...props} />
       </span>
@@ -92,7 +81,7 @@ function PasswordField({ label, value, show, onToggle, onChange }) {
   return (
     <label className="block text-sm font-bold text-slate-700">
       {label}
-      <span className="mt-2 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 transition focus-within:border-blue-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-50">
+      <span className="mt-2 flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 transition hover:border-slate-300 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-50">
         <LockKeyhole className="h-4 w-4 text-slate-400" aria-hidden="true" />
         <input className="w-full bg-transparent outline-none" type={show ? "text" : "password"} required value={value} onChange={onChange} />
         <button type="button" aria-label={show ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`} className="rounded-xl p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" onClick={onToggle}>

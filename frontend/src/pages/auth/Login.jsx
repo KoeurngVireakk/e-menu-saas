@@ -34,38 +34,25 @@ export default function Login() {
 
   return (
     <div className="grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.16),transparent_30%),linear-gradient(135deg,#F8FAFC,#EEF2F7)] p-4 text-left">
-      <div className="grid w-full max-w-5xl overflow-hidden rounded-4xl border border-white/70 bg-white shadow-2xl shadow-slate-900/10 lg:grid-cols-[0.95fr_1.05fr]">
-        <aside className="hidden bg-slate-950 p-8 text-white lg:block">
-          <div className="flex h-full flex-col justify-between">
-            <div>
-              <AppLogo size="lg" to="/" ariaLabel="Go to home" />
-              <h2 className="mt-10 text-4xl font-black leading-tight">{t("auth.welcomeBack")}</h2>
-              <p className="mt-4 text-sm leading-6 text-slate-300">{t("auth.accountHint")}</p>
-            </div>
-            <div className="grid gap-3 rounded-3xl border border-white/10 bg-white/5 p-4">
-              {[t("auth.secureWorkspace"), "QR menu ready", "Kitchen workflow"].map((item) => (
-                <p key={item} className="text-sm font-bold text-blue-100">{item}</p>
-              ))}
-            </div>
-          </div>
-        </aside>
+      <div className="w-full max-w-lg overflow-hidden rounded-4xl border border-slate-200/80 bg-white shadow-xl shadow-slate-900/[0.08]">
         <form onSubmit={submit} className="p-6 sm:p-8">
           <div className="mb-8 flex items-center justify-between gap-3">
             <AppLogo size="lg" to="/login" ariaLabel="Go to home" />
             <LanguageToggle compact />
           </div>
-          <h1 className="text-3xl font-black text-slate-950">{t("common.signIn")}</h1>
+          <p className="khmer-label text-xs font-black uppercase tracking-wide text-blue-600">{t("auth.secureWorkspace")}</p>
+          <h1 className="khmer-heading mt-2 text-3xl font-black text-slate-950">{t("common.signIn")}</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">{t("auth.accountHint")}</p>
           <label className="mt-7 block text-sm font-bold text-slate-700">
             {t("auth.email")}
-            <span className="mt-2 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 transition focus-within:border-blue-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-50">
+            <span className="mt-2 flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 transition hover:border-slate-300 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-50">
               <Mail className="h-4 w-4 text-slate-400" aria-hidden="true" />
               <input className="w-full bg-transparent outline-none" type="email" required value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
             </span>
           </label>
           <label className="mt-4 block text-sm font-bold text-slate-700">
             {t("auth.password")}
-            <span className="mt-2 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus-within:border-blue-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-50">
+            <span className="mt-2 flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 transition hover:border-slate-300 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-50">
               <LockKeyhole className="h-4 w-4 text-slate-400" aria-hidden="true" />
               <input className="w-full bg-transparent outline-none" type={showPassword ? "text" : "password"} required value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} />
               <button type="button" aria-label={showPassword ? "Hide password" : "Show password"} className="rounded-xl p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" onClick={() => setShowPassword((value) => !value)}>

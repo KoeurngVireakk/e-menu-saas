@@ -99,9 +99,9 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
         <div className="grid gap-5 p-4">
           <div>
             <div className="flex flex-wrap gap-2">
-              {product.is_featured ? <AppBadge status="warning">Featured</AppBadge> : null}
-              {!available ? <AppBadge status="danger">Sold out</AppBadge> : null}
-              {product.preparation_time ? <AppBadge status="info">{product.preparation_time} min</AppBadge> : null}
+              {product.is_featured ? <AppBadge status="warning">{t(locale, "featured")}</AppBadge> : null}
+              {!available ? <AppBadge status="danger">{t(locale, "soldOut")}</AppBadge> : null}
+              {product.preparation_time ? <AppBadge status="info">{product.preparation_time} {t(locale, "minuteShort")}</AppBadge> : null}
             </div>
             <p className="mt-3 text-sm leading-6 text-slate-500">{product.description || t(locale, "noDescription")}</p>
             <div className="mt-4">
@@ -150,9 +150,9 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
           <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-slate-50 p-3">
             <span className="font-black text-slate-800">{t(locale, "quantity")}</span>
             <div className="flex items-center gap-2">
-              <AppButton type="button" variant="secondary" size="sm" aria-label="Decrease quantity" onClick={() => setQuantity((value) => Math.max(1, value - 1))}><Minus className="h-4 w-4" /></AppButton>
+              <AppButton type="button" variant="secondary" size="sm" aria-label={locale === "km" ? "បន្ថយចំនួន" : "Decrease quantity"} onClick={() => setQuantity((value) => Math.max(1, value - 1))}><Minus className="h-4 w-4" /></AppButton>
               <span className="w-8 text-center font-black">{quantity}</span>
-              <AppButton type="button" variant="secondary" size="sm" aria-label="Increase quantity" onClick={() => setQuantity((value) => value + 1)}><Plus className="h-4 w-4" /></AppButton>
+              <AppButton type="button" variant="secondary" size="sm" aria-label={locale === "km" ? "បន្ថែមចំនួន" : "Increase quantity"} onClick={() => setQuantity((value) => value + 1)}><Plus className="h-4 w-4" /></AppButton>
             </div>
           </div>
 

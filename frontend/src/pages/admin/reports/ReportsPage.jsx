@@ -136,7 +136,7 @@ export default function ReportsPage() {
       />
 
       <AppCard title={t("reports.dateRange", "Date range")} description={t("reports.filterDescription", "Filter analytics by shop, branch, date period, order status, and payment status.")}>
-        <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-7">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <Select label="Shop" value={filters.shop_id} onChange={(event) => setFilter("shop_id", event.target.value)}>
             {shops.map((shop) => <option key={shop.id} value={shop.id}>{shop.name}</option>)}
           </Select>
@@ -162,16 +162,17 @@ export default function ReportsPage() {
             <option value="">All payments</option>
             {["unpaid", "pending", "paid", "failed"].map((status) => <option key={status} value={status}>{status}</option>)}
           </Select>
-          <div className="md:col-span-2 xl:col-span-7">
+          <div className="flex items-center justify-between gap-3 md:col-span-2 xl:col-span-4">
             <AppButton type="button" variant="ghost" onClick={clearFilters}>{t("reports.clearFilters", "Clear filters")}</AppButton>
+            {loading && reports ? <span className="text-xs font-bold text-blue-600" role="status">{t("common.loading")}...</span> : null}
           </div>
         </div>
       </AppCard>
 
-      {loading ? <LoadingState message="Loading analytics..." /> : null}
+      {loading && !reports ? <LoadingState message="Loading analytics..." /> : null}
       {loadError ? <ErrorState message={loadError} onRetry={load} /> : null}
 
-      {!loading && !loadError && summary ? (
+      {!loadError && summary ? (
         <>
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
             <AppMetricCard title={t("reports.totalSales", "Total sales")} value={formatCurrency(summary.total_sales, currency)} description="Completed and paid orders" />

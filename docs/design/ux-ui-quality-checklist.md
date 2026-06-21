@@ -195,3 +195,16 @@
 - API loading/retry state: verify skeletons preserve layout, previous data remains visible during refresh, timeout copy is actionable, and errors offer retry without raw server details.
 - Customer QR tap target: verify product, category, quantity, cart, checkout, payment, and proof controls remain comfortable for one-handed use.
 - i18n hardcoded strings: switch landing, admin shell, CRUD forms, public menu, cart, payment, and order-success flows to Khmer and record any remaining English-only operational copy.
+
+## Module 53 Modern-Clean Polish QA
+
+- Shared controls: verify 44px input/select height, readable textarea sizing, restrained shadows, consistent radii, and visible focus/disabled/error states.
+- Khmer buttons: verify long labels wrap naturally, retain comfortable line height, and do not become narrow or clipped.
+- Auth: verify login/register remain centered and scannable, password visibility is keyboard accessible, validation is readable, and reset messaging does not imply a missing backend feature exists.
+- Dashboard hierarchy: verify today's real metrics, needs-attention items, and next actions remain distinct without fake data.
+- CRUD: verify simple editors remain centered, busy saves cannot be dismissed accidentally, and no permanent two-column form returns.
+- Operations: verify status actions, realtime state, payment proof, confirmations, and mobile tap targets remain obvious and permission-aware.
+- Reports: verify filter controls remain usable on mobile, existing data remains visible during refresh, chart descriptions are present, and charts stay outside landing/public bundles.
+- Customer QR: verify localized product status, quantity controls, cart visibility, checkout, proof preview, order timeline, offline blocking, and install/update prompts.
+- Motion: verify hover/press/modal/cart transitions stay within roughly 150–250ms and respect reduced-motion behavior where implemented.
+- Regression: run backend tests, frontend lint/tests/build, route listing, and `git diff --check`; confirm Vitest excludes Playwright files.

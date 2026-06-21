@@ -208,7 +208,7 @@ export default function Dashboard() {
   }, [orders, shops.length, summary.pending_count]);
 
   if (loading) return <AppSkeleton variant="page" />;
-  if (error) return <AppEmptyState title="Dashboard unavailable" description={error} />;
+  if (error) return <AppEmptyState title="Dashboard unavailable" description={error} actionLabel="Try again" onAction={() => ordersQuery.refetch()} />;
 
   return (
     <motion.div className="grid gap-6" variants={pageTransition} initial="hidden" animate="visible">
