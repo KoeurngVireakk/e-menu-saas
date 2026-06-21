@@ -27,6 +27,7 @@ describe("Navbar", () => {
     expect(screen.getByRole("button", { name: "Account menu" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open admin navigation" })).toBeInTheDocument();
     expect(screen.getByText("Sokha Owner")).toBeInTheDocument();
+    expect(screen.getByRole("banner")).toHaveClass("min-w-0", "gap-2", "px-3");
   });
 
   it("opens notification and profile menus", () => {
@@ -40,6 +41,7 @@ describe("Navbar", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Notifications" }));
     expect(screen.getByText("No notifications yet")).toBeInTheDocument();
+    expect(screen.getByText("No notifications yet").closest(".absolute")).toHaveClass("w-[min(20rem,calc(100vw-1.5rem))]");
     expect(screen.getByRole("link", { name: "Notification settings" })).toHaveAttribute("href", "/admin/settings");
 
     fireEvent.click(screen.getByRole("button", { name: "Account menu" }));

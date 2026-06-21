@@ -80,12 +80,12 @@ export default function Navbar({ onOpenCommand, onToggleNavigation }) {
   };
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-white/70 bg-white/85 px-4 py-3 shadow-sm shadow-slate-900/5 backdrop-blur-xl md:px-6">
-      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+    <header className="sticky top-0 z-20 flex min-w-0 items-center justify-between gap-2 border-b border-white/70 bg-white/85 px-3 py-3 shadow-sm shadow-slate-900/5 backdrop-blur-xl sm:gap-3 sm:px-4 md:px-6">
+      <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3 md:flex-initial">
         <button type="button" aria-label={t("navbar.openNavigation")} aria-controls="admin-navigation" className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 lg:hidden" onClick={onToggleNavigation}>
           <Menu className="h-5 w-5" aria-hidden="true" />
         </button>
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-blue-50 text-blue-600">
+        <div className="hidden h-10 w-10 shrink-0 place-items-center rounded-2xl bg-blue-50 text-blue-600 sm:grid">
           <UserCircle className="h-5 w-5" aria-hidden="true" />
         </div>
         <div className="min-w-0">
@@ -104,7 +104,7 @@ export default function Navbar({ onOpenCommand, onToggleNavigation }) {
         <span className="min-w-0 flex-1 truncate font-semibold">{t("navbar.searchPlaceholder")}</span>
         <kbd className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-black text-slate-500">Ctrl K</kbd>
       </button>
-      <div className="flex shrink-0 items-center gap-2 md:gap-3">
+      <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 md:gap-3">
         <RealtimeStatusBadge status="unavailable" className="hidden xl:inline-flex" />
         <button
           type="button"
@@ -114,7 +114,7 @@ export default function Navbar({ onOpenCommand, onToggleNavigation }) {
         >
           <Search className="h-4 w-4" aria-hidden="true" />
         </button>
-        <div className="relative" ref={notificationsRef}>
+        <div className="relative hidden sm:block" ref={notificationsRef}>
           <button
             type="button"
             aria-label={t("navbar.notificationsTitle", "Notifications")}
@@ -134,7 +134,7 @@ export default function Navbar({ onOpenCommand, onToggleNavigation }) {
             type="button"
             aria-label={t("navbar.accountMenu", "Account menu")}
             aria-expanded={profileOpen}
-            className="inline-flex h-11 min-w-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-2 pr-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:min-w-44"
+            className="inline-flex h-10 min-w-0 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-1.5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 sm:h-11 sm:min-w-44 sm:px-2 sm:pr-3"
             onClick={() => {
               setProfileOpen((value) => !value);
               setNotificationsOpen(false);
@@ -148,7 +148,7 @@ export default function Navbar({ onOpenCommand, onToggleNavigation }) {
             <ChevronDown className={`hidden h-4 w-4 text-slate-400 transition sm:block ${profileOpen ? "rotate-180" : ""}`} aria-hidden="true" />
           </button>
           {profileOpen ? (
-            <div className="absolute right-0 top-12 z-30 w-72 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15">
+            <div className="absolute right-0 top-12 z-30 w-[min(18rem,calc(100vw-1.5rem))] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15">
               <div className="border-b border-slate-100 p-4">
                 <div className="flex items-center gap-3">
                   <ProfileAvatar src={profilePhoto} name={displayName} initials={initials} size="lg" t={t} />
@@ -182,7 +182,7 @@ export default function Navbar({ onOpenCommand, onToggleNavigation }) {
 
 function NotificationPanel({ t }) {
   return (
-    <div className="absolute right-0 top-12 z-30 w-80 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15">
+    <div className="absolute right-0 top-12 z-30 w-[min(20rem,calc(100vw-1.5rem))] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/15">
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
         <div>
           <p className="khmer-heading text-sm font-black text-slate-950">{t("navbar.notificationsTitle", "Notifications")}</p>

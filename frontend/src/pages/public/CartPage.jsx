@@ -112,12 +112,12 @@ export default function CartPage() {
           ) : null}
         </AppCard>
 
-        <div className="sticky bottom-4 flex items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-white p-3 shadow-2xl">
+        <div className="sticky bottom-[max(1rem,env(safe-area-inset-bottom))] flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-3 shadow-2xl sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-wide text-blue-600">{t(locale, "total")}</p>
             <p className="text-xl font-black text-slate-950">{money(total)} KHR</p>
           </div>
-          <AppButton type="submit" disabled={!cart.length || saving || !online || !searchParams.get("shop") || !searchParams.get("branch")} title={!online ? t(locale, "offlineSubmit") : undefined} iconLeft={<ReceiptText className="h-4 w-4" />}>
+          <AppButton type="submit" className="w-full sm:w-auto" disabled={!cart.length || saving || !online || !searchParams.get("shop") || !searchParams.get("branch")} title={!online ? t(locale, "offlineSubmit") : undefined} iconLeft={<ReceiptText className="h-4 w-4" />}>
             {saving ? t(locale, "submitting") : t(locale, "submitOrder")}
           </AppButton>
         </div>

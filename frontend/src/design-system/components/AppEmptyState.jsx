@@ -36,19 +36,19 @@ export default function AppEmptyState({
         </ul>
       ) : null}
       {(actionLabel && onAction) || (secondaryActionLabel && onSecondaryAction) ? (
-        <div className="mt-5 flex flex-wrap justify-center gap-2">
+        <div className="mt-5 flex flex-col justify-center gap-2 sm:flex-row sm:flex-wrap">
           {actionLabel && onAction ? (
-            <AppButton type="button" onClick={onAction}>{actionLabel}</AppButton>
+            <AppButton type="button" className="w-full sm:w-auto" onClick={onAction}>{actionLabel}</AppButton>
           ) : null}
           {secondaryActionLabel && onSecondaryAction ? (
-            <AppButton type="button" variant="secondary" onClick={onSecondaryAction}>{secondaryActionLabel}</AppButton>
+            <AppButton type="button" variant="secondary" className="w-full sm:w-auto" onClick={onSecondaryAction}>{secondaryActionLabel}</AppButton>
           ) : null}
         </div>
       ) : null}
     </motion.div>
   );
 
-  if (!contained) return <div className={cn("px-4 py-8", className)}>{content}</div>;
+  if (!contained) return <div className={cn("px-3 py-8 sm:px-4", className)}>{content}</div>;
 
   return <AppCard className={cn("text-center", className)}>{content}</AppCard>;
 }

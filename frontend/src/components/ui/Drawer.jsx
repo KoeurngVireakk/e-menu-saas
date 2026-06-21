@@ -5,7 +5,7 @@ export default function Drawer({ open = true, children, className = "" }) {
     <AnimatePresence>
       {open ? (
         <motion.div
-          className={`fixed inset-x-0 bottom-0 z-20 border-t border-white/70 bg-white/95 shadow-2xl shadow-slate-950/20 backdrop-blur-xl ${className}`}
+          className={`fixed inset-x-0 bottom-0 z-20 max-w-full border-t border-white/70 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-2xl shadow-slate-950/20 backdrop-blur-xl ${className}`}
           role="complementary"
           aria-label="Cart summary"
           initial={{ y: "100%" }}

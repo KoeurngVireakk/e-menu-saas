@@ -156,12 +156,12 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
             </div>
           </div>
 
-          <div className="sticky bottom-0 -mx-4 -mb-4 flex items-center justify-between border-t border-slate-100 bg-white/95 p-4 shadow-[0_-16px_40px_rgba(15,23,42,0.08)] backdrop-blur">
-            <div>
+          <div className="sticky bottom-0 -mx-4 -mb-4 flex flex-col gap-3 border-t border-slate-100 bg-white/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-16px_40px_rgba(15,23,42,0.08)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
               <p className="text-xs font-black uppercase tracking-wide text-slate-500">{t(locale, "total")}</p>
               <p className="text-xl font-black text-slate-950">{money(liveTotal)} KHR</p>
             </div>
-            <AppButton type="button" disabled={!available} iconLeft={<ShoppingCart className="h-4 w-4" />} onClick={submit}>
+            <AppButton type="button" className="w-full sm:w-auto" disabled={!available} iconLeft={<ShoppingCart className="h-4 w-4" />} onClick={submit}>
               {available ? t(locale, "addToCart") : t(locale, "soldOut")}
             </AppButton>
           </div>

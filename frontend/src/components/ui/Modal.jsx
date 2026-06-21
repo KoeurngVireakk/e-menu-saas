@@ -33,10 +33,10 @@ export default function Modal({ open, title, children, footer, onClose, classNam
   return (
     <AnimatePresence>
       {open ? (
-        <motion.div className="fixed inset-0 z-40 grid place-items-end bg-slate-950/50 p-3 backdrop-blur-[3px] sm:place-items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose?.(); }}>
+        <motion.div className="fixed inset-0 z-40 grid place-items-end overflow-hidden bg-slate-950/50 p-2 backdrop-blur-[3px] sm:place-items-center sm:p-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose?.(); }}>
           <motion.div
             ref={dialogRef}
-            className={`max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-4xl border border-white/70 bg-white shadow-2xl shadow-slate-950/15 outline-none sm:rounded-4xl ${className}`}
+            className={`max-h-[calc(100dvh-1rem)] w-full min-w-0 max-w-lg overflow-y-auto overscroll-contain rounded-t-4xl border border-white/70 bg-white shadow-2xl shadow-slate-950/15 outline-none sm:max-h-[calc(100dvh-3rem)] sm:rounded-4xl ${className}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby={title ? titleId : undefined}

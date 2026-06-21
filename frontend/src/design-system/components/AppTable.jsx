@@ -40,7 +40,7 @@ export default function AppTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+    <div className="max-w-full overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200 bg-white" tabIndex="0" role="region" aria-label={`${ariaLabel} scrollable region`}>
       <table className="min-w-full divide-y divide-slate-200 text-left text-sm" aria-label={ariaLabel}>
         <thead className="khmer-label bg-slate-50 text-xs font-black uppercase tracking-wide text-slate-500">
           {table.getHeaderGroups().map((headerGroup) => (

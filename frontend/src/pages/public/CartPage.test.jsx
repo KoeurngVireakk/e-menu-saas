@@ -38,7 +38,7 @@ describe("CartPage", () => {
     expect(screen.getByText("Iced Latte")).toBeInTheDocument();
     expect(screen.getByText("Size: Large")).toBeInTheDocument();
     expect(screen.getAllByText("10,000 KHR").length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: /Submit order/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Submit order/ })).toHaveClass("w-full", "sm:w-auto");
   });
 
   it("renders empty cart state", () => {

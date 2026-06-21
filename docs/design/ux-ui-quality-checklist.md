@@ -208,3 +208,13 @@
 - Customer QR: verify localized product status, quantity controls, cart visibility, checkout, proof preview, order timeline, offline blocking, and install/update prompts.
 - Motion: verify hover/press/modal/cart transitions stay within roughly 150–250ms and respect reduced-motion behavior where implemented.
 - Regression: run backend tests, frontend lint/tests/build, route listing, and `git diff --check`; confirm Vitest excludes Playwright files.
+
+## Module 54 Responsive Modern UI QA
+
+- Breakpoint review: inspect 375px, 430px, 768px, 1024px, and 1440px layouts without treating tablet or mobile as compressed desktop screens.
+- Shell review: confirm the mobile navbar keeps the page title readable, secondary actions collapse safely, popup panels remain within the viewport, and sidebar navigation scrolls independently on desktop.
+- Modal review: confirm CRUD and customer dialogs use the dynamic viewport height, prevent horizontal overflow, scroll internally, and keep full-width mobile footer actions reachable above safe-area insets.
+- Toolbar/table review: confirm search is at least 44px high, filters/actions wrap, tables scroll only inside a labeled region, and the page itself has no horizontal overflow.
+- Customer review: confirm sticky cart and product-detail actions stack at narrow widths, do not cover content, and account for device safe areas.
+- Empty-state review: confirm primary and secondary actions become full-width on mobile while descriptions and Khmer copy wrap naturally.
+- Performance review: preserve route splitting, admin-only chart chunks, PWA behavior, reduced-motion support where present, and the Vitest/Playwright collection boundary.

@@ -25,6 +25,7 @@ describe("CrudFormModal", () => {
 
     const dialog = screen.getByRole("dialog", { name: "Add product" });
     expect(dialog).toHaveAccessibleDescription("Create a customer-facing menu item.");
+    expect(dialog).toHaveClass("max-h-[calc(100dvh-1rem)]", "min-w-0", "overflow-hidden");
     await waitFor(() => expect(dialog).toHaveFocus());
 
     fireEvent.click(screen.getByRole("button", { name: "Create product" }));

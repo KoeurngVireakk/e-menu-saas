@@ -25,6 +25,7 @@ describe("AppTable", () => {
     render(<AppTable columns={columns} data={[{ name: "Latte" }]} ariaLabel="Products" />);
 
     expect(screen.getByRole("table", { name: "Products" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Products scrollable region" })).toHaveClass("max-w-full", "overflow-x-auto", "overscroll-x-contain");
     expect(screen.getByRole("columnheader", { name: "Product" })).toHaveAttribute("aria-sort", "none");
   });
 });

@@ -50,7 +50,7 @@ export default function CrudFormModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-3 backdrop-blur-[3px] sm:p-6"
+      className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-slate-950/50 p-2 backdrop-blur-[3px] sm:p-6"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !loading) onClose?.();
       }}
@@ -67,7 +67,7 @@ export default function CrudFormModal({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.18, ease: "easeOut" }}
         className={cn(
-          "flex max-h-[calc(100vh-1.5rem)] w-full flex-col overflow-hidden rounded-3xl border border-white/80 bg-white shadow-2xl shadow-slate-950/25 outline-none",
+          "flex max-h-[calc(100dvh-1rem)] w-full min-w-0 flex-col overflow-hidden rounded-3xl border border-white/80 bg-white shadow-2xl shadow-slate-950/25 outline-none",
           "sm:max-h-[calc(100vh-3rem)]",
           maxWidth,
         )}
@@ -93,8 +93,8 @@ export default function CrudFormModal({
         </form>
         <footer className="sticky bottom-0 border-t border-slate-100 bg-white/95 px-5 py-4 shadow-[0_-12px_30px_rgba(15,23,42,0.06)] backdrop-blur sm:px-6">
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <AppButton type="button" variant="secondary" onClick={onClose}>{cancelLabel}</AppButton>
-            <AppButton type="submit" form={formId} loading={loading} disabled={disabled}>{submitLabel}</AppButton>
+            <AppButton type="button" variant="secondary" className="w-full sm:w-auto" onClick={onClose}>{cancelLabel}</AppButton>
+            <AppButton type="submit" form={formId} className="w-full sm:w-auto" loading={loading} disabled={disabled}>{submitLabel}</AppButton>
           </div>
         </footer>
       </motion.section>
