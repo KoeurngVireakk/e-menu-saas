@@ -7,7 +7,7 @@ import AppBadge from "../../../design-system/components/AppBadge";
 import AppButton from "../../../design-system/components/AppButton";
 import AppCard from "../../../design-system/components/AppCard";
 import AppPageHeader from "../../../design-system/components/AppPageHeader";
-import { useAccountProfile } from "../../../hooks/useApiQueries";
+import { useAccountActivity, useAccountProfile } from "../../../hooks/useApiQueries";
 import useLanguage from "../../../i18n/useLanguage";
 import { queryKeys } from "../../../lib/queryKeys";
 
@@ -25,7 +25,9 @@ export default function ProfilePage() {
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const profileQuery = useAccountProfile();
+  const activityQuery = useAccountActivity();
   const profile = profileQuery.data;
+  const activity = activityQuery.data?.activity || [];
   const [personal, setPersonal] = useState(personalInitial);
   const [preferences, setPreferences] = useState(preferenceInitial);
   const [passwords, setPasswords] = useState(passwordInitial);
@@ -52,6 +54,7 @@ export default function ProfilePage() {
     onSuccess: async (updatedProfile) => {
       queryClient.setQueryData(queryKeys.accountProfile, updatedProfile);
       queryClient.setQueryData(queryKeys.currentUser, (current) => (current ? { ...current, name: updatedProfile.name, phone: updatedProfile.phone } : current));
+      queryClient.invalidateQueries({ queryKey: queryKeys.accountActivity });
       await toastSuccess(t("account.profileUpdated", "Profile updated."));
     },
     onError: (error) => alertError(error, t("account.profileUpdateError", "Please review your profile details.")),
@@ -65,6 +68,7 @@ export default function ProfilePage() {
     onSuccess: async (updatedPreferences) => {
       queryClient.setQueryData(queryKeys.accountProfile, (current) => (current ? { ...current, preferences: updatedPreferences } : current));
       queryClient.setQueryData(queryKeys.accountPreferences, updatedPreferences);
+      queryClient.invalidateQueries({ queryKey: queryKeys.accountActivity });
       await toastSuccess(t("account.preferencesUpdated", "Preferences saved."));
     },
     onError: (error) => alertError(error, t("account.preferencesUpdateError", "Please review your preferences.")),
@@ -75,6 +79,7 @@ export default function ProfilePage() {
     onSuccess: async () => {
       setPasswords(passwordInitial);
       setPasswordClientError("");
+      queryClient.invalidateQueries({ queryKey: queryKeys.accountActivity });
       await toastSuccess(t("account.passwordUpdated", "Password updated."));
     },
     onError: (error) => alertError(error, t("account.passwordUpdateError", "Please review your password details.")),
@@ -132,6 +137,25 @@ export default function ProfilePage() {
                 {t("account.securityNote", "For security, password changes require your current password and never expose stored password data.")}
               </p>
             </div>
+          </AppCard>
+
+          <AppCard title={t("account.recentActivity", "Recent account activity")} description={t("account.recentActivityHelp", "Security-relevant profile, preference, login, and password events for your account.")} bodyClassName="grid gap-2">
+            {activityQuery.isLoading ? <p className="rounded-2xl bg-slate-50 p-3 text-sm font-bold text-slate-500">{t("account.loadingActivity", "Loading activity...")}</p> : null}
+            {!activityQuery.isLoading && !activity.length ? (
+              <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm font-semibold leading-6 text-slate-500">{t("account.noActivity", "No account activity yet.")}</p>
+            ) : null}
+            {activity.map((item) => (
+              <div key={item.id} className="rounded-2xl border border-slate-200 bg-white p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="khmer-heading truncate text-sm font-black text-slate-950">{activityTitle(item, t)}</p>
+                    <p className="khmer-text mt-1 text-xs leading-5 text-slate-500">{activityDescription(item, t)}</p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-500">{activityType(item.type, t)}</span>
+                </div>
+                <p className="mt-2 text-[11px] font-bold text-slate-400">{formatDateTime(item.created_at)}</p>
+              </div>
+            ))}
           </AppCard>
         </div>
 
@@ -246,4 +270,21 @@ function getInitials(name) {
 function formatDate(value) {
   if (!value) return "—";
   return new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(value));
+}
+
+function formatDateTime(value) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+}
+
+function activityType(type, t) {
+  return t(`accountActivity.types.${type}`, type?.replaceAll("_", " ") || "activity");
+}
+
+function activityTitle(item, t) {
+  return t(`accountActivity.titles.${item.type}`, item.title || activityType(item.type, t));
+}
+
+function activityDescription(item, t) {
+  return t(`accountActivity.descriptions.${item.type}`, item.description || "");
 }

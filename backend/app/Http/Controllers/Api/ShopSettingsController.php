@@ -29,6 +29,13 @@ class ShopSettingsController extends Controller
         'telegram_order_notifications',
         'telegram_payment_notifications',
         'telegram_invoice_notifications',
+        'cash_enabled',
+        'aba_enabled',
+        'bakong_enabled',
+        'payment_instructions',
+        'proof_upload_required',
+        'auto_confirm_cash',
+        'payment_qr_label',
     ];
 
     public function __construct(
@@ -79,6 +86,13 @@ class ShopSettingsController extends Controller
             'telegram_order_notifications' => ['nullable', 'boolean'],
             'telegram_payment_notifications' => ['nullable', 'boolean'],
             'telegram_invoice_notifications' => ['nullable', 'boolean'],
+            'cash_enabled' => ['nullable', 'boolean'],
+            'aba_enabled' => ['nullable', 'boolean'],
+            'bakong_enabled' => ['nullable', 'boolean'],
+            'payment_instructions' => ['nullable', 'string', 'max:1000'],
+            'proof_upload_required' => ['nullable', 'boolean'],
+            'auto_confirm_cash' => ['nullable', 'boolean'],
+            'payment_qr_label' => ['nullable', 'string', 'max:120'],
         ]);
 
         $validated['base_currency'] = $validated['base_currency'] ?? $validated['currency_code'];
@@ -148,6 +162,13 @@ class ShopSettingsController extends Controller
 
         return [
             'order_auto_accept' => filter_var($settings->get('order_auto_accept', false), FILTER_VALIDATE_BOOLEAN),
+            'cash_enabled' => filter_var($settings->get('cash_enabled', true), FILTER_VALIDATE_BOOLEAN),
+            'aba_enabled' => filter_var($settings->get('aba_enabled', true), FILTER_VALIDATE_BOOLEAN),
+            'bakong_enabled' => filter_var($settings->get('bakong_enabled', config('payment.sandbox_mode') || config('payment.bakong_khqr.enabled')), FILTER_VALIDATE_BOOLEAN),
+            'payment_instructions' => $settings->get('payment_instructions', ''),
+            'proof_upload_required' => filter_var($settings->get('proof_upload_required', true), FILTER_VALIDATE_BOOLEAN),
+            'auto_confirm_cash' => filter_var($settings->get('auto_confirm_cash', false), FILTER_VALIDATE_BOOLEAN),
+            'payment_qr_label' => $settings->get('payment_qr_label', ''),
             ...$this->billing->settings($shop),
             ...$this->telegram->settings($shop),
         ];
@@ -175,6 +196,11 @@ class ShopSettingsController extends Controller
             'telegram_order_notifications',
             'telegram_payment_notifications',
             'telegram_invoice_notifications',
+            'cash_enabled',
+            'aba_enabled',
+            'bakong_enabled',
+            'proof_upload_required',
+            'auto_confirm_cash',
         ], true)) {
             return filter_var($value, FILTER_VALIDATE_BOOLEAN) ? '1' : '0';
         }

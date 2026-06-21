@@ -12,6 +12,7 @@ use App\Services\BillingCalculator;
 use App\Services\Notifications\TelegramNotificationService;
 use App\Services\OperationsEventService;
 use App\Services\Payments\PaymentManager;
+use App\Services\Payments\PaymentStatusSync;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -23,6 +24,7 @@ class PublicOrderController extends Controller
     public function __construct(
         private readonly BillingCalculator $billing,
         private readonly PaymentManager $payments,
+        private readonly PaymentStatusSync $paymentStatusSync,
         private readonly TelegramNotificationService $telegram,
         private readonly OperationsEventService $operationsEvents,
     ) {
@@ -128,7 +130,7 @@ class PublicOrderController extends Controller
 
         return $this->success('Order loaded', [
             'order' => $this->publicOrderPayload($order),
-            'payment_methods' => $this->payments->publicMethods(),
+            'payment_methods' => $this->payments->publicMethods($order->shop),
         ]);
     }
 
@@ -140,9 +142,19 @@ class PublicOrderController extends Controller
             'transaction_reference' => ['nullable', 'string', 'max:255'],
             'proof_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'mimetypes:image/jpeg,image/png,image/webp', 'max:4096'],
         ]);
+        $availableMethods = collect($this->payments->publicMethods($order->shop))->pluck('value')->all();
+
+        if (! in_array($validated['payment_method'], $availableMethods, true)) {
+            throw ValidationException::withMessages([
+                'payment_method' => ['The selected payment method is not enabled for this shop.'],
+            ]);
+        }
 
         if ($validated['payment_method'] === 'khqr_manual') {
-            $request->validate(['proof_image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'mimetypes:image/jpeg,image/png,image/webp', 'max:4096']]);
+            $settings = $this->payments->settings($order->shop);
+            if ($settings['proof_upload_required']) {
+                $request->validate(['proof_image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'mimetypes:image/jpeg,image/png,image/webp', 'max:4096']]);
+            }
         }
 
         if ($request->hasFile('proof_image')) {
@@ -171,6 +183,18 @@ class PublicOrderController extends Controller
             ],
         ]);
 
+        $settings = $this->payments->settings($order->shop);
+        if ($payment->payment_method === 'cash' && $settings['auto_confirm_cash']) {
+            $this->paymentStatusSync->markPaid($payment->load('order.invoice'), [
+                'confirmed_at' => now(),
+            ]);
+            $payment->logs()->create([
+                'action' => 'auto_confirmed_cash',
+                'payload_json' => ['source' => 'shop_payment_settings'],
+            ]);
+            $this->telegram->notifyPaymentPaid($payment->fresh(['order', 'shop.settings', 'branch']));
+        }
+
         if ($payment->payment_method === 'khqr_manual' && filled($payment->proof_image_path)) {
             $this->telegram->notifyPaymentProofUploaded($payment);
         }
@@ -184,10 +208,12 @@ class PublicOrderController extends Controller
             'currency_code' => $payment->currency_code,
         ]);
 
-        $order->update(['payment_status' => $payment->payment_method === 'cash' ? 'pending' : 'pending']);
+        if (! ($payment->payment_method === 'cash' && $settings['auto_confirm_cash'])) {
+            $order->update(['payment_status' => 'pending']);
+        }
 
         return $this->success('Payment submitted successfully', [
-            'payment' => $this->publicPaymentPayload($payment),
+            'payment' => $this->publicPaymentPayload($payment->fresh()),
             ...$result->responsePayload(),
         ], 201);
     }

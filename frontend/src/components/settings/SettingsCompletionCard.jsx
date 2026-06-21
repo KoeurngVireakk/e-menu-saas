@@ -79,6 +79,8 @@ function buildChecks({ shop, settings, branches, categories, products, tables, t
   const hasCategory = categories.length > 0;
   const hasProduct = products.length > 0;
   const hasTable = tables.length > 0;
+  const brandingBasic = Boolean(shop?.primary_color || shop?.logo_path || shop?.cover_path);
+  const paymentReady = Boolean(settings?.cash_enabled || settings?.aba_enabled || settings?.bakong_enabled);
   const telegramReady = Boolean(settings?.telegram_enabled && settings?.telegram_chat_id);
   const publicReady = Boolean(shop?.status === "active" && hasCategory && hasProduct);
 
@@ -90,6 +92,14 @@ function buildChecks({ shop, settings, branches, categories, products, tables, t
       description: t("settingsCompletion.profile.description", "Name, phone, address, and description are saved."),
       action: t("settingsCompletion.profile.action", "Complete shop profile"),
       to: "/admin/settings#profile",
+    },
+    {
+      id: "branding",
+      complete: brandingBasic,
+      label: t("settingsCompletion.branding.label", "Branding basics saved"),
+      description: t("settingsCompletion.branding.description", "Saved colors or images help customers recognize the restaurant."),
+      action: t("settingsCompletion.branding.action", "Review branding"),
+      to: "/admin/settings#branding",
     },
     {
       id: "branch",
@@ -122,6 +132,14 @@ function buildChecks({ shop, settings, branches, categories, products, tables, t
       description: t("settingsCompletion.table.description", "At least one saved table QR is available for dine-in ordering."),
       action: t("settingsCompletion.table.action", "Add table QR"),
       to: "/admin/tables",
+    },
+    {
+      id: "payments",
+      complete: paymentReady,
+      label: t("settingsCompletion.payments.label", "Payment method configured"),
+      description: t("settingsCompletion.payments.description", "At least one checkout payment method is enabled."),
+      action: t("settingsCompletion.payments.action", "Configure payments"),
+      to: "/admin/settings#payments",
     },
     {
       id: "notifications",

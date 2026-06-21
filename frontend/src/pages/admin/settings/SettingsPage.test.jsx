@@ -43,6 +43,13 @@ vi.mock("../../../api/axios", () => ({
               telegram_order_notifications: true,
               telegram_payment_notifications: true,
               telegram_invoice_notifications: false,
+              cash_enabled: true,
+              aba_enabled: true,
+              bakong_enabled: false,
+              proof_upload_required: true,
+              auto_confirm_cash: false,
+              payment_instructions: "Pay at the counter.",
+              payment_qr_label: "Counter QR",
             },
           },
         },
@@ -73,6 +80,9 @@ describe("SettingsPage", () => {
     expect(screen.getByRole("heading", { name: "Branding" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Operations & billing" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Payment settings" })).toBeInTheDocument();
+    expect(screen.getByText("Cash enabled")).toBeInTheDocument();
+    expect(screen.getByText("ABA/manual KHQR enabled")).toBeInTheDocument();
+    expect(screen.getByLabelText("Payment instructions")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Public QR menu" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Setup completion" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Brand preview" })).toBeInTheDocument();
@@ -86,8 +96,30 @@ describe("SettingsPage", () => {
     expect(screen.getByText("Payments")).toBeInTheDocument();
     expect(screen.getByText("Invoices")).toBeInTheDocument();
     expect(screen.getByText("Public QR menu ready")).toBeInTheDocument();
+    expect(screen.getByText("Payment method configured")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cancel" })).toHaveClass("w-full", "sm:w-auto");
     expect(screen.getByRole("button", { name: "Save changes" })).toHaveClass("w-full", "sm:w-auto");
+  });
+
+  it("submits saved payment settings through the existing settings endpoint", async () => {
+    const apiModule = await import("../../../api/axios");
+
+    render(
+      <MemoryRouter>
+        <LanguageProvider>
+          <SettingsPage />
+        </LanguageProvider>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Payment settings" })).toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText("Payment instructions"), { target: { value: "Pay before pickup." } });
+    fireEvent.click(screen.getAllByRole("button", { name: "Save changes" }).at(-1));
+
+    await waitFor(() => expect(apiModule.default.post).toHaveBeenCalledWith("/shops/1/settings", expect.any(FormData), expect.any(Object)));
+    const formData = apiModule.default.post.mock.calls.find(([url]) => url === "/shops/1/settings")[1];
+    expect(formData.get("payment_instructions")).toBe("Pay before pickup.");
+    expect(formData.get("cash_enabled")).toBe("1");
   });
 
   it("explains the shop prerequisite and links to the existing shops route", async () => {

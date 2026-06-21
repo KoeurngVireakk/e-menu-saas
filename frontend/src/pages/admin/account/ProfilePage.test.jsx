@@ -108,4 +108,49 @@ describe("ProfilePage", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("New password and confirmation must match.");
     expect(apiMock.put).not.toHaveBeenCalledWith("/account/password", expect.anything());
   });
+
+  it("renders recent account activity", async () => {
+    apiMock.get.mockImplementation((url) => {
+      if (url === "/account/activity") {
+        return Promise.resolve({
+          data: {
+            data: {
+              activity: [
+                {
+                  id: 1,
+                  type: "password_changed",
+                  title: "Password changed",
+                  description: "Your account password was changed.",
+                  created_at: "2026-06-21T00:00:00.000000Z",
+                },
+              ],
+            },
+          },
+        });
+      }
+
+      return Promise.resolve({
+        data: {
+          data: {
+            profile: {
+              id: 1,
+              name: "Sokha Owner",
+              email: "owner@example.com",
+              phone: "+85510000001",
+              role: "shop_owner",
+              status: "active",
+              created_at: "2026-06-01T00:00:00.000000Z",
+              preferences: {},
+            },
+          },
+        },
+      });
+    });
+
+    renderPage();
+
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Recent account activity" })).toBeInTheDocument());
+    expect(screen.getByText("Password changed")).toBeInTheDocument();
+    expect(screen.getByText("Your account password was changed.")).toBeInTheDocument();
+  });
 });

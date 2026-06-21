@@ -32,6 +32,7 @@ function renderPage() {
 describe("NotificationsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
     apiMock.get.mockResolvedValue({
       data: {
         data: {
@@ -79,5 +80,43 @@ describe("NotificationsPage", () => {
     expect(screen.getByText("New order: ORD-1")).toBeInTheDocument();
     fireEvent.click(screen.getAllByRole("button", { name: "Mark all as read" }).find((button) => !button.disabled));
     await waitFor(() => expect(apiMock.post).toHaveBeenCalledWith("/notifications/read-all"));
+  });
+
+  it("renders account activity tab from account activity API", async () => {
+    apiMock.get.mockImplementation((url) => {
+      if (url === "/account/activity") {
+        return Promise.resolve({
+          data: {
+            data: {
+              activity: [
+                {
+                  id: 1,
+                  type: "profile_updated",
+                  title: "Profile updated",
+                  description: "Your account profile information was updated.",
+                  created_at: "2026-06-21T00:00:00.000000Z",
+                },
+              ],
+            },
+          },
+        });
+      }
+
+      return Promise.resolve({ data: { data: { notifications: [], meta: { current_page: 1, per_page: 20, total: 0 } } } });
+    });
+
+    renderPage();
+
+    fireEvent.click(await screen.findByRole("tab", { name: "Account" }));
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Profile updated" })).toBeInTheDocument());
+  });
+
+  it("renders Khmer notification labels", async () => {
+    localStorage.setItem("menudigi_language", "km");
+    renderPage();
+
+    await waitFor(() => expect(screen.getByRole("heading", { name: "ការជូនដំណឹង" })).toBeInTheDocument());
+    expect(screen.getByRole("tab", { name: "គណនី" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "សម្គាល់ទាំងអស់ថាបានអាន" })).toBeInTheDocument();
   });
 });

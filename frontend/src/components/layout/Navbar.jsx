@@ -56,6 +56,7 @@ export default function Navbar({ onOpenCommand, onToggleNavigation }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationItems, setNotificationItems] = useState([]);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState(false);
   const notificationsRef = useRef(null);
   const profileRef = useRef(null);
   const displayName = user?.name || user?.email || t("navbar.accountFallback", "Account");
@@ -77,10 +78,14 @@ export default function Navbar({ onOpenCommand, onToggleNavigation }) {
     if (!hasToken) return Promise.resolve();
 
     setNotificationsLoading(true);
+    setNotificationsError(false);
     return api
       .get("/notifications", { params: { per_page: 5 } })
       .then((response) => setNotificationItems(response.data.data.notifications || []))
-      .catch(() => setNotificationItems([]))
+      .catch(() => {
+        setNotificationItems([]);
+        setNotificationsError(true);
+      })
       .finally(() => setNotificationsLoading(false));
   }, [hasToken]);
 
@@ -182,7 +187,9 @@ export default function Navbar({ onOpenCommand, onToggleNavigation }) {
               items={notificationItems}
               unreadCount={unreadCount}
               loading={notificationsLoading}
+              error={notificationsError}
               onClose={() => setNotificationsOpen(false)}
+              onRetry={loadNotificationItems}
               onMarkedRead={() => {
                 loadUnreadCount();
                 loadNotificationItems();
@@ -249,7 +256,7 @@ export default function Navbar({ onOpenCommand, onToggleNavigation }) {
   );
 }
 
-function NotificationPanel({ t, items, unreadCount, loading, onClose, onMarkedRead }) {
+function NotificationPanel({ t, items, unreadCount, loading, error, onClose, onRetry, onMarkedRead }) {
   const markAllRead = async () => {
     try {
       await api.post("/notifications/read-all");
@@ -270,14 +277,22 @@ function NotificationPanel({ t, items, unreadCount, loading, onClose, onMarkedRe
       </div>
       <div className="grid gap-3 p-4">
         {loading ? <p className="rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-500">{t("notifications.loading", "Loading notifications...")}</p> : null}
-        {!loading && !items.length ? (
+        {!loading && error ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <p className="khmer-heading text-sm font-black text-amber-900">{t("notifications.loadError", "Unable to load notifications.")}</p>
+            <button type="button" className="khmer-button mt-3 inline-flex min-h-9 items-center rounded-xl border border-amber-200 bg-white px-3 text-xs font-black text-amber-800" onClick={onRetry}>
+              {t("notifications.retry", "Retry notifications")}
+            </button>
+          </div>
+        ) : null}
+        {!loading && !error && !items.length ? (
           <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-center">
             <Bell className="mx-auto h-5 w-5 text-slate-400" aria-hidden="true" />
             <p className="khmer-heading mt-2 text-sm font-black text-slate-950">{t("navbar.notificationsEmpty", "No notifications yet")}</p>
             <p className="khmer-text mt-1 text-xs leading-5 text-slate-500">{t("navbar.notificationsEmptyDescription", "Real order, payment, and system notification logs will appear here after they are generated.")}</p>
           </div>
         ) : null}
-        {!loading && items.length ? (
+        {!loading && !error && items.length ? (
           <div className="grid gap-2">
             {items.map((item) => (
               <Link key={item.id} to="/admin/notifications" onClick={onClose} className="rounded-2xl border border-slate-200 bg-white p-3 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">

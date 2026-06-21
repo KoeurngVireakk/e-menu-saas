@@ -239,15 +239,18 @@ export default function SettingsPage() {
             <Textarea disabled={!allowManage} label="Receipt footer" value={form.receipt_footer_text || ""} onChange={(event) => setForm({ ...form, receipt_footer_text: event.target.value })} />
           </AppCard>
 
-          <AppCard id="payments" className="scroll-mt-24" title={t("settings.payments", "Payment settings")} description={t("settings.paymentsHelp", "Payment methods are provided by the current ordering flow. Shop-specific active payment method toggles are not available yet, so no fake controls are shown here.")} labelled bodyClassName="grid gap-3">
+          <AppCard id="payments" className="scroll-mt-24" title={t("settings.payments", "Payment settings")} description={t("settings.paymentsHelp", "Choose the payment methods customers can select during checkout. Merchant secrets are managed outside this page.")} labelled bodyClassName="grid gap-4">
             <div className="grid gap-3 sm:grid-cols-3">
-              {["Cash", "Manual KHQR", "Bakong KHQR"].map((method) => (
-                <div key={method} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                  <p className="text-sm font-black text-slate-900">{method}</p>
-                  <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{t("settings.paymentFlowSaved", "Supported by the real public order payment flow.")}</p>
-                </div>
-              ))}
+              <ToggleRow disabled={!allowManage} checked={Boolean(form.cash_enabled)} onChange={(checked) => setForm({ ...form, cash_enabled: checked })} label={t("settings.cashEnabled", "Cash enabled")} description={t("settings.cashEnabledHelp", "Customers can choose cash and staff confirms payment in admin.")} />
+              <ToggleRow disabled={!allowManage} checked={Boolean(form.aba_enabled)} onChange={(checked) => setForm({ ...form, aba_enabled: checked })} label={t("settings.abaEnabled", "ABA/manual KHQR enabled")} description={t("settings.abaEnabledHelp", "Customers can submit manual KHQR/ABA proof when enabled.")} />
+              <ToggleRow disabled={!allowManage} checked={Boolean(form.bakong_enabled)} onChange={(checked) => setForm({ ...form, bakong_enabled: checked })} label={t("settings.bakongEnabled", "Bakong KHQR enabled")} description={t("settings.bakongEnabledHelp", "Available only when the backend Bakong provider is configured or sandbox mode is active.")} />
             </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Input disabled={!allowManage} label={t("settings.paymentQrLabel", "Payment QR label")} value={form.payment_qr_label || ""} onChange={(event) => setForm({ ...form, payment_qr_label: event.target.value })} />
+              <ToggleRow disabled={!allowManage} checked={Boolean(form.proof_upload_required)} onChange={(checked) => setForm({ ...form, proof_upload_required: checked })} label={t("settings.proofUploadRequired", "Proof upload required")} description={t("settings.proofUploadRequiredHelp", "Manual KHQR/ABA checkout requires an image proof before submission.")} />
+            </div>
+            <ToggleRow disabled={!allowManage} checked={Boolean(form.auto_confirm_cash)} onChange={(checked) => setForm({ ...form, auto_confirm_cash: checked })} label={t("settings.autoConfirmCash", "Auto-confirm cash")} description={t("settings.autoConfirmCashHelp", "When enabled, customer cash submissions are marked paid automatically. Use only when this matches your operation.")} />
+            <Textarea disabled={!allowManage} label={t("settings.paymentInstructions", "Payment instructions")} value={form.payment_instructions || ""} onChange={(event) => setForm({ ...form, payment_instructions: event.target.value })} />
             <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold leading-6 text-amber-800">
               {t("settings.khqrReadiness", "KHQR/Bakong provider readiness depends on secure backend merchant configuration; secrets are never shown in settings.")}
             </p>

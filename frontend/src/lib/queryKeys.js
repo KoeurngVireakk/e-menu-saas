@@ -10,6 +10,7 @@ export const queryKeys = {
   currentUser: ["auth", "me"],
   accountProfile: ["account", "profile"],
   accountPreferences: ["account", "preferences"],
+  accountActivity: ["account", "activity"],
   notifications: (filters = {}) => ["notifications", stableFilters(filters)],
   notificationUnreadCount: ["notifications", "unread-count"],
   shops: ["shops"],

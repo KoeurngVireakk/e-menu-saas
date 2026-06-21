@@ -10,6 +10,10 @@ use Illuminate\Validation\ValidationException;
 
 class AccountController extends Controller
 {
+    public function __construct(private readonly AccountActivityService $activity)
+    {
+    }
+
     public function profile(Request $request)
     {
         return $this->success('Account profile loaded', [

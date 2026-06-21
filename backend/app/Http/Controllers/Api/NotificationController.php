@@ -141,7 +141,7 @@ class NotificationController extends Controller
     {
         return [
             'id' => $notification->id,
-            'type' => $notification->event,
+            'type' => $this->typeFor($notification->event),
             'category' => $this->categoryFor($notification->event),
             'title' => $this->titleFor($notification->event),
             'body' => $notification->message_preview,
@@ -162,7 +162,19 @@ class NotificationController extends Controller
                 'sandbox',
                 'test',
             ])->all(),
+            'action_url' => $this->actionUrlFor($notification->event),
         ];
+    }
+
+    private function typeFor(string $event): string
+    {
+        return match ($event) {
+            'order.created' => 'new_order',
+            'payment.proof_uploaded' => 'payment_uploaded',
+            'payment.paid' => 'payment_confirmed',
+            'payment.failed' => 'payment_rejected',
+            default => $this->categoryFor($event) === 'system' ? 'system' : $event,
+        };
     }
 
     private function categoryFor(string $event): string
@@ -188,6 +200,16 @@ class NotificationController extends Controller
             'invoice.paid' => 'Invoice paid',
             'telegram.test' => 'Telegram test',
             default => str($event)->replace(['.', '_'], ' ')->title()->toString(),
+        };
+    }
+
+    private function actionUrlFor(string $event): ?string
+    {
+        return match (true) {
+            str_starts_with($event, 'order.') => '/admin/orders',
+            str_starts_with($event, 'payment.') => '/admin/payments',
+            str_starts_with($event, 'invoice.') => '/admin/invoices',
+            default => null,
         };
     }
 }

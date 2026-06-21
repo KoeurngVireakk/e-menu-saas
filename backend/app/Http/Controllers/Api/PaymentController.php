@@ -111,6 +111,8 @@ class PaymentController extends Controller
             if ($payment->order->invoice) {
                 $this->telegram->notifyInvoicePaid($payment->order->invoice);
             }
+
+            $this->telegram->notifyPaymentPaid($payment->fresh(['order', 'shop.settings', 'branch']));
         });
         $this->operationsEvents->broadcastPaymentConfirmed($payment->fresh(['order']));
 

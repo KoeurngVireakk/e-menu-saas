@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AccountActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -11,6 +12,10 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function __construct(private readonly AccountActivityService $activity)
+    {
+    }
+
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -56,6 +61,14 @@ class AuthController extends Controller
                 'status' => $user->status,
                 'role' => $user->role,
             ]);
+            $this->activity->log(
+                $request,
+                $user,
+                'login_blocked',
+                'Blocked login attempt',
+                'A login attempt was blocked because the account is not active.',
+                ['status' => $user->status, 'role' => $user->role]
+            );
 
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
@@ -66,6 +79,14 @@ class AuthController extends Controller
             'email' => $user->email,
             'role' => $user->role,
         ]);
+        $this->activity->log(
+            $request,
+            $user,
+            'login_success',
+            'Signed in',
+            'Your account signed in successfully.',
+            ['role' => $user->role]
+        );
 
         return $this->success('Logged in successfully', [
             'user' => $user,
@@ -78,6 +99,14 @@ class AuthController extends Controller
         $this->audit($request, 'logout', null, 'user', $request->user()->id, [
             'role' => $request->user()->role,
         ]);
+        $this->activity->log(
+            $request,
+            $request->user(),
+            'logout',
+            'Signed out',
+            'Your account signed out.',
+            ['role' => $request->user()->role]
+        );
 
         $request->user()->currentAccessToken()?->delete();
 

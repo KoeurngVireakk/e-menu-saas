@@ -59,6 +59,7 @@ Route::middleware(['auth:sanctum', 'throttle:admin-api'])->group(function () {
     Route::put('/account/password', [AccountController::class, 'updatePassword']);
     Route::get('/account/preferences', [AccountController::class, 'preferences']);
     Route::put('/account/preferences', [AccountController::class, 'updatePreferences']);
+    Route::get('/account/activity', [AccountController::class, 'activity']);
 
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);

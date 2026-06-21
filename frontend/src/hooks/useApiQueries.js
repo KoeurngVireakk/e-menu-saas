@@ -37,6 +37,15 @@ export function useAccountPreferences(options = {}) {
   });
 }
 
+export function useAccountActivity(options = {}) {
+  return useQuery({
+    queryKey: queryKeys.accountActivity,
+    queryFn: ({ signal }) => getData("/account/activity", { per_page: 6 }, signal),
+    staleTime: 30 * 1000,
+    ...options,
+  });
+}
+
 export function useShopCategories(shopId) {
   return useQuery({
     queryKey: queryKeys.shopCategories(shopId),
