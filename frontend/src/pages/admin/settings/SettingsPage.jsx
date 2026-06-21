@@ -1,4 +1,4 @@
-import { Bell, CreditCard, Palette, Save, ShieldCheck, Store } from "lucide-react";
+import { Bell, CreditCard, ExternalLink, Palette, QrCode, Save, ShieldCheck, Store } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { getApiErrorMessage } from "../../../api/axios";
@@ -10,8 +10,11 @@ import AppCard from "../../../design-system/components/AppCard";
 import AppPageHeader from "../../../design-system/components/AppPageHeader";
 import AppEmptyState from "../../../design-system/components/AppEmptyState";
 import { useShopsQuery } from "../../../hooks/useShopsQuery";
+import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
+import { useBranchTables, useShopCategories, useShopProducts } from "../../../hooks/useApiQueries";
 import useLanguage from "../../../i18n/useLanguage";
 import { canManageTenantSettings } from "../../../utils/permissions";
+import SettingsCompletionCard from "../../../components/settings/SettingsCompletionCard";
 
 const initial = {
   name: "",
@@ -43,10 +46,12 @@ const initial = {
 };
 
 const sectionLinks = [
-  ["profile", "Shop profile", Store],
-  ["branding", "Branding", Palette],
-  ["operations", "Operations & billing", CreditCard],
-  ["notifications", "Notifications", Bell],
+  ["profile", "settings.shopProfile", Store],
+  ["branding", "settings.branding", Palette],
+  ["operations", "settings.operations", CreditCard],
+  ["payments", "settings.payments", CreditCard],
+  ["notifications", "settings.notifications", Bell],
+  ["public-menu", "settings.publicQrMenu", QrCode],
 ];
 
 export default function SettingsPage() {
@@ -94,7 +99,13 @@ export default function SettingsPage() {
   }, [load]);
 
   const selectedShop = useMemo(() => shops.find((shop) => String(shop.id) === String(shopId)), [shopId, shops]);
+  const branchesQuery = useBranchesQuery(shopId);
+  const categoriesQuery = useShopCategories(shopId);
+  const productsQuery = useShopProducts(shopId, {});
+  const selectedBranchId = branchesQuery.data?.[0]?.id;
+  const tablesQuery = useBranchTables(selectedBranchId, { enabled: Boolean(selectedBranchId) });
   const loading = shopsLoading || settingsLoading;
+  const completionLoading = branchesQuery.isLoading || categoriesQuery.isLoading || productsQuery.isLoading || tablesQuery.isLoading;
   const visibleError = error || (shopsError ? getApiErrorMessage(shopsError, "Unable to load shops.") : "");
 
   const submit = async (event) => {
@@ -169,7 +180,7 @@ export default function SettingsPage() {
             {sectionLinks.map(([id, label, Icon]) => (
               <a key={id} href={`#${id}`} className="khmer-button inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl px-3 text-sm font-bold text-slate-600 transition hover:bg-white hover:text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                 <Icon className="h-4 w-4 text-slate-400" aria-hidden="true" />
-                {label}
+                {t(label)}
               </a>
             ))}
           </nav>
@@ -228,6 +239,20 @@ export default function SettingsPage() {
             <Textarea disabled={!allowManage} label="Receipt footer" value={form.receipt_footer_text || ""} onChange={(event) => setForm({ ...form, receipt_footer_text: event.target.value })} />
           </AppCard>
 
+          <AppCard id="payments" className="scroll-mt-24" title={t("settings.payments", "Payment settings")} description={t("settings.paymentsHelp", "Payment methods are provided by the current ordering flow. Shop-specific active payment method toggles are not available yet, so no fake controls are shown here.")} labelled bodyClassName="grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-3">
+              {["Cash", "Manual KHQR", "Bakong KHQR"].map((method) => (
+                <div key={method} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-sm font-black text-slate-900">{method}</p>
+                  <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{t("settings.paymentFlowSaved", "Supported by the real public order payment flow.")}</p>
+                </div>
+              ))}
+            </div>
+            <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold leading-6 text-amber-800">
+              {t("settings.khqrReadiness", "KHQR/Bakong provider readiness depends on secure backend merchant configuration; secrets are never shown in settings.")}
+            </p>
+          </AppCard>
+
           <AppCard id="notifications" className="scroll-mt-24" title="Telegram notifications" description="Send operational alerts for new orders, payment updates, and paid invoices." labelled action={allowManage ? <AppButton type="button" variant="secondary" disabled={!shopId || testingTelegram} loading={testingTelegram} onClick={testTelegram}>Test Telegram</AppButton> : null} bodyClassName="grid gap-4">
             <ToggleRow disabled={!allowManage} checked={Boolean(form.telegram_enabled)} onChange={(checked) => setForm({ ...form, telegram_enabled: checked })} label="Enable Telegram notifications" description="Telegram sends only when a valid chat ID and notification types are enabled." />
             <Input disabled={!allowManage} label="Telegram chat ID" value={form.telegram_chat_id || ""} onChange={(event) => setForm({ ...form, telegram_chat_id: event.target.value })} />
@@ -245,6 +270,23 @@ export default function SettingsPage() {
             ) : null}
           </AppCard>
 
+          <AppCard id="public-menu" className="scroll-mt-24" title={t("settings.publicQrMenu", "Public QR menu")} description={t("settings.publicQrMenuHelp", "Preview the saved customer-facing menu. Language defaults are handled by the public menu localization flow.")} labelled bodyClassName="grid gap-4">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <InfoTile label={t("settings.publicStatus", "Public menu status")} value={form.status || selectedShop?.status || "active"} />
+              <InfoTile label={t("settings.menuLanguageDefault", "Menu language default")} value={t("settings.customerSelectable", "Customer selectable")} />
+              <InfoTile label={t("settings.publicDisplayName", "Public display name")} value={form.name || selectedShop?.name || "—"} />
+            </div>
+            {form.slug || selectedShop?.slug ? (
+              <a
+                href={`/menu/${form.slug || selectedShop?.slug}`}
+                className="khmer-button inline-flex min-h-10 w-fit items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              >
+                {t("settings.previewPublicMenu", "Preview public menu")}
+                <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              </a>
+            ) : null}
+          </AppCard>
+
           {allowManage ? (
             <div className="rounded-3xl border border-slate-200 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-sm shadow-slate-900/5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -259,6 +301,15 @@ export default function SettingsPage() {
         </form>
 
         <div className="grid h-fit gap-4">
+          <SettingsCompletionCard
+            shop={{ ...(selectedShop || {}), ...form }}
+            settings={form}
+            branches={branchesQuery.data || []}
+            categories={categoriesQuery.data || []}
+            products={productsQuery.data || []}
+            tables={tablesQuery.data || []}
+            loading={completionLoading}
+          />
           <BrandPreview form={form} selectedShop={selectedShop} />
           <AppCard title="Access" description="Settings changes are limited to owner-level roles." bodyClassName="grid gap-3">
             <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
@@ -271,6 +322,15 @@ export default function SettingsPage() {
           </AppCard>
         </div>
       </div>
+    </div>
+  );
+}
+
+function InfoTile({ label, value }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+      <p className="text-xs font-bold text-slate-500">{label}</p>
+      <p className="mt-1 truncate text-sm font-black text-slate-900">{value || "—"}</p>
     </div>
   );
 }

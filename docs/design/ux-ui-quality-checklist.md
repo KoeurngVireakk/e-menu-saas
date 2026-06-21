@@ -255,3 +255,15 @@
 - Refetch checklist: first load may skeleton; manual refresh must keep previous data visible and show “Refreshing overview...” plus last updated when available.
 - Khmer checklist: overview title/subtitle, KPI labels, action cards, empty states, and statuses must wrap naturally without forced uppercase or letter spacing.
 - Performance checklist: do not add UI libraries, do not import Recharts outside lazy chart modules, and preserve public/landing bundle protection.
+
+## Module 57 Account/Profile, Notifications, and Settings Completion QA
+
+- Account profile checklist: profile must load from authenticated API data, email stays read-only until verified email change exists, role/status are visible but not self-editable, and password change requires current password.
+- Preference checklist: language, timezone, date format, dashboard range, and notification preferences must save to real account preference data and show validation errors clearly.
+- Notification checklist: navbar badge, dropdown, and notification page must use real notification logs only; empty states must not imply fake activity.
+- Notification security checklist: notification list, unread count, mark read, and mark all read must stay scoped to accessible shops/branches and per-user read state.
+- Account menu checklist: Profile, Shop Settings, System Health, Notifications, and Logout must link only to real routes, with settings/system health permission-aware.
+- Settings checklist: active controls must map to backend-supported save fields; unsupported payment toggles or merchant secrets must not appear as editable UI.
+- Completion score checklist: score must use saved shop/profile, branch, category, product, table QR, Telegram, and public menu readiness data only.
+- Khmer checklist: account, notification, settings, and completion labels must read naturally, wrap cleanly, and avoid forced uppercase.
+- Regression checklist: preserve auth, roles, tenant authorization, public ordering, reports, PWA behavior, API security, and route lazy loading.

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AccountController;
 use App\Http\Controllers\Api\BakongKhqrWebhookController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\CategoryController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\KitchenController;
 use App\Http\Controllers\Api\KitchenStationController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PrintController;
@@ -52,6 +54,17 @@ Route::prefix('public')->group(function () {
 Route::post('/webhooks/bakong-khqr', BakongKhqrWebhookController::class)->middleware('throttle:webhooks');
 
 Route::middleware(['auth:sanctum', 'throttle:admin-api'])->group(function () {
+    Route::get('/account/profile', [AccountController::class, 'profile']);
+    Route::put('/account/profile', [AccountController::class, 'updateProfile']);
+    Route::put('/account/password', [AccountController::class, 'updatePassword']);
+    Route::get('/account/preferences', [AccountController::class, 'preferences']);
+    Route::put('/account/preferences', [AccountController::class, 'updatePreferences']);
+
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+
     Route::get('/system/health', [HealthController::class, 'index']);
 
     Route::get('/reports/sales-summary', [ReportController::class, 'salesSummary']);

@@ -20,6 +20,7 @@ class User extends Authenticatable
         'phone',
         'role',
         'status',
+        'preferences_json',
         'password',
     ];
 
@@ -32,6 +33,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'preferences_json' => 'array',
             'password' => 'hashed',
         ];
     }

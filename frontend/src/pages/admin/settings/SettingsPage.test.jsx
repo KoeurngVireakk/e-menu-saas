@@ -17,10 +17,26 @@ vi.mock("../../../api/axios", () => ({
         return Promise.resolve({ data: { data: { shops: apiState.shops } } });
       }
 
+      if (url === "/shops/1/branches") {
+        return Promise.resolve({ data: { data: { branches: [{ id: 11, name: "Main Branch" }] } } });
+      }
+
+      if (url === "/shops/1/categories") {
+        return Promise.resolve({ data: { data: { categories: [{ id: 21, name: "Coffee" }] } } });
+      }
+
+      if (url === "/shops/1/products") {
+        return Promise.resolve({ data: { data: { products: [{ id: 31, name: "Latte" }] } } });
+      }
+
+      if (url === "/branches/11/tables") {
+        return Promise.resolve({ data: { data: { tables: [{ id: 41, table_name: "A1" }] } } });
+      }
+
       return Promise.resolve({
         data: {
           data: {
-            shop: { id: 1, name: "QA Cafe", currency_code: "KHR" },
+            shop: { id: 1, name: "QA Cafe", slug: "qa-cafe", phone: "+85510000001", address: "Phnom Penh", description: "Cafe", currency_code: "KHR", status: "active" },
             settings: {
               telegram_enabled: true,
               telegram_chat_id: "123456",
@@ -56,6 +72,9 @@ describe("SettingsPage", () => {
     expect(screen.getByRole("heading", { name: "Shop profile" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Branding" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Operations & billing" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Payment settings" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Public QR menu" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Setup completion" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Brand preview" })).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Settings sections" })).toHaveClass("overflow-x-auto");
     expect(screen.getByLabelText("Shop name")).toBeInTheDocument();
@@ -66,6 +85,7 @@ describe("SettingsPage", () => {
     expect(screen.getByText("Orders")).toBeInTheDocument();
     expect(screen.getByText("Payments")).toBeInTheDocument();
     expect(screen.getByText("Invoices")).toBeInTheDocument();
+    expect(screen.getByText("Public QR menu ready")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cancel" })).toHaveClass("w-full", "sm:w-auto");
     expect(screen.getByRole("button", { name: "Save changes" })).toHaveClass("w-full", "sm:w-auto");
   });

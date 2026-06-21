@@ -19,6 +19,24 @@ export function useCurrentUser(enabled = true) {
   });
 }
 
+export function useAccountProfile(options = {}) {
+  return useQuery({
+    queryKey: queryKeys.accountProfile,
+    queryFn: ({ signal }) => getData("/account/profile", undefined, signal).then((data) => data.profile),
+    staleTime: 60 * 1000,
+    ...options,
+  });
+}
+
+export function useAccountPreferences(options = {}) {
+  return useQuery({
+    queryKey: queryKeys.accountPreferences,
+    queryFn: ({ signal }) => getData("/account/preferences", undefined, signal).then((data) => data.preferences),
+    staleTime: 60 * 1000,
+    ...options,
+  });
+}
+
 export function useShopCategories(shopId) {
   return useQuery({
     queryKey: queryKeys.shopCategories(shopId),
@@ -36,6 +54,37 @@ export function useShopProducts(shopId, filters = {}) {
     enabled: Boolean(shopId),
     staleTime: 30 * 1000,
     placeholderData: keepPreviousData,
+  });
+}
+
+export function useBranchTables(branchId, options = {}) {
+  return useQuery({
+    queryKey: queryKeys.branchTables(branchId),
+    queryFn: ({ signal }) => getData(`/branches/${branchId}/tables`, undefined, signal).then((data) => data.tables),
+    enabled: Boolean(branchId),
+    staleTime: 60 * 1000,
+    ...options,
+  });
+}
+
+export function useNotifications(filters = {}, options = {}) {
+  const params = stableFilters(filters);
+  return useQuery({
+    queryKey: queryKeys.notifications(params),
+    queryFn: ({ signal }) => getData("/notifications", params, signal),
+    staleTime: 15 * 1000,
+    placeholderData: keepPreviousData,
+    ...options,
+  });
+}
+
+export function useNotificationUnreadCount(options = {}) {
+  return useQuery({
+    queryKey: queryKeys.notificationUnreadCount,
+    queryFn: ({ signal }) => getData("/notifications/unread-count", undefined, signal).then((data) => data.count),
+    staleTime: 15 * 1000,
+    refetchInterval: 60 * 1000,
+    ...options,
   });
 }
 
