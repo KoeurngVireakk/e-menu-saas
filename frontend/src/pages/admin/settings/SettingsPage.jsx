@@ -41,6 +41,13 @@ const initial = {
   telegram_order_notifications: false,
   telegram_payment_notifications: false,
   telegram_invoice_notifications: false,
+  cash_enabled: true,
+  aba_enabled: true,
+  bakong_enabled: false,
+  payment_instructions: "",
+  proof_upload_required: true,
+  auto_confirm_cash: false,
+  payment_qr_label: "",
   logo: null,
   cover: null,
 };
@@ -167,7 +174,7 @@ export default function SettingsPage() {
         } : null}
       />
 
-      <AppCard className="shadow-sm shadow-slate-900/[0.05]" bodyClassName="grid gap-3 p-3 sm:p-4">
+      <AppCard className="shadow-sm shadow-slate-900/5" bodyClassName="grid gap-3 p-3 sm:p-4">
         <div className="grid gap-3 lg:grid-cols-[minmax(0,320px)_1fr] lg:items-end">
           <Select
             label="Shop"

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AccountActivityLog;
+use App\Services\AccountActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
@@ -34,6 +36,14 @@ class AccountController extends Controller
         $this->audit($request, 'account.profile_updated', null, 'user', $user->id, [
             'changed_keys' => array_keys($validated),
         ]);
+        $this->activity->log(
+            $request,
+            $user,
+            'profile_updated',
+            'Profile updated',
+            'Your personal profile information was updated.',
+            ['changed_keys' => array_keys($validated)]
+        );
 
         return $this->success('Profile updated successfully', [
             'profile' => $this->profilePayload($user->fresh()),
@@ -60,6 +70,13 @@ class AccountController extends Controller
         ])->save();
 
         $this->audit($request, 'account.password_updated', null, 'user', $user->id);
+        $this->activity->log(
+            $request,
+            $user,
+            'password_changed',
+            'Password changed',
+            'Your account password was changed.'
+        );
 
         return $this->success('Password updated successfully');
     }
@@ -93,9 +110,41 @@ class AccountController extends Controller
         $this->audit($request, 'account.preferences_updated', null, 'user', $user->id, [
             'changed_keys' => array_keys($validated),
         ]);
+        $this->activity->log(
+            $request,
+            $user,
+            'preferences_updated',
+            'Preferences updated',
+            'Your account preferences were updated.',
+            ['changed_keys' => array_keys($validated)]
+        );
 
         return $this->success('Preferences updated successfully', [
             'preferences' => $preferences,
+        ]);
+    }
+
+    public function activity(Request $request)
+    {
+        $logs = AccountActivityLog::query()
+            ->where('user_id', $request->user()->id)
+            ->latest()
+            ->paginate($this->paginationLimit($request, 6, 25));
+
+        return $this->success('Account activity loaded', [
+            'activity' => $logs->getCollection()->map(fn (AccountActivityLog $log) => [
+                'id' => $log->id,
+                'type' => $log->type,
+                'title' => $log->title,
+                'description' => $log->description,
+                'ip_address' => $log->ip_address,
+                'user_agent' => $log->user_agent,
+                'metadata' => collect($log->metadata_json ?? [])
+                    ->only(['changed_keys', 'role', 'status'])
+                    ->all(),
+                'created_at' => $log->created_at,
+            ])->values(),
+            'meta' => $this->paginationMeta($logs),
         ]);
     }
 

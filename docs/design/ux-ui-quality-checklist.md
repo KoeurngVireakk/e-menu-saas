@@ -267,3 +267,15 @@
 - Completion score checklist: score must use saved shop/profile, branch, category, product, table QR, Telegram, and public menu readiness data only.
 - Khmer checklist: account, notification, settings, and completion labels must read naturally, wrap cleanly, and avoid forced uppercase.
 - Regression checklist: preserve auth, roles, tenant authorization, public ordering, reports, PWA behavior, API security, and route lazy loading.
+
+## Module 58 Notification Automation, Payment Settings, and Account Activity QA
+
+- Notification automation checklist: order creation, payment proof upload, payment confirmation, and payment rejection should write real notification logs without fake generation.
+- Notification payload checklist: notification API responses must exclude proof paths, provider secrets, raw provider payloads, tokens, and customer private data not needed for the admin action.
+- Account activity checklist: profile updates, password changes, preference changes, login, blocked login, and logout should log safe activity visible only to the current user.
+- Payment settings checklist: cash, ABA/manual KHQR, Bakong, proof upload requirement, auto-confirm cash, instructions, and QR label must save through the backend settings contract.
+- Public payment checklist: disabled methods should not appear in public payment choices and should be rejected if submitted directly.
+- Settings completion checklist: payment method readiness and branding basics should use saved settings/shop data only.
+- Notification UX checklist: navbar dropdown needs loading, error retry, empty state, latest notifications, mark all read, and view-all link; page needs filters and load more where available.
+- Khmer checklist: event types, account activity, payment settings, and notification controls must remain natural and readable without forced uppercase.
+- Regression checklist: preserve tenant scoping, branch scoping, auth, public ordering, reports, PWA behavior, route lazy loading, and no new UI libraries.

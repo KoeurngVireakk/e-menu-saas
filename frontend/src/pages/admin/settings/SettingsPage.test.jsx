@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LanguageProvider } from "../../../i18n";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import SettingsPage from "./SettingsPage";
@@ -61,6 +61,8 @@ vi.mock("../../../api/axios", () => ({
 }));
 
 describe("SettingsPage", () => {
+  afterEach(() => cleanup());
+
   beforeEach(() => {
     vi.clearAllMocks();
     apiState.shops = [{ id: 1, name: "QA Cafe" }];
@@ -114,7 +116,7 @@ describe("SettingsPage", () => {
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "Payment settings" })).toBeInTheDocument());
     fireEvent.change(screen.getByLabelText("Payment instructions"), { target: { value: "Pay before pickup." } });
-    fireEvent.click(screen.getAllByRole("button", { name: "Save changes" }).at(-1));
+    fireEvent.submit(document.getElementById("settings-form"));
 
     await waitFor(() => expect(apiModule.default.post).toHaveBeenCalledWith("/shops/1/settings", expect.any(FormData), expect.any(Object)));
     const formData = apiModule.default.post.mock.calls.find(([url]) => url === "/shops/1/settings")[1];
