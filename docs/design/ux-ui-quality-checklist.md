@@ -242,3 +242,16 @@
 - Settings actions: provide clear Cancel/Save hierarchy without allowing a sticky footer to cover fields; keep mobile actions full width and safe-area aware.
 - Settings recovery: when no shop exists, explain the prerequisite and provide one action to the existing Shops route.
 - Responsive review: capture `/admin/settings` and its account menu at 375, 430, 768, 1024, and 1440 px in English and Khmer where practical.
+
+## Module 56 Premium Overview Dashboard QA
+
+- Overview hierarchy: /admin should read as Overview, with one page h1, a short operations subtitle, refresh, reports, live status, last-updated, and no route change.
+- Five-second scan: the first screen should answer today’s sales/orders, what needs attention, and the next action without competing card noise.
+- KPI checklist: cards should have stable height, clear labels, large tabular numbers, helper text, empty states, no fake trends, and restrained tone colors.
+- Needs-attention checklist: each item should state the problem, why it matters, and one action; the empty state must not imply unverified backend data.
+- Quick-actions checklist: actions must link to existing routes, respect permissions where available, and wrap from one column to multi-column layouts cleanly.
+- Operations snapshot checklist: recent orders, pending payments, and kitchen queue should show safe details, text status badges, empty states, and action links.
+- Analytics preview checklist: charts need title, description, loading/empty states, reports links, bounded mobile height, and continued lazy chart loading.
+- Refetch checklist: first load may skeleton; manual refresh must keep previous data visible and show “Refreshing overview...” plus last updated when available.
+- Khmer checklist: overview title/subtitle, KPI labels, action cards, empty states, and statuses must wrap naturally without forced uppercase or letter spacing.
+- Performance checklist: do not add UI libraries, do not import Recharts outside lazy chart modules, and preserve public/landing bundle protection.
