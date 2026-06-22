@@ -6,7 +6,7 @@ export default function AppPageHeader({ eyebrow, title, description, breadcrumbs
       <div className="min-w-0">
         {breadcrumbs ? <div className="mb-2 text-xs font-semibold text-slate-500">{breadcrumbs}</div> : null}
         {eyebrow ? <p className="khmer-label text-xs font-black text-blue-600">{eyebrow}</p> : null}
-        <h1 className="khmer-heading mt-2 text-2xl font-black leading-tight text-slate-950 md:text-3xl">{title}</h1>
+        <h1 className="khmer-heading mt-2 text-2xl font-black leading-tight tracking-normal text-slate-950 md:text-3xl">{title}</h1>
         {description ? <p className="khmer-text mt-2 max-w-3xl text-sm leading-6 text-slate-500">{description}</p> : null}
       </div>
       {(primaryAction || secondaryActions) ? (

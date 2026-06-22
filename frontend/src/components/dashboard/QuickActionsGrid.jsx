@@ -15,9 +15,9 @@ export default function QuickActionsGrid({ title, description, actions = [] }) {
           <Link
             key={action.to}
             to={action.to}
-            className="group flex min-h-28 items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="premium-interactive group flex min-h-30 items-start gap-3 rounded-3xl border border-slate-200 bg-white p-4 text-left shadow-sm shadow-slate-900/[0.03] transition hover:border-blue-200 hover:bg-blue-50/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
-            <span className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-2xl", action.iconClassName || "bg-blue-50 text-blue-700")}>
+            <span className={cn("grid h-11 w-11 shrink-0 place-items-center rounded-2xl ring-1 ring-white/70", action.iconClassName || "bg-blue-50 text-blue-700")}>
               <action.icon className="h-5 w-5" aria-hidden="true" />
             </span>
             <span className="min-w-0">

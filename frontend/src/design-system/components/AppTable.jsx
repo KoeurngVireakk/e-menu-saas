@@ -40,9 +40,9 @@ export default function AppTable({
   }
 
   return (
-    <div className="max-w-full overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-900/[0.03]" tabIndex="0" role="region" aria-label={`${ariaLabel} scrollable region`}>
+    <div className="premium-surface max-w-full overflow-x-auto overscroll-x-contain rounded-3xl border bg-white" tabIndex="0" role="region" aria-label={`${ariaLabel} scrollable region`}>
       <table className="min-w-full divide-y divide-slate-200 text-left text-sm" aria-label={ariaLabel}>
-        <thead className="khmer-label bg-slate-50 text-xs font-black text-slate-500">
+        <thead className="khmer-label bg-slate-50/80 text-xs font-black text-slate-500">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -64,7 +64,7 @@ export default function AppTable({
         </thead>
         <tbody className="divide-y divide-slate-100">
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className="transition-colors duration-150 hover:bg-slate-50/80">
+            <tr key={row.id} className="transition-colors duration-150 hover:bg-blue-50/30">
               {row.getVisibleCells().map((cell) => (
                 <td key={cell.id} className="khmer-text px-4 py-3 align-top text-slate-700">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}

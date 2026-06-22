@@ -2,11 +2,11 @@ import { Loader2 } from "lucide-react";
 import { cn } from "../../components/ui/utils";
 
 const variants = {
-  primary: "bg-blue-600 text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700 active:scale-[0.98] focus-visible:ring-blue-500",
-  secondary: "border border-slate-200 bg-white text-slate-800 shadow-sm shadow-slate-900/5 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] focus-visible:ring-slate-300",
+  primary: "bg-blue-600 text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700 hover:shadow-blue-600/25 active:scale-[0.98] focus-visible:ring-blue-500",
+  secondary: "border border-slate-200 bg-white text-slate-800 shadow-sm shadow-slate-900/5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-slate-900/10 active:scale-[0.98] focus-visible:ring-slate-300",
   ghost: "text-slate-700 hover:bg-slate-100 active:bg-slate-200 focus-visible:ring-slate-300",
-  danger: "bg-rose-600 text-white shadow-sm shadow-rose-600/20 hover:bg-rose-700 active:scale-[0.98] focus-visible:ring-rose-500",
-  success: "bg-emerald-600 text-white shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 active:scale-[0.98] focus-visible:ring-emerald-500",
+  danger: "bg-rose-600 text-white shadow-sm shadow-rose-600/20 hover:bg-rose-700 hover:shadow-rose-600/25 active:scale-[0.98] focus-visible:ring-rose-500",
+  success: "bg-emerald-600 text-white shadow-sm shadow-emerald-600/20 hover:bg-emerald-700 hover:shadow-emerald-600/25 active:scale-[0.98] focus-visible:ring-emerald-500",
   outline: "border border-blue-200 bg-white text-blue-700 shadow-sm shadow-blue-900/5 hover:bg-blue-50 active:scale-[0.98] focus-visible:ring-blue-500",
 };
 
@@ -32,7 +32,7 @@ export default function AppButton({
   return (
     <Component
       className={cn(
-        "khmer-button inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl text-center font-bold leading-snug transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:scale-100 disabled:opacity-55 motion-reduce:transition-none",
+        "khmer-button inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl text-center font-bold leading-snug transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:scale-100 disabled:opacity-55 disabled:shadow-none motion-reduce:transition-none",
         variants[variant] || variants.primary,
         sizes[size] || sizes.md,
         fullWidth ? "w-full" : "",

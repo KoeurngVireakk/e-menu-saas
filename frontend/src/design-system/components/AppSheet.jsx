@@ -50,21 +50,21 @@ export default function AppSheet({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-950/45 backdrop-blur-[2px]"
+      className="fixed inset-0 z-50 bg-slate-950/45 backdrop-blur-[4px]"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose?.();
       }}
     >
       <aside
         ref={panelRef}
-        className={`absolute top-0 ${position} flex h-dvh w-full min-w-0 ${widths[size] || widths.md} flex-col overflow-hidden bg-white shadow-xl sm:my-3 sm:h-[calc(100dvh-1.5rem)] sm:rounded-3xl`}
+        className={`absolute top-0 ${position} premium-surface flex h-dvh w-full min-w-0 ${widths[size] || widths.md} flex-col overflow-hidden border border-white/80 bg-white shadow-xl sm:my-3 sm:h-[calc(100dvh-1.5rem)] sm:rounded-3xl`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
       >
-        <header className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
+        <header className="premium-divider flex items-start justify-between gap-4 border-b px-5 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
           <div className="min-w-0">
             <h2 id={titleId} className="khmer-heading text-lg font-black text-slate-950">{title}</h2>
             {description ? <p id={descriptionId} className="khmer-text mt-1 text-sm leading-6 text-slate-500">{description}</p> : null}

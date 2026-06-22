@@ -12,15 +12,15 @@ export default function PublicProductCard({ product, locale = "en", onAdd, onVie
 
   return (
     <motion.article
-      className={`grid grid-cols-[108px_1fr] gap-3 rounded-[1.6rem] border bg-white p-3 shadow-sm shadow-slate-900/5 ring-1 ring-white/70 transition sm:grid-cols-[124px_1fr] ${
-        available ? "border-slate-200/80 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-900/10" : "border-slate-200 opacity-70"
+      className={`premium-interactive grid grid-cols-[108px_1fr] gap-3 rounded-[1.6rem] border bg-white p-3 shadow-sm shadow-slate-900/5 ring-1 ring-white/70 transition sm:grid-cols-[124px_1fr] ${
+        available ? "border-slate-200/80 hover:border-blue-200" : "border-slate-200 opacity-70"
       }`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
       whileTap={available ? { scale: 0.99 } : undefined}
     >
-      <button type="button" onClick={() => onView(product)} className="relative h-32 overflow-hidden rounded-3xl bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label={locale === "en" ? `View ${product.name}` : `មើល ${product.name}`}>
+      <button type="button" onClick={() => onView(product)} className="relative h-32 overflow-hidden rounded-3xl bg-slate-100 shadow-inner focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label={locale === "en" ? `View ${product.name}` : `មើល ${product.name}`}>
         {imageUrl ? (
           <img className="h-full w-full object-cover transition duration-300 hover:scale-105" src={imageUrl} alt={product.name} loading="lazy" decoding="async" />
         ) : (

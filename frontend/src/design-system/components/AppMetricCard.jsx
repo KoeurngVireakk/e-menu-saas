@@ -52,8 +52,8 @@ export default function AppMetricCard({
 
   return (
     <AppCard
-      className="h-full"
-      bodyClassName="flex min-h-36 flex-col p-4"
+      className="premium-interactive h-full"
+      bodyClassName="flex min-h-40 flex-col p-4"
       aria-labelledby={ariaLabel ? undefined : titleId}
       aria-describedby={descriptionId}
       aria-label={ariaLabel}
@@ -63,13 +63,13 @@ export default function AppMetricCard({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <p id={titleId} className="khmer-label text-xs font-black uppercase tracking-wide text-slate-500">{title}</p>
+                <p id={titleId} className="khmer-label text-xs font-black text-slate-500">{title}</p>
                 {status ? <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-black leading-5", styles.status)}>{status}</span> : null}
               </div>
-              <p className="mt-3 break-words text-2xl font-black leading-tight tabular-nums text-slate-950 sm:text-3xl">{value ?? "—"}</p>
+              <p className="mt-3 wrap-break-word text-2xl font-black leading-tight tracking-normal tabular-nums text-slate-950 sm:text-3xl">{value ?? "—"}</p>
             </div>
             {Icon ? (
-              <div className={cn("grid h-11 w-11 shrink-0 place-items-center rounded-2xl", styles.icon)}>
+              <div className={cn("grid h-11 w-11 shrink-0 place-items-center rounded-2xl ring-1 ring-white/70", styles.icon)}>
                 <Icon className="h-5 w-5" aria-hidden="true" />
               </div>
             ) : null}
@@ -86,7 +86,7 @@ export default function AppMetricCard({
               </p>
             ) : <span aria-hidden="true" />}
             {actionLabel && actionTo ? (
-              <Link to={actionTo} className="khmer-button text-xs font-black text-blue-700 underline-offset-4 hover:underline focus:outline-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-blue-500">
+              <Link to={actionTo} className="khmer-button rounded-lg text-xs font-black text-blue-700 underline-offset-4 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
                 {actionLabel}
               </Link>
             ) : null}

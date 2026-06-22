@@ -50,7 +50,7 @@ export default function CrudFormModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-slate-950/50 px-[max(0.5rem,env(safe-area-inset-left))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-[3px] sm:p-6"
+      className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-slate-950/50 px-[max(0.5rem,env(safe-area-inset-left))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-[4px] sm:p-6"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !loading) onClose?.();
       }}
@@ -67,12 +67,12 @@ export default function CrudFormModal({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.18, ease: "easeOut" }}
         className={cn(
-          "flex max-h-[calc(100dvh-1rem)] w-full min-w-0 flex-col overflow-hidden rounded-3xl border border-white/80 bg-white shadow-2xl shadow-slate-950/25 outline-none",
+          "premium-surface flex max-h-[calc(100dvh-1rem)] w-full min-w-0 flex-col overflow-hidden rounded-3xl border border-white/80 bg-white shadow-2xl shadow-slate-950/20 outline-none",
           "sm:max-h-[calc(100dvh-3rem)]",
           maxWidth,
         )}
       >
-        <header className="flex items-start justify-between gap-4 border-b border-slate-100 bg-white px-5 py-4 sm:px-6">
+        <header className="premium-divider flex items-start justify-between gap-4 border-b bg-white px-5 py-4 sm:px-6">
           <div className="min-w-0">
             <p className="khmer-label text-xs font-black text-blue-600">{eyebrow}</p>
             <h2 id={titleId} className="khmer-heading mt-1 text-xl font-black leading-7 text-slate-950">{title}</h2>

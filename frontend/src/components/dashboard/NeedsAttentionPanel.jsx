@@ -50,7 +50,7 @@ export default function NeedsAttentionPanel({
           {items.map((item) => <AttentionItem key={item.title} item={item} />)}
         </div>
       ) : (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
+        <div className="rounded-3xl border border-emerald-200 bg-emerald-50/60 p-4 shadow-sm shadow-emerald-900/[0.03]">
           <div className="flex items-start gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-white text-emerald-700 ring-1 ring-emerald-100">
               <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
@@ -83,8 +83,8 @@ function AttentionItem({ item }) {
   );
 
   const className = cn(
-    "flex min-h-32 items-start gap-3 rounded-2xl border p-4 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-    item.href ? "hover:-translate-y-0.5 hover:shadow-sm" : "",
+    "flex min-h-32 items-start gap-3 rounded-3xl border p-4 text-left shadow-sm shadow-slate-900/[0.03] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+    item.href ? "premium-interactive" : "",
     styles.wrapper,
   );
 

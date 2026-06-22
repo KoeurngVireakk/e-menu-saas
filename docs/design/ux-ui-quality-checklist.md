@@ -293,3 +293,17 @@
 - Accessibility checklist: icon buttons need labels, dialogs/sheets need names, language toggle needs `aria-pressed`, statuses need text, uploads need labels, and focus rings remain visible.
 - Performance checklist: no new UI libraries, no global chart/realtime/alert imports, preserve route splitting, PWA behavior, Vitest/Playwright separation, and production build health.
 - QA checklist: run backend tests, route list, frontend lint/test/build, `git diff --check`, and optional Playwright E2E/visual checks when Chrome is stable.
+
+## Module 60 Ultra-Premium Visual System QA
+
+- Premium surface checklist: cards, tables, metric panels, sheets, modals, customer cards, and sticky bars should share softer depth, restrained borders, and no heavy shadows.
+- Visual-noise checklist: reduce decorative gradients where they do not clarify hierarchy; prefer white cards, slate backgrounds, navy text, and blue action accents.
+- Micro-interaction checklist: hover lift applies only on desktop/fine pointer, button press feedback stays subtle, modal/sheet motion remains 150ms-250ms, and reduced motion is respected.
+- Admin shell checklist: active sidebar state should be elegant and readable, not heavy; navbar remains compact; popovers stay bounded; navigation remains independently scrollable.
+- Dashboard checklist: KPI cards, quick actions, needs-attention items, and charts should have generous rhythm, clear hierarchy, real data only, and Khmer-readable labels.
+- Customer QR checklist: public header, category tabs, product cards, product sheet, sticky cart, checkout, payment, and timeline should feel mobile-app-like while preserving safe areas.
+- State checklist: loading, empty, no-results, error, offline, and refreshing states should be calm, explanatory, action-led, and visually close to the final layout.
+- Khmer checklist: avoid uppercase/tracking in edited surfaces, preserve body 1.65-1.8 line height, heading 1.35-1.5 line height, readable form labels, and natural mobile wrapping.
+- Accessibility checklist: preserve dialog labels, drawer titles, table scroll region labels, status text, icon button labels, upload labels, and visible keyboard focus.
+- Performance checklist: no new UI libraries, no landing/public chart imports, preserve lazy routes/charts, PWA behavior, dynamic realtime/alerts, and Vitest/Playwright separation.
+- Final-check checklist: run backend tests, route list, frontend lint/test/build, `git diff --check`, and document optional E2E/visual routes if not run.

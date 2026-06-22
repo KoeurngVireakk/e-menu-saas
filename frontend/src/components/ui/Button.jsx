@@ -1,9 +1,9 @@
 import { cn } from "./utils";
 
 const variants = {
-  primary: "bg-blue-600 text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700 active:scale-[0.98] focus-visible:ring-blue-500",
+  primary: "bg-blue-600 text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700 hover:shadow-blue-600/25 active:scale-[0.98] focus-visible:ring-blue-500",
   dark: "bg-slate-950 text-white shadow-sm shadow-slate-950/15 hover:bg-slate-800 active:scale-[0.98] focus-visible:ring-slate-700",
-  secondary: "border border-slate-200 bg-white text-slate-800 shadow-sm shadow-slate-900/5 hover:border-slate-300 hover:bg-slate-50 active:scale-[0.98] focus-visible:ring-slate-300",
+  secondary: "border border-slate-200 bg-white text-slate-800 shadow-sm shadow-slate-900/5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-slate-900/10 active:scale-[0.98] focus-visible:ring-slate-300",
   danger: "bg-rose-600 text-white shadow-sm shadow-rose-600/20 hover:bg-rose-700 active:scale-[0.98] focus-visible:ring-rose-500",
   ghost: "text-slate-700 hover:bg-slate-100 focus-visible:ring-slate-300",
 };

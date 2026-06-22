@@ -33,10 +33,10 @@ export default function Modal({ open, title, children, footer, onClose, classNam
   return (
     <AnimatePresence>
       {open ? (
-        <motion.div className="fixed inset-0 z-40 grid place-items-end overflow-hidden bg-slate-950/50 px-[max(0.5rem,env(safe-area-inset-left))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-[3px] sm:place-items-center sm:p-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose?.(); }}>
+        <motion.div className="fixed inset-0 z-40 grid place-items-end overflow-hidden bg-slate-950/50 px-[max(0.5rem,env(safe-area-inset-left))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-[4px] sm:place-items-center sm:p-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose?.(); }}>
           <motion.div
             ref={dialogRef}
-            className={`max-h-[calc(100dvh-1rem)] w-full min-w-0 max-w-lg overflow-y-auto overscroll-contain rounded-t-4xl border border-white/70 bg-white shadow-2xl shadow-slate-950/15 outline-none sm:max-h-[calc(100dvh-3rem)] sm:rounded-4xl ${className}`}
+            className={`premium-surface max-h-[calc(100dvh-1rem)] w-full min-w-0 max-w-lg overflow-y-auto overscroll-contain rounded-t-4xl border border-white/70 bg-white shadow-2xl shadow-slate-950/15 outline-none sm:max-h-[calc(100dvh-3rem)] sm:rounded-4xl ${className}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby={title ? titleId : undefined}
@@ -48,7 +48,7 @@ export default function Modal({ open, title, children, footer, onClose, classNam
             transition={{ duration: 0.22, ease: "easeOut" }}
           >
             {title || onClose ? (
-              <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-slate-100 bg-white/95 p-4 backdrop-blur">
+              <div className="premium-divider sticky top-0 z-10 flex items-start justify-between gap-3 border-b bg-white/95 p-4 backdrop-blur">
                 {title ? <h2 id={titleId} className="khmer-heading text-lg font-black text-slate-950">{title}</h2> : <span />}
                 {onClose ? <button type="button" aria-label="Close dialog" className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" onClick={onClose}><X className="h-5 w-5" aria-hidden="true" /></button> : null}
               </div>

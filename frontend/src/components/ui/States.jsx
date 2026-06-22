@@ -7,7 +7,7 @@ export function EmptyState({ title = "No records found", message = "There is not
   return (
     <Card className="p-8 text-center">
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, ease: "easeOut" }}>
-      <div className="mx-auto grid h-14 w-14 place-items-center rounded-3xl bg-linear-to-br from-blue-50 to-slate-100 text-sm font-black text-blue-600">
+      <div className="mx-auto grid h-14 w-14 place-items-center rounded-3xl border border-blue-100 bg-blue-50 text-sm font-black text-blue-600 shadow-inner shadow-white">
         <Icon className="h-6 w-6" aria-hidden="true" />
       </div>
       <h3 className="khmer-heading mt-5 text-lg font-black text-slate-950">{title}</h3>
@@ -27,9 +27,9 @@ export function LoadingState({ message = "Loading..." }) {
   return (
     <Card className="p-6" role="status" aria-live="polite">
       <div className="animate-pulse space-y-3">
-        <div className="h-4 w-32 rounded-full bg-linear-to-r from-slate-200 via-slate-100 to-slate-200" />
-        <div className="h-10 rounded-2xl bg-linear-to-r from-slate-100 via-slate-50 to-slate-100" />
-        <div className="h-10 rounded-2xl bg-linear-to-r from-slate-100 via-slate-50 to-slate-100" />
+        <div className="h-4 w-32 rounded-full bg-slate-200" />
+        <div className="h-10 rounded-2xl bg-slate-100" />
+        <div className="h-10 rounded-2xl bg-slate-100" />
       </div>
       <p className="khmer-text mt-4 text-sm font-semibold text-slate-500">{message}</p>
       <p className="khmer-text mt-1 text-xs font-semibold leading-5 text-slate-400">Keeping this workspace ready while fresh data loads.</p>

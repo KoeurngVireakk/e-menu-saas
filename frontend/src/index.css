@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+:root {
+  --menudigi-primary: #2563eb;
+  --menudigi-primary-hover: #1d4ed8;
+  --menudigi-navy: #0f172a;
+  --menudigi-muted: #64748b;
+  --menudigi-bg: #f8fafc;
+  --menudigi-border: #e2e8f0;
+  --menudigi-card-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 18px 45px rgba(15, 23, 42, 0.045);
+  --menudigi-card-shadow-hover: 0 1px 2px rgba(15, 23, 42, 0.05), 0 22px 60px rgba(15, 23, 42, 0.075);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -13,6 +24,11 @@ body {
     Inter, "Khmer OS Battambang", "Noto Sans Khmer", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
   line-height: 1.5;
+}
+
+::selection {
+  background: rgba(37, 99, 235, 0.16);
+  color: var(--menudigi-navy);
 }
 
 button,
@@ -82,4 +98,42 @@ button {
 
 button:disabled {
   cursor: not-allowed;
+}
+
+.premium-surface {
+  border-color: rgba(226, 232, 240, 0.86);
+  box-shadow: var(--menudigi-card-shadow);
+}
+
+.premium-divider {
+  border-color: rgba(226, 232, 240, 0.7);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .premium-interactive {
+    transition:
+      transform 180ms ease,
+      border-color 180ms ease,
+      background-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+
+  .premium-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--menudigi-card-shadow-hover);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+
+  .premium-interactive,
+  .premium-interactive:hover {
+    transform: none;
+    transition: none;
+  }
 }

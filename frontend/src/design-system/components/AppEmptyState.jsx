@@ -23,7 +23,7 @@ export default function AppEmptyState({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
       >
-      <div className="mx-auto grid h-14 w-14 place-items-center rounded-3xl border border-blue-100 bg-linear-to-br from-blue-50 to-slate-100 text-blue-600 shadow-inner">
+      <div className="mx-auto grid h-14 w-14 place-items-center rounded-3xl border border-blue-100 bg-blue-50 text-blue-600 shadow-inner shadow-white">
         <Icon className="h-6 w-6" aria-hidden="true" />
       </div>
       <h3 className="khmer-heading mt-4 text-lg font-black leading-7 text-slate-950">{title}</h3>
@@ -31,7 +31,7 @@ export default function AppEmptyState({
       {checklist.length ? (
         <ul className="khmer-text mx-auto mt-4 grid max-w-md gap-2 text-left text-sm font-semibold leading-6 text-slate-600" aria-label="Suggested next steps">
           {checklist.map((item) => (
-            <li key={item} className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">{item}</li>
+            <li key={item} className="rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-2">{item}</li>
           ))}
         </ul>
       ) : null}

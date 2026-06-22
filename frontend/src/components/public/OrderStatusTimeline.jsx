@@ -13,8 +13,8 @@ export default function OrderStatusTimeline({ status }) {
   const cancelled = status === "cancelled";
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-4 text-left shadow-sm">
-      <h2 className="text-base font-black text-slate-950">Order status</h2>
+    <div className="premium-surface rounded-3xl border bg-white p-4 text-left">
+      <h2 className="khmer-heading text-base font-black text-slate-950">Order status</h2>
       {cancelled ? <p className="mt-2 rounded-2xl bg-rose-50 p-3 text-sm font-semibold text-rose-700">This order was cancelled by the restaurant.</p> : null}
       <ol className="mt-4 grid gap-3">
         {steps.map(([value, label, description], index) => {
@@ -26,8 +26,8 @@ export default function OrderStatusTimeline({ status }) {
                 {done ? <CheckCircle2 className="h-5 w-5" aria-hidden="true" /> : <Circle className="h-5 w-5" aria-hidden="true" />}
               </div>
               <div>
-                <p className={`font-black ${active ? "text-blue-700" : "text-slate-900"}`}>{label}</p>
-                <p className="text-sm leading-5 text-slate-500">{description}</p>
+                <p className={`khmer-heading font-black ${active ? "text-blue-700" : "text-slate-900"}`}>{label}</p>
+                <p className="khmer-text text-sm leading-6 text-slate-500">{description}</p>
               </div>
             </li>
           );

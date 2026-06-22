@@ -23,7 +23,7 @@ export default function AdminLayout() {
   }, []);
 
   return (
-    <div className="min-h-dvh overflow-x-clip bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.08),transparent_28%),linear-gradient(180deg,#F8FAFC,#EEF2F7)] text-left text-slate-900">
+    <div className="min-h-dvh overflow-x-clip bg-slate-50 text-left text-slate-900">
       <div className="grid min-h-dvh grid-cols-1 lg:grid-cols-[260px_1fr]">
         <Sidebar mobileOpen={navigationOpen} onClose={() => setNavigationOpen(false)} />
         <div className="min-w-0">
