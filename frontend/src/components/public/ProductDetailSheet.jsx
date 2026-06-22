@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AlertCircle, Minus, Plus, ShoppingCart } from "lucide-react";
+import { AlertCircle, CheckCircle2, Minus, Plus, ShoppingCart } from "lucide-react";
 import { AppBadge, AppButton } from "../../design-system/components";
 import { cartItemKey, money, productBasePrice } from "../../utils/cart";
 import { t } from "../../utils/localization";
@@ -110,14 +110,20 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
             </div>
           </div>
 
-          {(product.options || []).map((option) => (
-            <section key={option.id} className={`rounded-3xl border p-3 ${option.is_required && !(selectedValues[option.id] || []).length ? "border-amber-200 bg-amber-50/60" : "border-slate-200 bg-slate-50/70"}`}>
+          {(product.options || []).map((option) => {
+            const selectedCount = (selectedValues[option.id] || []).length;
+
+            return (
+            <section key={option.id} className={`rounded-3xl border p-3 transition duration-200 ${option.is_required && !selectedCount ? "border-amber-200 bg-amber-50/60" : selectedCount ? "border-blue-200 bg-blue-50/40" : "border-slate-200 bg-slate-50/70"}`}>
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <h3 className="khmer-heading font-black text-slate-950">{option.name}</h3>
                   <p className="khmer-text mt-0.5 text-xs font-semibold leading-5 text-slate-500">{option.is_required ? t(locale, "optionRequiredHelp") : t(locale, "optionOptionalHelp")}</p>
                 </div>
-                {option.is_required ? <AppBadge status="warning">{t(locale, "required")}</AppBadge> : <AppBadge status="info">{t(locale, "optional")}</AppBadge>}
+                <div className="flex shrink-0 items-center gap-2">
+                  {selectedCount ? <CheckCircle2 className="h-4 w-4 text-blue-600" aria-hidden="true" /> : null}
+                  {option.is_required ? <AppBadge status="warning">{t(locale, "required")}</AppBadge> : <AppBadge status="info">{t(locale, "optional")}</AppBadge>}
+                </div>
               </div>
               <div className="mt-3 grid gap-2">
                 {(option.values || []).map((value) => {
@@ -128,7 +134,7 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
                     : () => setSingle(option.id, value.id);
 
                   return (
-                    <label key={value.id} className={`khmer-text flex min-h-12 items-center justify-between gap-3 rounded-2xl border px-3 py-3 text-sm transition ${checked ? "border-blue-300 bg-blue-50 shadow-sm shadow-blue-900/5" : "border-slate-200 bg-white hover:border-slate-300"}`}>
+                    <label key={value.id} className={`khmer-text flex min-h-12 items-center justify-between gap-3 rounded-2xl border px-3 py-3 text-sm transition duration-200 active:scale-[0.99] ${checked ? "border-blue-300 bg-white shadow-sm shadow-blue-900/10 ring-2 ring-blue-100" : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"}`}>
                       <span className="flex items-center gap-2">
                         <input type={inputType} name={`option-${option.id}`} checked={checked} onChange={onChange} />
                         <span className="font-semibold text-slate-800">{value.name}</span>
@@ -139,7 +145,8 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
                 })}
               </div>
             </section>
-          ))}
+            );
+          })}
 
           {visibleValidationMessage ? (
             <p className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900" role="alert">
@@ -150,12 +157,12 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
 
           <Textarea label={t(locale, "specialInstructions")} placeholder={t(locale, "specialInstructionsPlaceholder")} value={note} onChange={(event) => setNote(event.target.value)} />
 
-          <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-slate-50 p-3">
+          <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-slate-50 p-3 shadow-inner shadow-white">
             <span className="font-black text-slate-800">{t(locale, "quantity")}</span>
-            <div className="flex items-center gap-2">
-              <AppButton type="button" variant="secondary" size="sm" aria-label={locale === "km" ? "បន្ថយចំនួន" : "Decrease quantity"} onClick={() => setQuantity((value) => Math.max(1, value - 1))}><Minus className="h-4 w-4" /></AppButton>
-              <span className="w-8 text-center font-black">{quantity}</span>
-              <AppButton type="button" variant="secondary" size="sm" aria-label={locale === "km" ? "បន្ថែមចំនួន" : "Increase quantity"} onClick={() => setQuantity((value) => value + 1)}><Plus className="h-4 w-4" /></AppButton>
+            <div className="inline-flex items-center rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+              <AppButton type="button" variant="ghost" size="sm" aria-label={locale === "km" ? "បន្ថយចំនួន" : "Decrease quantity"} onClick={() => setQuantity((value) => Math.max(1, value - 1))}><Minus className="h-4 w-4" /></AppButton>
+              <span className="min-w-10 text-center font-black text-slate-950">{quantity}</span>
+              <AppButton type="button" variant="ghost" size="sm" aria-label={locale === "km" ? "បន្ថែមចំនួន" : "Increase quantity"} onClick={() => setQuantity((value) => value + 1)}><Plus className="h-4 w-4" /></AppButton>
             </div>
           </div>
 

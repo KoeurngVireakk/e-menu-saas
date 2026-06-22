@@ -69,9 +69,9 @@ export default function PaymentDetailDrawer({ payment, open, onClose, onConfirm,
 
 function Detail({ label, value }) {
   return (
-    <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-3">
+    <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-3 transition duration-200 hover:border-blue-100 hover:bg-white">
       <p className="khmer-label text-xs font-black text-slate-500">{label}</p>
-      <p className="mt-1 wrap-break-word font-bold text-slate-900">{value}</p>
+      <p className="khmer-text mt-1 wrap-break-word font-bold text-slate-900">{value}</p>
     </div>
   );
 }

@@ -135,7 +135,7 @@ export default function MenuPage() {
 
   const addConfiguredItem = (cartItem) => {
     setCart((items) => mergeCartItem(items, cartItem));
-    toastSuccess(`${cartItem.name} ${t(selectedLocale, "addedToCart")}`);
+    toastSuccess(`${cartItem.name} ${t(selectedLocale, "addedToCart")}. ${t(selectedLocale, "addedToCartMessage")}`);
   };
 
   const scrollToCategory = (categoryId) => {

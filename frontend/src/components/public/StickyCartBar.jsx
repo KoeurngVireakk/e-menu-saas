@@ -17,10 +17,11 @@ export default function StickyCartBar({ cart, locale = "en", label = "View cart"
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ duration: 0.22, ease: "easeOut" }}
+          whileTap={{ scale: 0.995 }}
           role="complementary"
           aria-label={t(locale, "cartSummary")}
         >
-          <div className="premium-surface mx-auto flex max-w-3xl flex-col gap-3 rounded-[1.75rem] border border-white/80 bg-white/95 p-3 ring-1 ring-slate-200/70 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
+          <div className="premium-surface mx-auto flex max-w-3xl flex-col gap-3 rounded-[1.75rem] border border-white/80 bg-white/95 p-3 ring-1 ring-slate-200/70 backdrop-blur-xl transition duration-200 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <p className="khmer-label text-xs font-black text-blue-600">{count} {t(locale, count === 1 ? "item" : "items")}</p>
               <p className="khmer-heading text-lg font-black text-slate-950">{money(total)} KHR</p>

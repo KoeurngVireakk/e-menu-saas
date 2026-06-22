@@ -9,6 +9,7 @@ const dictionary = {
   en: {
     addToCart: "Add to cart",
     addedToCart: "added",
+    addedToCartMessage: "Review it anytime in the cart bar.",
     cart: "Cart",
     cartEmpty: "Cart is empty",
     backToMenu: "Back to menu",
@@ -66,6 +67,8 @@ const dictionary = {
     paymentPageDescription: "Choose how you paid and submit proof only when the restaurant needs manual review.",
     paymentSafeDescription: "No provider secrets or raw gateway data are shown here.",
     paymentOfflineSubmit: "Connect to the internet before submitting payment. Proof preview stays only in this browser session.",
+    proofUploadHelp: "Upload a clear screenshot or photo of your transfer receipt. The restaurant will review it before confirming.",
+    proofSelected: "Proof selected",
     paymentSubmitted: "Payment submitted",
     paymentReviewDetails: "Please review payment details.",
     transactionReference: "Transaction reference",
@@ -102,6 +105,7 @@ const dictionary = {
   km: {
     addToCart: "បន្ថែមទៅកន្ត្រក",
     addedToCart: "បានបន្ថែម",
+    addedToCartMessage: "អាចពិនិត្យវាម្តងទៀតនៅរបារកន្ត្រក។",
     cart: "កន្ត្រក",
     cartEmpty: "កន្ត្រកទទេ",
     backToMenu: "ត្រឡប់ទៅម៉ឺនុយ",
@@ -159,6 +163,8 @@ const dictionary = {
     paymentPageDescription: "ជ្រើសរើសវិធីដែលអ្នកបានទូទាត់ ហើយបង្ហោះភស្តុតាងតែពេលហាងត្រូវការពិនិត្យ។",
     paymentSafeDescription: "ទំព័រនេះមិនបង្ហាញលេខសម្ងាត់ provider ឬទិន្នន័យ gateway ដើមទេ។",
     paymentOfflineSubmit: "សូមភ្ជាប់អ៊ីនធឺណិត មុនពេលដាក់ការទូទាត់។ រូបភាពភស្តុតាងបង្ហាញតែនៅក្នុង session browser នេះប៉ុណ្ណោះ។",
+    proofUploadHelp: "បង្ហោះរូបថត ឬ screenshot បង្កាន់ដៃផ្ទេរប្រាក់ឱ្យច្បាស់។ ហាងនឹងពិនិត្យមុនពេលបញ្ជាក់។",
+    proofSelected: "បានជ្រើសភស្តុតាង",
     paymentSubmitted: "បានដាក់ការទូទាត់",
     paymentReviewDetails: "សូមពិនិត្យព័ត៌មានការទូទាត់។",
     transactionReference: "លេខយោងប្រតិបត្តិការ",

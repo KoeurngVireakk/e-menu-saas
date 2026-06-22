@@ -12,7 +12,7 @@ export default function KitchenOrderCard({ order, isNew = false, allowUpdate = t
 
   return (
     <motion.div initial={isNew ? { opacity: 0, y: 12 } : false} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, ease: "easeOut" }}>
-      <AppCard className={`transition hover:shadow-md ${isNew ? "border-blue-300 bg-blue-50/50" : ""}`} bodyClassName="grid gap-4 p-4">
+      <AppCard className={`premium-interactive transition ${isNew ? "border-blue-300 bg-blue-50/50 ring-2 ring-blue-100" : ""}`} bodyClassName="grid gap-4 p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <h3 className="khmer-heading text-2xl font-black text-slate-950">{order.order_number}</h3>
@@ -50,7 +50,7 @@ export default function KitchenOrderCard({ order, isNew = false, allowUpdate = t
           </div>
         ) : null}
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
           <OrderStatusBadge value={order.order_status} />
           {isNew ? <AppBadge status="info">{t("operations.newOrder")}</AppBadge> : null}
         </div>

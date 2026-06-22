@@ -318,3 +318,15 @@
 - Accessibility checklist: focus rings, dialog names, upload labels, action labels, status text, and safe-area sticky controls must remain intact.
 - Performance checklist: no new UI libraries, no backend behavior changes, no fake data, no global chart/realtime imports, and preserve PWA/public-ordering behavior.
 - Final-check checklist: run backend tests, route list, frontend lint/test/build, `git diff --check`, and record that GitHub Actions were not checked unless they actually were.
+
+## Module 62 Premium Micro-UX And Visual Rhythm QA
+
+- Micro-interaction checklist: button, tab, option, cart, card, drawer, and modal feedback should stay subtle, useful, and roughly 150-250ms without adding new animation libraries.
+- Customer QR checklist: product cards, category tabs, product detail options, quantity controls, sticky cart, cart review, payment proof upload, and order success should feel app-like and remain readable at 375px and 430px.
+- Admin operations checklist: orders, kitchen, and payments should surface order identity, current status, proof review, next action, and notes without dense scanning fatigue.
+- Form checklist: labels, helper copy, file upload feedback, disabled states, validation messages, and sticky save/submit areas should be close to the relevant field and readable in Khmer.
+- CRUD/modal checklist: centered create/edit forms must keep accessible title/description, safe mobile height, sticky action footer, visible close control, and clear save/cancel hierarchy.
+- Empty/loading/error checklist: no edited surface should introduce blank loading, actionless error, or fake empty-state content.
+- Khmer checklist: edited text must use Khmer-readable rhythm, natural wrapping, no uppercase, and no letter spacing.
+- Performance checklist: no new UI libraries, no backend logic changes, no fake data, preserve lazy routes/charts, public ordering, PWA behavior, and Vitest/Playwright separation.
+- Final-check checklist: run backend tests, route list, frontend lint/test/build, `git diff --check`, and do not claim GitHub Actions unless actually checked.

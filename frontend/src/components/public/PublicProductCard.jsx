@@ -12,7 +12,7 @@ export default function PublicProductCard({ product, locale = "en", onAdd, onVie
 
   return (
     <motion.article
-      className={`premium-interactive grid grid-cols-[108px_1fr] gap-3 rounded-[1.6rem] border bg-white p-3 shadow-sm shadow-slate-900/5 ring-1 ring-white/70 transition sm:grid-cols-[124px_1fr] ${
+      className={`premium-interactive group grid grid-cols-[108px_1fr] gap-3 rounded-[1.6rem] border bg-white p-3 shadow-sm shadow-slate-900/5 ring-1 ring-white/70 transition sm:grid-cols-[124px_1fr] ${
         available ? "border-slate-200/80 hover:border-blue-200" : "border-slate-200 opacity-70"
       }`}
       initial={{ opacity: 0, y: 10 }}
@@ -20,9 +20,9 @@ export default function PublicProductCard({ product, locale = "en", onAdd, onVie
       transition={{ duration: 0.2, ease: "easeOut" }}
       whileTap={available ? { scale: 0.99 } : undefined}
     >
-      <button type="button" onClick={() => onView(product)} className="relative h-32 overflow-hidden rounded-3xl bg-slate-100 shadow-inner focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label={locale === "en" ? `View ${product.name}` : `មើល ${product.name}`}>
+      <button type="button" onClick={() => onView(product)} className="relative h-32 overflow-hidden rounded-3xl bg-slate-100 shadow-inner transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 group-hover:shadow-slate-900/10" aria-label={locale === "en" ? `View ${product.name}` : `មើល ${product.name}`}>
         {imageUrl ? (
-          <img className="h-full w-full object-cover transition duration-300 hover:scale-105" src={imageUrl} alt={product.name} loading="lazy" decoding="async" />
+          <img className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]" src={imageUrl} alt={product.name} loading="lazy" decoding="async" />
         ) : (
           <span className="khmer-label grid h-full place-items-center px-2 text-center text-xs font-black text-slate-400">{t(locale, "noImage")}</span>
         )}
@@ -44,7 +44,7 @@ export default function PublicProductCard({ product, locale = "en", onAdd, onVie
             <p className="text-lg font-black text-blue-700">{price} KHR</p>
           </div>
           {available ? (
-            <AppButton type="button" size="md" className="min-w-24" aria-label={locale === "en" ? `Add ${product.name} to cart` : `${t(locale, "addToCart")} ${product.name}`} iconLeft={<Plus className="h-4 w-4" />} onClick={() => onAdd(product)}>{t(locale, "addToCart")}</AppButton>
+            <AppButton type="button" size="md" className="min-w-24 shadow-blue-600/20" aria-label={locale === "en" ? `Add ${product.name} to cart` : `${t(locale, "addToCart")} ${product.name}`} iconLeft={<Plus className="h-4 w-4" />} onClick={() => onAdd(product)}>{t(locale, "addToCart")}</AppButton>
           ) : (
             <AppBadge status="danger">{t(locale, "soldOut")}</AppBadge>
           )}

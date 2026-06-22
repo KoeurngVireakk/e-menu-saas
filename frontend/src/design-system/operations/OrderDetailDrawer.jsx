@@ -61,7 +61,7 @@ export default function OrderDetailDrawer({
             <Detail label={t("operations.total")} value={formatCurrency(order.grand_total, order.currency_code)} />
           </div>
 
-          {order.note ? <p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm font-semibold text-amber-800">{order.note}</p> : null}
+          {order.note ? <p className="khmer-text mt-4 rounded-2xl border border-amber-100 bg-amber-50 p-3 text-sm font-semibold leading-6 text-amber-800">{order.note}</p> : null}
         </AppCard>
 
         {allowStatusUpdate ? (
@@ -115,7 +115,7 @@ export default function OrderDetailDrawer({
 
 function Detail({ label, value }) {
   return (
-    <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-3">
+    <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-3 transition duration-200 hover:border-blue-100 hover:bg-white">
       <p className="khmer-label text-xs font-black text-slate-500">{label}</p>
       <p className="khmer-text mt-1 wrap-break-word font-bold text-slate-900">{value}</p>
     </div>
