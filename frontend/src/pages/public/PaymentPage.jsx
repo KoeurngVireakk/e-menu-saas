@@ -99,14 +99,19 @@ export default function PaymentPage() {
           {form.payment_method === "khqr_manual" ? (
             <>
               <Input label={t(locale, "transactionReference")} placeholder={t(locale, "referenceNumber")} disabled={!online} value={form.transaction_reference} onChange={(event) => setForm({ ...form, transaction_reference: event.target.value })} />
-              <Input label={t(locale, "proofImage")} type="file" accept="image/*" disabled={!online} onChange={(event) => setForm({ ...form, proof_image: event.target.files?.[0] || null })} />
-              {proofPreview ? <img className="max-h-[min(20rem,50dvh)] w-full rounded-2xl border border-slate-200 bg-white object-contain" src={proofPreview} alt={t(locale, "proofPreviewAlt")} /> : null}
+              <Input label={t(locale, "proofImage")} type="file" accept="image/*" disabled={!online} description={t(locale, "paymentOfflineSubmit")} onChange={(event) => setForm({ ...form, proof_image: event.target.files?.[0] || null })} />
+              {proofPreview ? (
+                <figure className="rounded-3xl border border-slate-200 bg-slate-50 p-3">
+                  <figcaption className="khmer-label mb-2 text-xs font-black text-slate-500">{t(locale, "proofPreview")}</figcaption>
+                  <img className="max-h-[min(20rem,50dvh)] w-full rounded-2xl border border-slate-200 bg-white object-contain" src={proofPreview} alt={t(locale, "proofPreviewAlt")} />
+                </figure>
+              ) : null}
             </>
           ) : null}
           {form.payment_method === "bakong_khqr" ? (
             <p className="rounded-2xl bg-blue-50 p-3 text-sm font-semibold text-blue-800">{t(locale, "bakongQrHelp")}</p>
           ) : null}
-          <AppButton type="submit" disabled={saving || !online} title={!online ? t(locale, "paymentOfflineSubmit") : undefined} iconLeft={<UploadCloud className="h-4 w-4" />}>
+          <AppButton type="submit" fullWidth disabled={saving || !online} title={!online ? t(locale, "paymentOfflineSubmit") : undefined} iconLeft={<UploadCloud className="h-4 w-4" />}>
             {saving ? t(locale, "submitting") : t(locale, "submitPayment")}
           </AppButton>
         </AppCard>

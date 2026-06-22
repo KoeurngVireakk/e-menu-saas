@@ -92,6 +92,13 @@ export default function CartPage() {
 
       {cart.length ? (
       <form onSubmit={submit} className="mt-6 grid gap-3">
+        <div className="grid grid-cols-3 gap-2 rounded-3xl border border-blue-100 bg-blue-50/70 p-2 text-center">
+          {[t(locale, "checkoutStepReview"), t(locale, "checkoutStepDetails"), t(locale, "checkoutStepSend")].map((step, index) => (
+            <span key={step} className="khmer-text rounded-2xl bg-white px-2 py-2 text-xs font-black leading-5 text-blue-800 shadow-sm">
+              {index + 1}. {step}
+            </span>
+          ))}
+        </div>
         <AppCard title={t(locale, "customerDetails")} description={t(locale, "customerDetailsHelp")} bodyClassName="grid gap-3 p-4">
           <Input label={t(locale, "customerName")} placeholder={t(locale, "customerName")} value={form.customer_name} onChange={(event) => setForm({ ...form, customer_name: event.target.value })} />
           <Input label={t(locale, "customerPhone")} placeholder={t(locale, "customerPhone")} value={form.customer_phone} onChange={(event) => setForm({ ...form, customer_phone: event.target.value })} />
@@ -112,7 +119,7 @@ export default function CartPage() {
           ) : null}
         </AppCard>
 
-        <div className="sticky bottom-0 flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-2xl sm:bottom-4 sm:flex-row sm:items-center sm:justify-between sm:pb-3">
+        <div className="premium-surface sticky bottom-0 flex flex-col gap-3 rounded-3xl border bg-white/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur sm:bottom-4 sm:flex-row sm:items-center sm:justify-between sm:pb-3">
           <div>
             <p className="khmer-label text-xs font-black text-blue-600">{t(locale, "total")}</p>
             <p className="text-xl font-black text-slate-950">{money(total)} KHR</p>

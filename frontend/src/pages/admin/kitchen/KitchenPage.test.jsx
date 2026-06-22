@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { LanguageProvider } from "../../../i18n";
 import { KitchenOrderCard } from "./KitchenPage";
 
 describe("KitchenOrderCard", () => {
@@ -30,12 +31,14 @@ describe("KitchenOrderCard", () => {
     };
 
     render(
-      <KitchenOrderCard
-        order={order}
-        allowUpdate
-        onOrderStatus={vi.fn()}
-        onItemStatus={vi.fn()}
-      />,
+      <LanguageProvider>
+        <KitchenOrderCard
+          order={order}
+          allowUpdate
+          onOrderStatus={vi.fn()}
+          onItemStatus={vi.fn()}
+        />
+      </LanguageProvider>,
     );
 
     expect(screen.getByText("ORD-1")).toBeInTheDocument();

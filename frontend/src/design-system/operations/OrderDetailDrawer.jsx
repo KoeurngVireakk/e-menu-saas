@@ -44,7 +44,7 @@ export default function OrderDetailDrawer({
         <AppCard bodyClassName="p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-black uppercase tracking-wide text-blue-600">{t("operations.orderSummary")}</p>
+              <p className="khmer-label text-xs font-black text-blue-600">{t("operations.orderSummary")}</p>
               <h2 className="mt-1 text-2xl font-black text-slate-950">{order.order_number}</h2>
               <p className="mt-1 text-sm text-slate-500">{order.branch?.name || t("operations.branch")} · {order.dining_table?.table_name || order.order_type}</p>
             </div>
@@ -72,6 +72,7 @@ export default function OrderDetailDrawer({
                   key={status}
                   type="button"
                   variant={status === "cancelled" ? "danger" : "secondary"}
+                  className="w-full xl:w-auto"
                   iconLeft={status === "cancelled" ? <XCircle className="h-4 w-4" /> : null}
                   onClick={() => onStatus(order, status)}
                 >
@@ -87,12 +88,12 @@ export default function OrderDetailDrawer({
         </AppCard>
 
         <AppCard title={t("operations.printDocuments")}>
-          <div className="flex flex-wrap gap-2">
-            <AppButton type="button" variant="outline" iconLeft={<ReceiptText className="h-4 w-4" />} onClick={() => onReceipt(order)}>{t("operations.viewReceipt")}</AppButton>
-            <AppButton as={Link} to="/admin/kitchen" variant="secondary" iconLeft={<ChefHat className="h-4 w-4" />}>{t("operations.openKitchen")}</AppButton>
-            {allowKitchenPrint ? <AppButton type="button" variant="secondary" iconLeft={<Printer className="h-4 w-4" />} onClick={() => onPrint(order, "kitchen")}>{t("operations.printKitchen")}</AppButton> : null}
-            {allowReceiptPrint ? <AppButton type="button" variant="secondary" iconLeft={<Printer className="h-4 w-4" />} onClick={() => onPrint(order, "receipt")}>{t("operations.printReceipt")}</AppButton> : null}
-            {allowInvoiceActions ? <AppButton type="button" onClick={() => onInvoice(order)}>{t("operations.createInvoice")}</AppButton> : null}
+          <div className="grid gap-2 sm:grid-cols-2 xl:flex xl:flex-wrap">
+            <AppButton type="button" className="w-full xl:w-auto" variant="outline" iconLeft={<ReceiptText className="h-4 w-4" />} onClick={() => onReceipt(order)}>{t("operations.viewReceipt")}</AppButton>
+            <AppButton as={Link} className="w-full xl:w-auto" to="/admin/kitchen" variant="secondary" iconLeft={<ChefHat className="h-4 w-4" />}>{t("operations.openKitchen")}</AppButton>
+            {allowKitchenPrint ? <AppButton type="button" className="w-full xl:w-auto" variant="secondary" iconLeft={<Printer className="h-4 w-4" />} onClick={() => onPrint(order, "kitchen")}>{t("operations.printKitchen")}</AppButton> : null}
+            {allowReceiptPrint ? <AppButton type="button" className="w-full xl:w-auto" variant="secondary" iconLeft={<Printer className="h-4 w-4" />} onClick={() => onPrint(order, "receipt")}>{t("operations.printReceipt")}</AppButton> : null}
+            {allowInvoiceActions ? <AppButton type="button" className="w-full xl:w-auto" onClick={() => onInvoice(order)}>{t("operations.createInvoice")}</AppButton> : null}
           </div>
           {receipt ? <div className="mt-4">{receiptPreview}</div> : null}
           {printPreview ? <div className="mt-4">{printPreview.type === "kitchen" ? kitchenPrintPreview : receiptPreview}</div> : null}
@@ -114,9 +115,9 @@ export default function OrderDetailDrawer({
 
 function Detail({ label, value }) {
   return (
-    <div className="rounded-xl bg-slate-50 p-3">
-      <p className="text-xs font-black uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="mt-1 font-bold text-slate-900">{value}</p>
+    <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-3">
+      <p className="khmer-label text-xs font-black text-slate-500">{label}</p>
+      <p className="khmer-text mt-1 wrap-break-word font-bold text-slate-900">{value}</p>
     </div>
   );
 }

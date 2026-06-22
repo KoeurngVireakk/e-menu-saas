@@ -22,7 +22,7 @@ export default function PaymentDetailDrawer({ payment, open, onClose, onConfirm,
         <AppCard bodyClassName="p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-black uppercase tracking-wide text-blue-600">{t("operations.paymentReview")}</p>
+              <p className="khmer-label text-xs font-black text-blue-600">{t("operations.paymentReview")}</p>
               <h2 className="mt-1 text-2xl font-black text-slate-950">{formatCurrency(payment.amount, payment.currency_code)}</h2>
               <p className="mt-1 text-sm text-slate-500">{payment.payment_method} · {providerLabel(payment)}</p>
             </div>
@@ -38,8 +38,8 @@ export default function PaymentDetailDrawer({ payment, open, onClose, onConfirm,
 
         {proofUrl ? (
           <AppCard title={t("operations.proofImage")} description={t("operations.proofImageHelp")}>
-            <a href={proofUrl} target="_blank" rel="noreferrer">
-              <img src={proofUrl} alt={`Payment proof for ${payment.order?.order_number || `payment ${payment.id}`}`} className="max-h-96 w-full rounded-2xl border border-slate-200 object-contain" />
+            <a className="block rounded-3xl border border-slate-200 bg-slate-50 p-3 transition hover:border-blue-200 hover:bg-blue-50/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" href={proofUrl} target="_blank" rel="noreferrer">
+              <img src={proofUrl} alt={`Payment proof for ${payment.order?.order_number || `payment ${payment.id}`}`} className="max-h-[min(28rem,60dvh)] w-full rounded-2xl border border-slate-200 bg-white object-contain" />
             </a>
           </AppCard>
         ) : null}
@@ -47,8 +47,8 @@ export default function PaymentDetailDrawer({ payment, open, onClose, onConfirm,
         {allowActions ? (
           <AppCard title={t("operations.reviewAction")} description={t("operations.reviewActionHelp")}>
             <div className="grid gap-2 sm:grid-cols-2" aria-label={`Payment review actions for ${payment.order?.order_number || `payment ${payment.id}`}`}>
-              <AppButton type="button" variant="success" iconLeft={<CheckCircle2 className="h-4 w-4" />} onClick={() => onConfirm(payment)}>{t("operations.confirmPayment")}</AppButton>
-              <AppButton type="button" variant="danger" iconLeft={<XCircle className="h-4 w-4" />} onClick={() => onReject(payment)}>{t("operations.rejectPayment")}</AppButton>
+              <AppButton type="button" className="w-full" variant="success" iconLeft={<CheckCircle2 className="h-4 w-4" />} onClick={() => onConfirm(payment)}>{t("operations.confirmPayment")}</AppButton>
+              <AppButton type="button" className="w-full" variant="danger" iconLeft={<XCircle className="h-4 w-4" />} onClick={() => onReject(payment)}>{t("operations.rejectPayment")}</AppButton>
             </div>
           </AppCard>
         ) : null}
@@ -69,8 +69,8 @@ export default function PaymentDetailDrawer({ payment, open, onClose, onConfirm,
 
 function Detail({ label, value }) {
   return (
-    <div className="rounded-xl bg-slate-50 p-3">
-      <p className="text-xs font-black uppercase tracking-wide text-slate-400">{label}</p>
+    <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-3">
+      <p className="khmer-label text-xs font-black text-slate-500">{label}</p>
       <p className="mt-1 wrap-break-word font-bold text-slate-900">{value}</p>
     </div>
   );

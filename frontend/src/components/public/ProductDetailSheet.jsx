@@ -111,9 +111,12 @@ export default function ProductDetailSheet({ product, locale, open, onClose, onA
           </div>
 
           {(product.options || []).map((option) => (
-            <section key={option.id} className="rounded-3xl border border-slate-200 bg-slate-50/70 p-3">
+            <section key={option.id} className={`rounded-3xl border p-3 ${option.is_required && !(selectedValues[option.id] || []).length ? "border-amber-200 bg-amber-50/60" : "border-slate-200 bg-slate-50/70"}`}>
               <div className="flex items-center justify-between gap-3">
-                <h3 className="khmer-heading font-black text-slate-950">{option.name}</h3>
+                <div className="min-w-0">
+                  <h3 className="khmer-heading font-black text-slate-950">{option.name}</h3>
+                  <p className="khmer-text mt-0.5 text-xs font-semibold leading-5 text-slate-500">{option.is_required ? t(locale, "optionRequiredHelp") : t(locale, "optionOptionalHelp")}</p>
+                </div>
                 {option.is_required ? <AppBadge status="warning">{t(locale, "required")}</AppBadge> : <AppBadge status="info">{t(locale, "optional")}</AppBadge>}
               </div>
               <div className="mt-3 grid gap-2">

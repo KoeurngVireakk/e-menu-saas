@@ -99,6 +99,7 @@ export default function OrderSuccess() {
         </div>
         <h1 className="khmer-heading mt-5 text-3xl font-black text-slate-950">{t(locale, "orderSubmitted")}</h1>
         <p className="khmer-text mt-2 text-slate-500">{t(locale, "orderReceivedDescription")}</p>
+        <p className="khmer-text mx-auto mt-2 max-w-sm rounded-2xl bg-blue-50 px-3 py-2 text-sm font-semibold leading-6 text-blue-800">{t(locale, "orderNextStep")}</p>
         <p className="mt-3 text-lg font-black text-slate-950">{order.order_number}</p>
         <div className="mt-4 flex justify-center gap-2">
           <AppBadge status={order.order_status}>{order.order_status}</AppBadge>
@@ -112,7 +113,7 @@ export default function OrderSuccess() {
         <p className="mt-6 text-4xl font-black text-blue-700">
           {formatDualCurrency(order.grand_total, order.currency_code, order.secondary_currency_total, order.secondary_currency_code)}
         </p>
-        <div className="mt-5 flex flex-wrap justify-center gap-2">
+        <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap sm:justify-center">
           <AppButton type="button" variant="secondary" iconLeft={<ReceiptText className="h-4 w-4" />} onClick={() => setShowReceipt((value) => !value)}>
             {showReceipt ? t(locale, "hideReceipt") : t(locale, "viewReceipt")}
           </AppButton>
@@ -120,7 +121,7 @@ export default function OrderSuccess() {
         </div>
         {showReceipt ? <CustomerReceipt order={order} locale={locale} /> : null}
         {order.payment_status !== "paid" && order.payment_status !== "confirmed" ? (
-          <AppButton as={Link} size="lg" className="mt-6" iconLeft={<CreditCard className="h-4 w-4" />} to={`/payment/${order.order_number}?locale=${locale}`}>
+          <AppButton as={Link} size="lg" className="mt-6 w-full sm:w-auto" iconLeft={<CreditCard className="h-4 w-4" />} to={`/payment/${order.order_number}?locale=${locale}`}>
             {t(locale, "continuePayment")}
           </AppButton>
         ) : null}

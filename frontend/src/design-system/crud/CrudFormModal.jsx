@@ -89,7 +89,7 @@ export default function CrudFormModal({
           </button>
         </header>
         <form id={formId} onSubmit={onSubmit} className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6">
-          <div className="grid content-start gap-4">{children}</div>
+          <div className="grid content-start gap-4 sm:gap-5">{children}</div>
         </form>
         <footer className="sticky bottom-0 border-t border-slate-100 bg-white/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-12px_30px_rgba(15,23,42,0.06)] backdrop-blur sm:px-6 sm:pb-4">
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

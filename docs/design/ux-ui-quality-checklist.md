@@ -307,3 +307,14 @@
 - Accessibility checklist: preserve dialog labels, drawer titles, table scroll region labels, status text, icon button labels, upload labels, and visible keyboard focus.
 - Performance checklist: no new UI libraries, no landing/public chart imports, preserve lazy routes/charts, PWA behavior, dynamic realtime/alerts, and Vitest/Playwright separation.
 - Final-check checklist: run backend tests, route list, frontend lint/test/build, `git diff --check`, and document optional E2E/visual routes if not run.
+
+## Module 61 High-Impact Screen UX Polish QA
+
+- Customer QR checklist: checkout steps, required option groups, cart quantity controls, sticky checkout, payment proof preview, and order-success next-step copy should remain readable at 375px and 430px in English and Khmer.
+- Operations checklist: order drawers, payment proof review, kitchen cards, status badges, and next-action buttons should be scannable in under five seconds without relying on color alone.
+- Notification checklist: unread state, event chips, message body, timestamps, view-detail links, and mark-read actions should stack cleanly on mobile and keep real notification data only.
+- CRUD checklist: centered create/edit modals should keep one-column mobile layout, readable helper text, sticky save/cancel footer, and save-in-progress dismissal protection.
+- Khmer checklist: edited labels and helper copy must use Khmer-readable classes, natural wrapping, and no uppercase/tracking pressure.
+- Accessibility checklist: focus rings, dialog names, upload labels, action labels, status text, and safe-area sticky controls must remain intact.
+- Performance checklist: no new UI libraries, no backend behavior changes, no fake data, no global chart/realtime imports, and preserve PWA/public-ordering behavior.
+- Final-check checklist: run backend tests, route list, frontend lint/test/build, `git diff --check`, and record that GitHub Actions were not checked unless they actually were.
