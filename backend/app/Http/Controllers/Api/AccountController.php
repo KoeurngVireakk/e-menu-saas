@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AccountActivityLog;
+use App\Models\User;
 use App\Services\AccountActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -46,7 +47,7 @@ class AccountController extends Controller
         );
 
         return $this->success('Profile updated successfully', [
-            'profile' => $this->profilePayload($user->fresh()),
+            'profile' => $this->profilePayload($user->refresh()),
         ]);
     }
 
@@ -148,7 +149,7 @@ class AccountController extends Controller
         ]);
     }
 
-    private function profilePayload($user): array
+    private function profilePayload(User $user): array
     {
         return [
             'id' => $user->id,
