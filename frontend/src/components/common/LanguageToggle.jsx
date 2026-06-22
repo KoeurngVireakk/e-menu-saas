@@ -12,7 +12,7 @@ export default function LanguageToggle({ compact = false, className = "" }) {
       aria-label={t("common.language")}
     >
       {!compact ? (
-        <span className="khmer-label ml-1 mr-1 hidden items-center gap-1.5 px-2 py-1 text-[11px] font-bold uppercase text-slate-500 sm:inline-flex">
+        <span className="khmer-label ml-1 mr-1 hidden items-center gap-1.5 px-2 py-1 text-[11px] font-bold text-slate-500 sm:inline-flex">
           <Languages className="h-3.5 w-3.5" aria-hidden="true" />
           {t("common.language")}
         </span>

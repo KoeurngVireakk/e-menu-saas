@@ -28,7 +28,7 @@ export default function SettingsCompletionCard({
       <div className="rounded-3xl border border-blue-100 bg-blue-50/80 p-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="khmer-label text-xs font-black uppercase text-blue-700">{t("settingsCompletion.score", "Completion score")}</p>
+            <p className="khmer-label text-xs font-black text-blue-700">{t("settingsCompletion.score", "Completion score")}</p>
             <p className="mt-1 text-3xl font-black text-slate-950">{loading ? "…" : `${percent}%`}</p>
           </div>
           <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white text-blue-700 shadow-sm">

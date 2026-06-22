@@ -39,7 +39,7 @@ describe("RealtimeStatusBadge", () => {
   it("keeps compact shell status text available to assistive technology", () => {
     render(<RealtimeStatusBadge status="connected" compact />);
 
-    expect(screen.getByRole("status")).toHaveClass("h-8", "px-2");
+    expect(screen.getByRole("status")).toHaveClass("min-h-8", "px-2");
     expect(screen.getByText("Live updates on")).toHaveClass("sr-only");
   });
 });

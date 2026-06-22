@@ -125,6 +125,7 @@ export const translations = {
       groupCatalog: "Catalog",
       groupBusiness: "Business",
       groupSettings: "Settings",
+      workspaceHint: "Orders, payments, products, kitchen, and QR tools are available.",
     },
     auth: {
       login: "Login",
@@ -911,6 +912,7 @@ export const translations = {
       groupCatalog: "កាតាឡុក",
       groupBusiness: "អាជីវកម្ម",
       groupSettings: "ការកំណត់",
+      workspaceHint: "ការកុម្ម៉ង់ ការទូទាត់ មុខម្ហូប ផ្ទះបាយ និងឧបករណ៍ QR អាចប្រើបាន។",
     },
     auth: {
       login: "ចូលប្រើ",

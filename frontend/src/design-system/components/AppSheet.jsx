@@ -57,7 +57,7 @@ export default function AppSheet({
     >
       <aside
         ref={panelRef}
-        className={`absolute top-0 ${position} flex h-dvh w-full min-w-0 ${widths[size] || widths.md} flex-col overflow-hidden bg-white shadow-xl`}
+        className={`absolute top-0 ${position} flex h-dvh w-full min-w-0 ${widths[size] || widths.md} flex-col overflow-hidden bg-white shadow-xl sm:my-3 sm:h-[calc(100dvh-1.5rem)] sm:rounded-3xl`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

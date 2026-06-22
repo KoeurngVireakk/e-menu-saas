@@ -9,17 +9,17 @@ const variants = {
 };
 
 const sizes = {
-  sm: "h-9 px-3 text-sm",
-  md: "h-10 px-4 text-sm",
-  lg: "h-12 px-5 text-base",
-  icon: "h-9 w-9",
+  sm: "min-h-10 px-3 text-sm",
+  md: "min-h-11 px-4 text-sm",
+  lg: "min-h-12 px-5 text-base",
+  icon: "min-h-10 min-w-10 p-2",
 };
 
 export default function Button({ as: Component = "button", variant = "primary", size = "md", className = "", children, ...props }) {
   return (
     <Component
       className={cn(
-        "khmer-button inline-flex items-center justify-center gap-2 rounded-2xl text-center font-semibold leading-snug transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:scale-100 disabled:opacity-55 motion-reduce:transition-none",
+        "khmer-button inline-flex min-w-0 items-center justify-center gap-2 rounded-2xl text-center font-semibold leading-snug transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:scale-100 disabled:opacity-55 motion-reduce:transition-none",
         variants[variant] || variants.primary,
         sizes[size] || sizes.md,
         className,

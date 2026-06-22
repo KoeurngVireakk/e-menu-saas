@@ -135,7 +135,7 @@ export default function Navbar({ onOpenCommand, onToggleNavigation }) {
           <RouteIcon className="h-4 w-4" aria-hidden="true" />
         </div>
         <div className="min-w-0">
-          <p className="khmer-label truncate text-[10px] font-bold uppercase tracking-wide text-slate-500">{t(eyebrowKey)}</p>
+          <p className="khmer-label truncate text-[10px] font-bold text-slate-500">{t(eyebrowKey)}</p>
           <p className="khmer-heading truncate text-sm font-black text-slate-950 sm:text-base">{t(titleKey)}</p>
         </div>
       </div>
@@ -224,13 +224,13 @@ export default function Navbar({ onOpenCommand, onToggleNavigation }) {
                   <div className="min-w-0">
                     <p className="truncate text-sm font-black text-slate-950">{displayName}</p>
                     <p className="truncate text-xs font-semibold text-slate-500">{user?.email || t("navbar.signedIn", "Signed in")}</p>
-                    <p className="khmer-label mt-1 text-[10px] font-bold uppercase text-slate-400">{user?.role || t("common.adminWorkspace")}</p>
+                    <p className="khmer-label mt-1 text-[10px] font-bold text-slate-400">{user?.role || t("common.adminWorkspace")}</p>
                   </div>
                 </div>
               </div>
               <div className="grid gap-3 px-4 py-3.5">
                 <div>
-                  <p className="khmer-label mb-1.5 text-[11px] font-bold uppercase text-slate-500">{t("common.language")}</p>
+                  <p className="khmer-label mb-1.5 text-[11px] font-bold text-slate-500">{t("common.language")}</p>
                   <LanguageToggle compact className="w-full" />
                 </div>
                 <nav className="grid gap-1 border-t border-slate-100 pt-2" aria-label="Account links">
@@ -241,7 +241,7 @@ export default function Navbar({ onOpenCommand, onToggleNavigation }) {
                 </nav>
                 <button
                   type="button"
-                  className="khmer-button inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white px-3 text-sm font-bold text-rose-700 transition hover:bg-rose-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                  className="khmer-button inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-rose-200 bg-white px-3 text-sm font-bold text-rose-700 transition hover:bg-rose-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                   onClick={confirmLogout}
                 >
                   <LogOut className="h-4 w-4" aria-hidden="true" />
@@ -308,7 +308,7 @@ function NotificationPanel({ t, items, unreadCount, loading, error, onClose, onR
           </div>
         ) : null}
         {unreadCount > 0 ? (
-          <button type="button" className="khmer-button inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" onClick={markAllRead}>
+          <button type="button" className="khmer-button inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" onClick={markAllRead}>
             <CheckCheck className="h-4 w-4" aria-hidden="true" />
             {t("notifications.markAllAsRead", "Mark all as read")}
           </button>
@@ -316,7 +316,7 @@ function NotificationPanel({ t, items, unreadCount, loading, error, onClose, onR
         <Link
           to="/admin/notifications"
           onClick={onClose}
-          className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="khmer-button inline-flex min-h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           {t("notifications.viewAll", "View all notifications")}
         </Link>

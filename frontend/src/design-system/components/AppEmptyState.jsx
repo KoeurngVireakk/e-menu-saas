@@ -18,7 +18,7 @@ export default function AppEmptyState({
 }) {
   const content = (
     <motion.div
-        className="text-center"
+        className="min-w-0 text-center"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2, ease: "easeOut" }}

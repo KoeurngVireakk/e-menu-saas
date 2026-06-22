@@ -24,17 +24,17 @@ export default function PublicProductCard({ product, locale = "en", onAdd, onVie
         {imageUrl ? (
           <img className="h-full w-full object-cover transition duration-300 hover:scale-105" src={imageUrl} alt={product.name} loading="lazy" decoding="async" />
         ) : (
-          <span className="grid h-full place-items-center px-2 text-center text-xs font-black uppercase tracking-wide text-slate-400">{t(locale, "noImage")}</span>
+          <span className="khmer-label grid h-full place-items-center px-2 text-center text-xs font-black text-slate-400">{t(locale, "noImage")}</span>
         )}
       </button>
       <div className="min-w-0">
         <div className="flex items-start justify-between gap-2">
-          <button type="button" onClick={() => onView(product)} className="block text-left text-base font-black leading-snug text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+          <button type="button" onClick={() => onView(product)} className="khmer-heading block text-left text-base font-black leading-snug text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
             {product.name}
           </button>
           {product.is_featured ? <AppBadge status="warning"><Star className="mr-1 h-3 w-3" aria-hidden="true" />{t(locale, "featured")}</AppBadge> : null}
         </div>
-        <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-500">{product.description}</p>
+        <p className="khmer-text mt-1 line-clamp-2 text-sm leading-6 text-slate-500">{product.description}</p>
         {product.preparation_time ? (
           <p className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-slate-500"><Clock className="h-3.5 w-3.5" aria-hidden="true" />{product.preparation_time} {t(locale, "minuteShort")}</p>
         ) : null}

@@ -128,7 +128,7 @@ function HeroSection() {
     <section className="relative overflow-hidden bg-[linear-gradient(180deg,#F8FAFC_0%,#EEF4FF_56%,#F8FAFC_100%)]">
       <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-14 sm:py-16 lg:grid-cols-[0.92fr_1.08fr] lg:px-8 lg:py-20">
         <motion.div {...getMotion(reduced)} className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-4 py-2 text-xs font-black uppercase text-blue-700 shadow-sm">
+          <div className="khmer-label inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-4 py-2 text-xs font-black text-blue-700 shadow-sm">
             <Languages className="h-4 w-4" aria-hidden="true" />
             {t("landing.badge")}
           </div>
@@ -224,7 +224,7 @@ function PhoneMockup() {
             </div>
           </div>
           <div className="grid gap-2 rounded-3xl border border-slate-200 bg-white p-3">
-            <p className="text-xs font-black uppercase text-slate-500">{t("common.orderStatus")}</p>
+            <p className="khmer-label text-xs font-black text-slate-500">{t("common.orderStatus")}</p>
             <p className="text-sm font-black text-slate-950">{t("landing.statusPreview")}</p>
             <div className="flex flex-wrap gap-2">
               <span className="rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-black text-emerald-700">{t("landing.paymentBadge")}</span>
@@ -250,7 +250,7 @@ function DashboardMockup() {
     <div>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-black uppercase text-blue-600">{t("landing.dashboardTitle")}</p>
+          <p className="khmer-label text-xs font-black text-blue-600">{t("landing.dashboardTitle")}</p>
           <h3 className="mt-1 text-2xl font-black text-slate-950">MenuDIGI OS</h3>
         </div>
         <LayoutDashboard className="h-7 w-7 text-blue-600" aria-hidden="true" />
@@ -258,7 +258,7 @@ function DashboardMockup() {
       <div className="mt-5 grid gap-3 sm:grid-cols-4">
         {metrics.map(([label, value]) => (
           <div key={label} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-            <p className="text-[11px] font-black uppercase text-slate-500">{label}</p>
+            <p className="khmer-label text-[11px] font-black text-slate-500">{label}</p>
             <p className="mt-2 text-xl font-black text-slate-950">{value}</p>
           </div>
         ))}
@@ -273,7 +273,7 @@ function DashboardMockup() {
           ))}
         </div>
         <div className="grid content-start gap-2">
-          <p className="text-xs font-black uppercase text-slate-500">{t("landing.recentOrders")}</p>
+          <p className="khmer-label text-xs font-black text-slate-500">{t("landing.recentOrders")}</p>
           {["A01", "B04", "C02"].map((table, index) => (
             <div key={table} className="flex items-center justify-between rounded-2xl bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700">
               <span>#{1000 + index} · {table}</span>
@@ -371,7 +371,7 @@ function PricingSection() {
       <div className="grid gap-4 lg:grid-cols-3">
         {t("landing.pricingPlans", []).map(([name, copy, items], index) => (
           <motion.div key={name} whileHover={{ y: -4 }} transition={{ duration: 0.18 }} className={`rounded-4xl border bg-white p-6 shadow-sm ${index === 1 ? "border-blue-300 ring-4 ring-blue-50" : "border-slate-200"}`}>
-            <p className="text-sm font-black uppercase text-blue-600">{name}</p>
+            <p className="khmer-label text-sm font-black text-blue-600">{name}</p>
             <h3 className="mt-3 text-2xl font-black text-slate-950">{index === 0 ? "Free" : "Contact sales"}</h3>
             <p className="mt-2 text-sm leading-6 text-slate-600">{copy}</p>
             <ul className="mt-6 grid gap-3 text-sm font-bold text-slate-700">
@@ -425,7 +425,7 @@ function FinalCTASection() {
       <div className="mx-auto max-w-7xl overflow-hidden rounded-[2.25rem] bg-slate-950 p-8 text-white shadow-2xl shadow-slate-900/20 lg:p-12">
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
-            <p className="text-sm font-black uppercase text-blue-300">MenuDIGI</p>
+            <p className="khmer-label text-sm font-black text-blue-300">MenuDIGI</p>
             <h2 className="mt-3 text-3xl font-black leading-tight sm:text-4xl">{t("landing.sections.finalTitle")}</h2>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300">{t("landing.sections.finalCopy")}</p>
           </div>
@@ -478,7 +478,7 @@ function Section({ id, eyebrow, title, description, children }) {
     <motion.section id={id} className="px-4 py-14 lg:px-8 lg:py-18" {...getMotion(reduced)}>
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 max-w-3xl">
-          {eyebrow ? <p className="text-xs font-black uppercase text-blue-600">{eyebrow}</p> : null}
+          {eyebrow ? <p className="khmer-label text-xs font-black text-blue-600">{eyebrow}</p> : null}
           <h2 className="mt-3 text-3xl font-black leading-tight text-slate-950 sm:text-4xl">{title}</h2>
           {description ? <p className="mt-4 text-base leading-7 text-slate-600">{description}</p> : null}
         </div>

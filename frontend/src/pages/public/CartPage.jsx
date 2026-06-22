@@ -82,7 +82,7 @@ export default function CartPage() {
       {!online ? <OfflineBanner locale={locale} /> : null}
       <header className="mb-5">
         <AppButton type="button" variant="ghost" size="sm" iconLeft={<ArrowLeft className="h-4 w-4" />} onClick={() => navigate(-1)}>{t(locale, "backToMenu")}</AppButton>
-        <p className="khmer-label mt-4 text-xs font-black uppercase tracking-wide text-blue-600">{t(locale, "checkout")}</p>
+        <p className="khmer-label mt-4 text-xs font-black text-blue-600">{t(locale, "checkout")}</p>
         <h1 className="khmer-heading mt-1 text-3xl font-black text-slate-950">{t(locale, "cart")}</h1>
         <p className="khmer-text mt-2 text-sm text-slate-500">{t(locale, "checkoutDescription")}</p>
       </header>
@@ -114,7 +114,7 @@ export default function CartPage() {
 
         <div className="sticky bottom-0 flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-2xl sm:bottom-4 sm:flex-row sm:items-center sm:justify-between sm:pb-3">
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-blue-600">{t(locale, "total")}</p>
+            <p className="khmer-label text-xs font-black text-blue-600">{t(locale, "total")}</p>
             <p className="text-xl font-black text-slate-950">{money(total)} KHR</p>
           </div>
           <AppButton type="submit" className="w-full sm:w-auto" disabled={!cart.length || saving || !online || !searchParams.get("shop") || !searchParams.get("branch")} title={!online ? t(locale, "offlineSubmit") : undefined} iconLeft={<ReceiptText className="h-4 w-4" />}>
@@ -130,7 +130,7 @@ export default function CartPage() {
 function SummaryRow({ label, value, strong = false }) {
   return (
     <div className={`flex items-center justify-between gap-3 ${strong ? "text-lg font-black text-slate-950" : "text-sm font-semibold text-slate-600"}`}>
-      <span>{label}</span>
+      <span className="khmer-text">{label}</span>
       <span>{value}</span>
     </div>
   );

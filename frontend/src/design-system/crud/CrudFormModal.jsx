@@ -74,7 +74,7 @@ export default function CrudFormModal({
       >
         <header className="flex items-start justify-between gap-4 border-b border-slate-100 bg-white px-5 py-4 sm:px-6">
           <div className="min-w-0">
-            <p className="khmer-label text-xs font-black uppercase tracking-wide text-blue-600">{eyebrow}</p>
+            <p className="khmer-label text-xs font-black text-blue-600">{eyebrow}</p>
             <h2 id={titleId} className="khmer-heading mt-1 text-xl font-black leading-7 text-slate-950">{title}</h2>
             {description ? <p id={descriptionId} className="khmer-text mt-1 text-sm leading-6 text-slate-500">{description}</p> : null}
           </div>

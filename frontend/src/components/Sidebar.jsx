@@ -95,7 +95,7 @@ export default function Sidebar({ mobileOpen = true, onClose }) {
       <nav id="admin-navigation" className="mt-4 grid min-h-0 flex-1 content-start gap-5 overflow-x-hidden overflow-y-auto pr-1 pb-1 lg:mt-0 lg:min-h-0 lg:flex-1 lg:overflow-x-hidden lg:overflow-y-auto lg:pb-0" aria-label={t("navbar.adminNavigation")}>
         {visibleGroups.map((group) => (
           <div key={group.labelKey}>
-            <p className="khmer-label mb-2 px-3 text-[11px] font-black uppercase tracking-wide text-slate-400">{t(group.labelKey)}</p>
+            <p className="khmer-label mb-2 px-3 text-[11px] font-black text-slate-400">{t(group.labelKey)}</p>
             <div className="grid gap-1">
               {group.links.map(({ labelKey, to, icon: Icon }) => (
                 <NavLink
@@ -104,7 +104,7 @@ export default function Sidebar({ mobileOpen = true, onClose }) {
                   end={to === "/admin"}
                   onClick={onClose}
                   className={({ isActive }) =>
-                    `inline-flex shrink-0 items-center gap-2 rounded-2xl px-3 py-2.5 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
+                    `khmer-button inline-flex min-h-11 shrink-0 items-center gap-2 rounded-2xl px-3 py-2.5 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
                       isActive
                         ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
                         : "text-slate-600 hover:-translate-y-0.5 hover:bg-blue-50 hover:text-blue-700"
@@ -120,9 +120,9 @@ export default function Sidebar({ mobileOpen = true, onClose }) {
         ))}
       </nav>
       <div className="mt-6 hidden shrink-0 rounded-3xl border border-blue-100 bg-linear-to-br from-blue-50 to-white p-4 shadow-sm lg:block">
-        <p className="text-xs font-black uppercase tracking-wide text-blue-600">Workspace</p>
+        <p className="khmer-label text-xs font-black text-blue-600">{t("common.adminWorkspace")}</p>
         <p className="mt-1 text-sm font-black text-blue-950">MenuDIGI</p>
-        <p className="mt-1 text-xs leading-5 text-blue-800">{t("common.orders")}, {t("common.payments")}, {t("common.products")}, {t("common.kitchen")}, and QR tools are available.</p>
+        <p className="khmer-text mt-1 text-xs leading-5 text-blue-800">{t("nav.workspaceHint")}</p>
       </div>
     </aside>
     </>

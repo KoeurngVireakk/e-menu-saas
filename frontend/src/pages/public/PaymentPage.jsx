@@ -76,7 +76,7 @@ export default function PaymentPage() {
   return (
     <div className="mx-auto min-h-dvh max-w-xl bg-slate-50 p-4 pb-[calc(2rem+env(safe-area-inset-bottom))]" lang={locale}>
       {!online ? <OfflineBanner locale={locale} /> : null}
-      <p className="khmer-label text-xs font-black uppercase tracking-wide text-blue-600">{t(locale, "payment")}</p>
+      <p className="khmer-label text-xs font-black text-blue-600">{t(locale, "payment")}</p>
       <h1 className="khmer-heading mt-1 text-3xl font-black text-slate-950">{t(locale, "completePayment")}</h1>
       <p className="khmer-text mt-2 text-sm text-slate-500">{t(locale, "paymentPageDescription")}</p>
 

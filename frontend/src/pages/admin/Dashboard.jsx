@@ -557,7 +557,7 @@ function ChartLoadingState({ label }) {
 function SnapshotItem({ label, value, description }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
-      <p className="khmer-label text-xs font-black uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="khmer-label text-xs font-black text-slate-500">{label}</p>
       <p className="khmer-heading mt-2 break-words text-lg font-black leading-7 text-slate-950">{value}</p>
       <p className="khmer-text mt-1 text-sm leading-6 text-slate-500">{description}</p>
     </div>

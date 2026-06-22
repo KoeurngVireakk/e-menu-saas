@@ -279,3 +279,17 @@
 - Notification UX checklist: navbar dropdown needs loading, error retry, empty state, latest notifications, mark all read, and view-all link; page needs filters and load more where available.
 - Khmer checklist: event types, account activity, payment settings, and notification controls must remain natural and readable without forced uppercase.
 - Regression checklist: preserve tenant scoping, branch scoping, auth, public ordering, reports, PWA behavior, route lazy loading, and no new UI libraries.
+
+## Module 59 Premium UX/UI System QA
+
+- Shared system checklist: refine `AppButton`, `Button`, `Input`, `Select`, `Textarea`, `AppCard`, `AppPageHeader`, `AppTable`, `AppSheet`, `CrudFormModal`, state components, language toggle, and realtime status before page-specific styling.
+- Khmer readability checklist: avoid forced uppercase/tracking in edited labels, keep controls at comfortable tap height, and allow long Khmer labels/buttons to wrap naturally.
+- Shell checklist: sidebar remains permission-aware and independently scrollable, navbar remains compact, account/notification popovers stay bounded, and notification count/logs remain real.
+- Landing/auth checklist: keep the first impression clean, bilingual, and honest without fake testimonials, fake metrics, missing reset-password promises, or chart imports.
+- Dashboard/settings/account checklist: keep one body h1, clear page subtitle/actions, real completion data, honest payment readiness, real notifications, and profile/password forms tied to existing APIs.
+- CRUD checklist: simple create/edit stays in centered modals, tables use labeled scroll regions, mobile forms remain one-column, and empty/no-results states provide safe actions.
+- Operations/reports checklist: preserve drawers for complex details, real realtime status, proof-review safety, lazy charts, export behavior, and no private payment/customer data exposure.
+- Customer QR checklist: product cards, option sheets, sticky cart, checkout, payment, proof preview, order success/status, offline, and PWA prompts must remain mobile-first and safe-area aware.
+- Accessibility checklist: icon buttons need labels, dialogs/sheets need names, language toggle needs `aria-pressed`, statuses need text, uploads need labels, and focus rings remain visible.
+- Performance checklist: no new UI libraries, no global chart/realtime/alert imports, preserve route splitting, PWA behavior, Vitest/Playwright separation, and production build health.
+- QA checklist: run backend tests, route list, frontend lint/test/build, `git diff --check`, and optional Playwright E2E/visual checks when Chrome is stable.

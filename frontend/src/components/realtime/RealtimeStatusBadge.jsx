@@ -48,7 +48,7 @@ export default function RealtimeStatusBadge({ status = "disconnected", compact =
 
   return (
     <span
-      className={`inline-flex items-center rounded-full border text-xs font-black ${compact ? "h-8 gap-0 px-2" : "gap-1.5 px-3 py-1.5 shadow-sm shadow-slate-900/5"} ${tones[status] || tones.disconnected} ${className}`}
+      className={`khmer-button inline-flex items-center rounded-full border text-xs font-black ${compact ? "min-h-8 gap-0 px-2" : "min-h-9 gap-1.5 px-3 py-1.5 shadow-sm shadow-slate-900/5"} ${tones[status] || tones.disconnected} ${className}`}
       aria-live="polite"
       role="status"
       title={tooltip}

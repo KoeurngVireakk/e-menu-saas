@@ -10,10 +10,10 @@ export function EmptyState({ title = "No records found", message = "There is not
       <div className="mx-auto grid h-14 w-14 place-items-center rounded-3xl bg-linear-to-br from-blue-50 to-slate-100 text-sm font-black text-blue-600">
         <Icon className="h-6 w-6" aria-hidden="true" />
       </div>
-      <h3 className="mt-5 text-lg font-black text-slate-950">{title}</h3>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">{message}</p>
+      <h3 className="khmer-heading mt-5 text-lg font-black text-slate-950">{title}</h3>
+      <p className="khmer-text mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">{message}</p>
       {checklist.length ? (
-        <ul className="mx-auto mt-4 grid max-w-md gap-2 text-left text-sm font-semibold text-slate-600">
+        <ul className="khmer-text mx-auto mt-4 grid max-w-md gap-2 text-left text-sm font-semibold leading-6 text-slate-600">
           {checklist.map((item) => <li key={item} className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">{item}</li>)}
         </ul>
       ) : null}
@@ -31,8 +31,8 @@ export function LoadingState({ message = "Loading..." }) {
         <div className="h-10 rounded-2xl bg-linear-to-r from-slate-100 via-slate-50 to-slate-100" />
         <div className="h-10 rounded-2xl bg-linear-to-r from-slate-100 via-slate-50 to-slate-100" />
       </div>
-      <p className="mt-4 text-sm font-semibold text-slate-500">{message}</p>
-      <p className="mt-1 text-xs font-semibold text-slate-400">Keeping this workspace ready while fresh data loads.</p>
+      <p className="khmer-text mt-4 text-sm font-semibold text-slate-500">{message}</p>
+      <p className="khmer-text mt-1 text-xs font-semibold leading-5 text-slate-400">Keeping this workspace ready while fresh data loads.</p>
     </Card>
   );
 }
@@ -45,9 +45,9 @@ export function ErrorState({ message = "Unable to load data.", onRetry }) {
           <AlertTriangle className="h-5 w-5" aria-hidden="true" />
         </div>
         <div>
-          <h3 className="font-black text-rose-700">Something went wrong</h3>
-          <p className="mt-2 text-sm leading-6 text-rose-600">{message}</p>
-          <p className="mt-1 text-xs font-semibold text-rose-500">Check your connection, then retry. Saved work is not changed by this message.</p>
+          <h3 className="khmer-heading font-black text-rose-700">Something went wrong</h3>
+          <p className="khmer-text mt-2 text-sm leading-6 text-rose-600">{message}</p>
+          <p className="khmer-text mt-1 text-xs font-semibold leading-5 text-rose-500">Check your connection, then retry. Saved work is not changed by this message.</p>
           {onRetry ? <Button type="button" variant="danger" size="sm" className="mt-4" onClick={onRetry}>Retry</Button> : null}
         </div>
       </div>
@@ -73,8 +73,8 @@ export function SuccessState({ title = "All set", message = "The action complete
       <div className="mx-auto grid h-14 w-14 place-items-center rounded-3xl bg-emerald-100 text-emerald-700">
         <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
       </div>
-      <h3 className="mt-5 text-lg font-black text-emerald-900">{title}</h3>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-emerald-700">{message}</p>
+      <h3 className="khmer-heading mt-5 text-lg font-black text-emerald-900">{title}</h3>
+      <p className="khmer-text mx-auto mt-2 max-w-md text-sm leading-6 text-emerald-700">{message}</p>
       {action ? <div className="mt-5">{action}</div> : null}
     </Card>
   );

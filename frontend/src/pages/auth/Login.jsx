@@ -40,19 +40,19 @@ export default function Login() {
             <AppLogo size="lg" to="/login" ariaLabel="Go to home" />
             <LanguageToggle compact />
           </div>
-          <p className="khmer-label text-xs font-black uppercase tracking-wide text-blue-600">{t("auth.secureWorkspace")}</p>
+          <p className="khmer-label text-xs font-black text-blue-600">{t("auth.secureWorkspace")}</p>
           <h1 className="khmer-heading mt-2 text-3xl font-black text-slate-950">{t("common.signIn")}</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">{t("auth.accountHint")}</p>
           <label className="mt-7 block text-sm font-bold text-slate-700">
             {t("auth.email")}
-            <span className="mt-2 flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 transition hover:border-slate-300 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-50">
+            <span className="mt-2 flex min-h-12 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 transition hover:border-slate-300 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-50">
               <Mail className="h-4 w-4 text-slate-400" aria-hidden="true" />
               <input className="w-full bg-transparent outline-none" type="email" required value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
             </span>
           </label>
           <label className="mt-4 block text-sm font-bold text-slate-700">
             {t("auth.password")}
-            <span className="mt-2 flex min-h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 transition hover:border-slate-300 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-50">
+            <span className="mt-2 flex min-h-12 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 transition hover:border-slate-300 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-50">
               <LockKeyhole className="h-4 w-4 text-slate-400" aria-hidden="true" />
               <input className="w-full bg-transparent outline-none" type={showPassword ? "text" : "password"} required value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} />
               <button type="button" aria-label={showPassword ? "Hide password" : "Show password"} className="rounded-xl p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" onClick={() => setShowPassword((value) => !value)}>
