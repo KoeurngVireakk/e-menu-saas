@@ -1,5 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import api from "../../../api/axios";
 import StaffPage from "./StaffPage";
 
@@ -12,8 +13,26 @@ vi.mock("../../../context/AuthContext", () => ({
   useAuth: () => ({ authenticated: true, user: { role: "shop_owner" } }),
 }));
 
+let queryClient;
+
+function renderStaffPage() {
+  queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <StaffPage />
+    </QueryClientProvider>,
+  );
+}
+
 describe("StaffPage", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     api.get.mockImplementation((url) => {
       if (url === "/shops") return Promise.resolve({ data: { data: { shops: [{ id: 1, name: "QA Cafe" }] } } });
       if (url.includes("/branches")) return Promise.resolve({ data: { data: { branches: [] } } });
@@ -21,10 +40,17 @@ describe("StaffPage", () => {
     });
   });
 
-  it("opens Add staff in CrudFormModal", async () => {
-    render(<StaffPage />);
+  afterEach(() => {
+    queryClient?.clear();
+    cleanup();
+  });
 
-    fireEvent.click(await screen.findByRole("button", { name: "Add staff" }));
+  it("opens Add staff in CrudFormModal", async () => {
+    renderStaffPage();
+
+    await screen.findByText("No staff assigned yet.");
+
+    fireEvent.click(screen.getByRole("button", { name: "Add staff" }));
 
     await waitFor(() => expect(screen.getByRole("dialog", { name: "Add staff" })).toBeInTheDocument());
     expect(screen.getByLabelText("Email")).toBeInTheDocument();

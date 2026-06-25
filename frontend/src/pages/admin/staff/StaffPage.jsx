@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import api, { getApiErrorMessage } from "../../../api/axios";
 import DataTable from "../../../components/DataTable";
 import StatusBadge from "../../../components/StatusBadge";
@@ -18,6 +18,10 @@ const initial = {
   status: "active",
 };
 
+function isRequestCanceled(error) {
+  return error?.name === "CanceledError" || error?.code === "ERR_CANCELED";
+}
+
 export default function StaffPage() {
   const { user } = useAuth();
   const allowManage = canManageStaff(user);
@@ -31,9 +35,19 @@ export default function StaffPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isActive = true;
+    const timer = setTimeout(() => {
+      if (!isActive || !mountedRef.current) return;
+
       if (shops.length && !shopId) {
         setShopId(shops[0].id);
       }
@@ -41,29 +55,58 @@ export default function StaffPage() {
         setLoadError(getApiErrorMessage(shopsError, "Unable to load shops."));
       }
     }, 0);
-    return () => window.clearTimeout(timer);
+
+    return () => {
+      isActive = false;
+      clearTimeout(timer);
+    };
   }, [shopId, shops, shopsError]);
 
-  const load = useCallback(() => {
+  const load = useCallback(async ({ signal, isActive = () => true } = {}) => {
+    const canUpdate = () => mountedRef.current && isActive() && !signal?.aborted;
+
     if (!shopId) {
-      setStaff([]);
-      return Promise.resolve();
+      if (canUpdate()) {
+        setStaff([]);
+        setLoading(false);
+      }
+      return;
     }
+
+    if (!canUpdate()) return;
 
     setLoading(true);
     setLoadError("");
 
-    return api.get(`/shops/${shopId}/staff`)
-      .then((staffResponse) => {
-        setStaff(staffResponse.data.data.staff);
-      })
-      .catch((error) => setLoadError(getApiErrorMessage(error, "Unable to load staff.")))
-      .finally(() => setLoading(false));
+    try {
+      const staffResponse = await api.get(`/shops/${shopId}/staff`, { signal });
+
+      if (!canUpdate()) return;
+
+      setStaff(staffResponse.data?.data?.staff ?? []);
+    } catch (error) {
+      if (!canUpdate() || isRequestCanceled(error)) return;
+
+      setLoadError(getApiErrorMessage(error, "Unable to load staff."));
+    } finally {
+      if (canUpdate()) {
+        setLoading(false);
+      }
+    }
   }, [shopId]);
 
   useEffect(() => {
-    const timer = window.setTimeout(load, 0);
-    return () => window.clearTimeout(timer);
+    let isActive = true;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      void load({ signal: controller.signal, isActive: () => isActive });
+    }, 0);
+
+    return () => {
+      isActive = false;
+      window.clearTimeout(timer);
+      controller.abort();
+    };
   }, [load]);
 
   const openCreate = () => {
