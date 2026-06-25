@@ -18,7 +18,7 @@ describe("AppRoutes", () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() => expect(screen.getByRole("heading", { name: /Run your restaurant menu, orders, and payments/i })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("heading", { level: 1, name: /Turn every table into a digital ordering experience/i })).toBeInTheDocument());
     expect(screen.getAllByRole("link", { name: /Get started/i }).length).toBeGreaterThan(0);
   });
 });

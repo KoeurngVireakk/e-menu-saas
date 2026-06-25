@@ -342,3 +342,16 @@
 - State checklist: loading, empty, error, offline, cached, and no-proof states should avoid blank screens and state whether retry, reconnect, clear filters, or another action is useful.
 - Regression checklist: preserve auth, public ordering, reports, PWA behavior, notifications, profile, settings, performance chunks, API behavior, and Vitest/Playwright separation.
 - Final-check checklist: run backend tests, route list, frontend lint/test/build, `git diff --check`, commit intentionally, and report stashes plus worktree status.
+
+## Module 64 Food Delivery Inspired Landing QA
+
+- Inspiration checklist: use the Dribbble food-delivery reference for direction only; do not copy layout, artwork, copy, images, or brand-specific composition.
+- Landing hierarchy checklist: keep exactly one body `h1`, a clear QR ordering value proposition, primary register CTA, secondary QR demo CTA, and visible bilingual navigation.
+- Visual checklist: hero preview, phone mockup, dashboard preview, and bento cards should feel food-tech and premium while staying within MenuDIGI's blue/navy, white-card, soft-slate system.
+- Product honesty checklist: no fake customer counts, fake testimonials, fake revenue, fake realtime, or fake payment provider readiness; illustrative panels must read as previews/placeholders.
+- Customer QR checklist: show scan, browse, customize, cart, proof upload, and order status details in a mobile-app-like flow without changing public ordering behavior.
+- Khmer/i18n checklist: landing copy should come from translations, Khmer text should use Khmer-readable classes, and display data such as demo product names should not be over-translated.
+- Responsive checklist: hero visuals, floating cards, CTAs, pricing cards, FAQ rows, and footer links must wrap cleanly on mobile and desktop without horizontal overflow.
+- Accessibility checklist: navigation has labels, language toggle keeps `aria-pressed`, decorative icons are hidden, FAQ uses native details, and focus rings remain visible.
+- Performance checklist: no new UI libraries, no external image dependency, no global chart/realtime imports, and preserve Vite route splitting and PWA behavior.
+- Final-check checklist: run backend tests, route list, frontend lint/test/build, `git diff --check`, commit intentionally, and report stashes plus worktree status.
