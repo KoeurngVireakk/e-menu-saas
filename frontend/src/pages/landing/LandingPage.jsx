@@ -187,21 +187,21 @@ function HeroVisual() {
   };
 
   return (
-    <motion.div {...getMotion(reduced, 0.08)} className="relative mx-auto h-[620px] w-full max-w-[640px] sm:h-[680px] lg:h-[720px]" aria-label={t("landing.heroVisualLabel")}>
+    <motion.div {...getMotion(reduced, 0.08)} className="relative mx-auto h-155 w-full max-w-160 sm:h-170 lg:h-180" aria-label={t("landing.heroVisualLabel")}>
       <div className="absolute inset-x-8 top-12 h-80 rounded-full bg-blue-100/60 blur-3xl" aria-hidden="true" />
       <div className="absolute right-4 top-7 h-28 w-28 rounded-full bg-amber-100" aria-hidden="true" />
       <div className="absolute bottom-16 left-2 h-20 w-20 rounded-full bg-emerald-100" aria-hidden="true" />
 
-      <motion.div {...floatMotion} className="absolute left-1/2 top-8 z-20 w-[270px] -translate-x-1/2 sm:w-[315px]">
+      <motion.div {...floatMotion} className="absolute left-1/2 top-8 z-20 w-67.5 -translate-x-1/2 sm:w-78.75">
         <PhoneMockup />
       </motion.div>
 
-      <FloatingCard className="left-0 top-20 z-30 max-w-[190px]" icon={<QrCode className="h-5 w-5" />} title={t("landing.floating.qrTitle")} copy={t("landing.floating.qrCopy")} />
-      <FloatingCard className="right-0 top-28 z-30 max-w-[210px]" icon={<ReceiptText className="h-5 w-5" />} title={t("landing.floating.orderTitle")} copy={t("landing.floating.orderCopy")} />
-      <FloatingCard className="bottom-28 left-2 z-30 max-w-[210px]" icon={<CreditCard className="h-5 w-5" />} title={t("landing.floating.paymentTitle")} copy={t("landing.floating.paymentCopy")} />
-      <FloatingCard className="bottom-8 right-2 z-30 max-w-[220px]" icon={<ChefHat className="h-5 w-5" />} title={t("landing.floating.kitchenTitle")} copy={t("landing.floating.kitchenCopy")} />
+      <FloatingCard className="left-0 top-20 z-30 max-w-47.5" icon={<QrCode className="h-5 w-5" />} title={t("landing.floating.qrTitle")} copy={t("landing.floating.qrCopy")} />
+      <FloatingCard className="right-0 top-28 z-30 max-w-52.5" icon={<ReceiptText className="h-5 w-5" />} title={t("landing.floating.orderTitle")} copy={t("landing.floating.orderCopy")} />
+      <FloatingCard className="bottom-28 left-2 z-30 max-w-52.5" icon={<CreditCard className="h-5 w-5" />} title={t("landing.floating.paymentTitle")} copy={t("landing.floating.paymentCopy")} />
+      <FloatingCard className="bottom-8 right-2 z-30 max-w-55" icon={<ChefHat className="h-5 w-5" />} title={t("landing.floating.kitchenTitle")} copy={t("landing.floating.kitchenCopy")} />
 
-      <div className="absolute bottom-0 left-1/2 z-10 w-[min(100%,560px)] -translate-x-1/2 rounded-[2rem] border border-white/80 bg-white/90 p-4 shadow-2xl shadow-slate-900/15 backdrop-blur">
+      <div className="absolute bottom-0 left-1/2 z-10 w-[min(100%,560px)] -translate-x-1/2 rounded-4xl border border-white/80 bg-white/90 p-4 shadow-2xl shadow-slate-900/15 backdrop-blur">
         <DashboardMiniPreview />
       </div>
     </motion.div>
@@ -365,7 +365,7 @@ function DashboardPreviewSection() {
 
   return (
     <Section id="dashboard-preview" eyebrow={t("landing.dashboardEyebrow")} title={t("landing.sections.dashboardTitle")} description={t("landing.sections.dashboardCopy")}>
-      <div className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/10 sm:p-6">
+      <div className="rounded-4xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/10 sm:p-6">
         <div className="grid gap-4 lg:grid-cols-[1fr_0.75fr]">
           <div className="grid gap-4">
             <div className="grid gap-3 sm:grid-cols-4">
