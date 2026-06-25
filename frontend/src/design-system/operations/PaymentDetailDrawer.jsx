@@ -42,7 +42,13 @@ export default function PaymentDetailDrawer({ payment, open, onClose, onConfirm,
               <img src={proofUrl} alt={`Payment proof for ${payment.order?.order_number || `payment ${payment.id}`}`} className="max-h-[min(28rem,60dvh)] w-full rounded-2xl border border-slate-200 bg-white object-contain" />
             </a>
           </AppCard>
-        ) : null}
+        ) : (
+          <AppCard title={t("operations.proofMissingTitle")} description={t("operations.proofMissingHelp")} bodyClassName="p-4">
+            <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center">
+              <p className="khmer-text text-sm font-semibold leading-6 text-slate-500">{t("operations.proofMissingHelp")}</p>
+            </div>
+          </AppCard>
+        )}
 
         {allowActions ? (
           <AppCard title={t("operations.reviewAction")} description={t("operations.reviewActionHelp")}>

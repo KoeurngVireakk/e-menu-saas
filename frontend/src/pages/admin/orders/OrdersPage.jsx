@@ -27,13 +27,13 @@ import { formatCurrency } from "../../../utils/currency";
 import { canManageInvoices, canManageOrders, canPrintKitchenTicket, canPrintReceipt } from "../../../utils/permissions";
 
 const orderStatuses = [
-  ["all", "All"],
-  ["pending", "Pending"],
-  ["accepted", "Accepted"],
-  ["preparing", "Preparing"],
-  ["ready", "Ready"],
-  ["completed", "Completed"],
-  ["cancelled", "Cancelled"],
+  "all",
+  "pending",
+  "accepted",
+  "preparing",
+  "ready",
+  "completed",
+  "cancelled",
 ];
 
 export default function OrdersPage() {
@@ -58,6 +58,12 @@ export default function OrdersPage() {
   const loading = ordersQuery.isLoading;
   const loadError = ordersQuery.error?.userMessage || ordersQuery.error?.response?.data?.message || "";
   const load = ordersQuery.refetch;
+  const tr = (key, fallback) => t(`operations.${key}`, fallback);
+  const statusLabel = (status) => t(`operations.statusLabels.${status}`, status);
+  const interpolate = (key, values) => Object.entries(values).reduce(
+    (copy, [name, value]) => copy.replace(`{{${name}}}`, value),
+    tr(key),
+  );
 
   const branches = useMemo(() => uniqueOptions(orders.map((order) => order.branch).filter(Boolean)), [orders]);
   const filteredOrders = useMemo(() => {
@@ -89,13 +95,13 @@ export default function OrdersPage() {
 
   const update = async (order, order_status) => {
     if (order_status === "cancelled") {
-      if (!await confirmAction("Cancel order?", `${order.order_number} will be cancelled. This action should only be used when the restaurant cannot fulfill the order.`)) return;
-    } else if (!await confirmAction("Update order status?", `${order.order_number} will become ${order_status}.`)) {
+      if (!await confirmAction(tr("cancelOrderTitle"), interpolate("cancelOrderHelp", { order: order.order_number }))) return;
+    } else if (!await confirmAction(tr("updateOrderTitle"), interpolate("updateOrderHelp", { order: order.order_number, status: statusLabel(order_status) }))) {
       return;
     }
 
     await api.put(`/orders/${order.id}/status`, { order_status });
-    toastSuccess("Order status updated.");
+    toastSuccess(tr("orderStatusUpdated"));
     setSelected((current) => current?.id === order.id ? { ...current, order_status } : current);
     await queryClient.invalidateQueries({ queryKey: queryKeys.orders() });
   };
@@ -128,70 +134,70 @@ export default function OrdersPage() {
   const columns = [
     {
       accessorKey: "order_number",
-      header: "Order",
+      header: tr("order"),
       cell: ({ row }) => (
         <div>
           <p className="font-black text-slate-950">{row.original.order_number}</p>
-          <p className="text-xs text-slate-500">{row.original.created_at ? new Date(row.original.created_at).toLocaleString() : "Time not available"}</p>
+          <p className="text-xs text-slate-500">{row.original.created_at ? new Date(row.original.created_at).toLocaleString() : tr("timeNotAvailable")}</p>
         </div>
       ),
     },
     {
       accessorKey: "branch.name",
-      header: "Table / Branch",
+      header: `${tr("table")} / ${tr("branch")}`,
       cell: ({ row }) => (
         <div>
           <p className="font-bold text-slate-800">{row.original.dining_table?.table_name || row.original.order_type}</p>
-          <p className="text-xs text-slate-500">{row.original.branch?.name || "Branch"}</p>
+          <p className="text-xs text-slate-500">{row.original.branch?.name || tr("branch")}</p>
         </div>
       ),
     },
     {
       accessorKey: "customer_name",
-      header: "Customer",
+      header: tr("customer"),
       cell: ({ row }) => (
         <div>
-          <p className="font-semibold text-slate-800">{row.original.customer_name || "Guest"}</p>
+          <p className="font-semibold text-slate-800">{row.original.customer_name || tr("guest")}</p>
           <p className="text-xs text-slate-500">{row.original.customer_phone || "-"}</p>
         </div>
       ),
     },
-    { accessorKey: "items", header: "Items", cell: ({ row }) => `${row.original.items?.length || 0} lines` },
-    { accessorKey: "grand_total", header: "Total", cell: ({ row }) => formatCurrency(row.original.grand_total, row.original.currency_code) },
-    { accessorKey: "payment_status", header: "Payment", cell: ({ row }) => <PaymentStatusBadge value={row.original.payment_status} /> },
-    { accessorKey: "order_status", header: "Status", cell: ({ row }) => <OrderStatusBadge value={row.original.order_status} /> },
+    { accessorKey: "items", header: tr("items"), cell: ({ row }) => `${row.original.items?.length || 0} ${tr("itemLines")}` },
+    { accessorKey: "grand_total", header: tr("total"), cell: ({ row }) => formatCurrency(row.original.grand_total, row.original.currency_code) },
+    { accessorKey: "payment_status", header: tr("payment"), cell: ({ row }) => <PaymentStatusBadge value={row.original.payment_status} /> },
+    { accessorKey: "order_status", header: tr("status"), cell: ({ row }) => <OrderStatusBadge value={row.original.order_status} /> },
   ];
 
   return (
     <div className="grid gap-5">
       <AppPageHeader
-        eyebrow="Operations"
+        eyebrow={tr("workflow")}
         title={t("pageTitles.ordersTitle")}
         description={t("pageTitles.ordersSubtitle")}
         primaryAction={{ children: t("pageTitles.ordersCta"), onClick: () => load(), iconLeft: <RefreshCw className="h-4 w-4" />, variant: "secondary" }}
       />
 
       <section className="grid gap-4 sm:grid-cols-3">
-        <AppMetricCard title="New orders" value={summary.new_count} description="Orders waiting for action" />
-        <AppMetricCard title="Pending" value={summary.pending_count} description="Kitchen and payment queue" />
-        <AppMetricCard title="Today revenue" value={formatCurrency(summary.today_revenue, "KHR")} description="Confirmed sales today" />
+        <AppMetricCard title={tr("newOrders")} value={summary.new_count} description={tr("newOrdersHelp")} />
+        <AppMetricCard title={tr("pendingOrders")} value={summary.pending_count} description={tr("pendingOrdersHelp")} />
+        <AppMetricCard title={tr("todayRevenue")} value={formatCurrency(summary.today_revenue, "KHR")} description={tr("todayRevenueHelp")} />
       </section>
 
       <OperationStatusTabs
         value={statusFilter}
         onChange={setStatusFilter}
-        options={orderStatuses.map(([value, label]) => [value, label, statusCounts[value] || 0])}
+        options={orderStatuses.map((value) => [value, statusLabel(value), statusCounts[value] || 0])}
       />
 
       <CrudToolbar
         search={search}
         onSearch={setSearch}
-        searchPlaceholder="Search order, table, customer, phone..."
+        searchPlaceholder={tr("searchOrdersPlaceholder")}
         filters={(
           <>
-            <SelectFilter ariaLabel="Branch" value={branchFilter} onChange={setBranchFilter} options={[["all", "All branches"], ...branches.map((branch) => [branch.id, branch.name])]} />
-            <SelectFilter ariaLabel="Payment status" value={paymentFilter} onChange={setPaymentFilter} options={[["all", "All payments"], ["unpaid", "Unpaid"], ["pending", "Pending"], ["paid", "Paid"], ["failed", "Failed"]]} />
-            <input aria-label="Order date" type="date" value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100" />
+            <SelectFilter ariaLabel={tr("branch")} value={branchFilter} onChange={setBranchFilter} options={[["all", tr("allBranches")], ...branches.map((branch) => [branch.id, branch.name])]} />
+            <SelectFilter ariaLabel={tr("paymentStatus")} value={paymentFilter} onChange={setPaymentFilter} options={[["all", tr("allPayments")], ["unpaid", statusLabel("unpaid")], ["pending", statusLabel("pending")], ["paid", statusLabel("paid")], ["failed", statusLabel("failed")]]} />
+            <input aria-label={tr("orderDate")} type="date" value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100" />
           </>
         )}
         onClear={() => {
@@ -205,19 +211,19 @@ export default function OrdersPage() {
 
       <AppCard bodyClassName="p-0">
         {loadError ? (
-          <AppEmptyState title="Orders could not load" description={loadError} actionLabel="Retry" onAction={load} />
+          <AppEmptyState title={tr("ordersCouldNotLoad")} description={loadError} actionLabel={tr("retry")} onAction={load} />
         ) : (
           <AppTable
             columns={columns}
             data={filteredOrders}
             loading={loading}
-            emptyTitle="No orders found"
-            emptyDescription="New customer orders will appear here. Clear filters if you expected results."
+            emptyTitle={tr("noOrdersFound")}
+            emptyDescription={tr("noOrdersFoundHelp")}
             rowActions={(order) => (
               <div className="flex flex-wrap justify-end gap-2">
-                <AppButton type="button" size="sm" variant="secondary" onClick={() => viewOrder(order)}>View details</AppButton>
-                {allowStatusUpdate && order.order_status === "pending" ? <AppButton type="button" size="sm" onClick={() => update(order, "accepted")}>Accept</AppButton> : null}
-                {allowStatusUpdate && ["pending", "accepted"].includes(order.order_status) ? <AppButton type="button" size="sm" variant="outline" onClick={() => update(order, "preparing")}>Preparing</AppButton> : null}
+                <AppButton type="button" size="sm" variant="secondary" onClick={() => viewOrder(order)}>{tr("viewDetails")}</AppButton>
+                {allowStatusUpdate && order.order_status === "pending" ? <AppButton type="button" size="sm" onClick={() => update(order, "accepted")}>{tr("accept")}</AppButton> : null}
+                {allowStatusUpdate && ["pending", "accepted"].includes(order.order_status) ? <AppButton type="button" size="sm" variant="outline" onClick={() => update(order, "preparing")}>{tr("preparing")}</AppButton> : null}
               </div>
             )}
           />

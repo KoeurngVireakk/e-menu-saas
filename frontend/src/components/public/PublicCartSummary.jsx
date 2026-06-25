@@ -17,7 +17,7 @@ export default function PublicCartSummary({ cart, locale, onQuantity, onRemove }
             <AppCard className="premium-interactive" bodyClassName="p-3">
               <div className="flex gap-3">
                 <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-2xl bg-slate-100 text-xs font-semibold text-slate-400">
-                  {imageUrl ? <img className="h-full w-full object-cover" src={imageUrl} alt={item.name} /> : "Image"}
+                  {imageUrl ? <img className="h-full w-full object-cover" src={imageUrl} alt={item.name} /> : t(locale, "noImage")}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -31,9 +31,9 @@ export default function PublicCartSummary({ cart, locale, onQuantity, onRemove }
                   </div>
                   <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="inline-flex w-fit items-center rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
-                      <AppButton type="button" variant="ghost" size="sm" aria-label={`Decrease quantity for ${item.name}`} onClick={() => onQuantity(item.key, item.quantity - 1)}><Minus className="h-4 w-4" /></AppButton>
+                      <AppButton type="button" variant="ghost" size="sm" aria-label={locale === "km" ? `បន្ថយចំនួន ${item.name}` : `Decrease quantity for ${item.name}`} onClick={() => onQuantity(item.key, item.quantity - 1)}><Minus className="h-4 w-4" /></AppButton>
                       <span className="min-w-10 text-center font-black text-slate-950">{item.quantity}</span>
-                      <AppButton type="button" variant="ghost" size="sm" aria-label={`Increase quantity for ${item.name}`} onClick={() => onQuantity(item.key, item.quantity + 1)}><Plus className="h-4 w-4" /></AppButton>
+                      <AppButton type="button" variant="ghost" size="sm" aria-label={locale === "km" ? `បន្ថែមចំនួន ${item.name}` : `Increase quantity for ${item.name}`} onClick={() => onQuantity(item.key, item.quantity + 1)}><Plus className="h-4 w-4" /></AppButton>
                     </div>
                     <AppButton type="button" variant="ghost" size="sm" className="w-full text-rose-700 hover:bg-rose-50 sm:w-auto" iconLeft={<Trash2 className="h-4 w-4" />} onClick={() => onRemove(item.key)}>{t(locale, "remove")}</AppButton>
                   </div>

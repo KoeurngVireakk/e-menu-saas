@@ -110,8 +110,9 @@ export default function CartPage() {
         </AppCard>
 
         <AppCard bodyClassName="grid gap-2 p-4">
-          <SummaryRow label={`${itemCount} item${itemCount === 1 ? "" : "s"}`} value={`${money(total)} KHR`} />
+          <SummaryRow label={`${itemCount} ${t(locale, itemCount === 1 ? "item" : "items")}`} value={`${money(total)} KHR`} />
           <SummaryRow label={t(locale, "total")} value={`${money(total)} KHR`} strong />
+          <p className="khmer-text rounded-2xl bg-slate-50 px-3 py-2 text-sm font-semibold leading-6 text-slate-600">{t(locale, "checkoutTotalHelp")}</p>
           {!online ? (
             <p className="rounded-2xl bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900" role="status">
               {t(locale, "offlineSubmit")}

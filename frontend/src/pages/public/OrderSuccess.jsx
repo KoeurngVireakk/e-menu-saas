@@ -75,7 +75,7 @@ export default function OrderSuccess() {
   }, [locale, orderNumber, online]);
 
   if (error) return <div className="mx-auto min-h-dvh max-w-xl bg-slate-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{!online ? <OfflineBanner locale={locale} /> : null}<ErrorState message={error} /></div>;
-  if (!order) return <div className="mx-auto min-h-dvh max-w-xl bg-slate-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{!online ? <OfflineBanner locale={locale} /> : null}<PublicPageSkeleton label="Loading order..." /></div>;
+  if (!order) return <div className="mx-auto min-h-dvh max-w-xl bg-slate-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{!online ? <OfflineBanner locale={locale} /> : null}<PublicPageSkeleton label={t(locale, "loadingOrder")} /></div>;
 
   const updateOrderStatus = (payload) => {
     setOrder((current) => current ? { ...current, order_status: payload.new_status } : current);

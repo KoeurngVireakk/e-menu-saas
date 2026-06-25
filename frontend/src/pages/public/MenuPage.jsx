@@ -182,13 +182,13 @@ export default function MenuPage() {
     <div className="mx-auto min-h-screen max-w-5xl bg-slate-50 px-4 pb-32 sm:px-6" lang={selectedLocale}>
       {!online || offlineCached ? <OfflineBanner cached={offlineCached} locale={selectedLocale} /> : null}
       {offlineCached && cacheAge ? (
-        <p className="mx-auto mt-2 max-w-3xl px-4 text-xs font-semibold text-amber-800">
-          Showing saved menu from {Math.max(1, Math.round(cacheAge / 60000))} minute{Math.round(cacheAge / 60000) === 1 ? "" : "s"} ago.
+        <p className="khmer-text mx-auto mt-2 max-w-3xl px-4 text-xs font-semibold leading-5 text-amber-800">
+          {t(selectedLocale, "savedMenuAge").replace("{{minutes}}", Math.max(1, Math.round(cacheAge / 60000)))}
         </p>
       ) : null}
       <PublicShopHeader menu={menu} locale={selectedLocale} query={query} onQuery={setQuery} onClearQuery={() => setQuery("")} onLocale={changeLocale} />
 
-      <CategoryTabs categories={menu.categories} active={active} counts={categoryCounts} onSelect={scrollToCategory} />
+      <CategoryTabs categories={menu.categories} active={active} counts={categoryCounts} locale={selectedLocale} onSelect={scrollToCategory} />
 
       {featuredProducts.length ? (
         <section className="mt-5">

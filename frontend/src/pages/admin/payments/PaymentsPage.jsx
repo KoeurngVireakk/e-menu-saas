@@ -23,13 +23,13 @@ import { formatCurrency } from "../../../utils/currency";
 import { canManagePayments } from "../../../utils/permissions";
 
 const paymentStatuses = [
-  ["all", "All"],
-  ["pending", "Pending"],
-  ["paid", "Paid"],
-  ["confirmed", "Confirmed"],
-  ["failed", "Failed"],
-  ["rejected", "Rejected"],
-  ["refunded", "Refunded"],
+  "all",
+  "pending",
+  "paid",
+  "confirmed",
+  "failed",
+  "rejected",
+  "refunded",
 ];
 
 export default function PaymentsPage() {
@@ -47,6 +47,8 @@ export default function PaymentsPage() {
   const loading = paymentsQuery.isLoading;
   const loadError = paymentsQuery.error?.userMessage || paymentsQuery.error?.response?.data?.message || "";
   const load = paymentsQuery.refetch;
+  const tr = (key, fallback) => t(`operations.${key}`, fallback);
+  const statusLabel = (status) => t(`operations.statusLabels.${status}`, status);
 
   const methods = useMemo(() => Array.from(new Set(payments.map((payment) => payment.payment_method).filter(Boolean))), [payments]);
   const statusCounts = useMemo(() => {
@@ -77,18 +79,18 @@ export default function PaymentsPage() {
   }, [dateFilter, methodFilter, payments, search, statusFilter]);
 
   const confirm = async (payment) => {
-    if (!await confirmAction("Confirm payment?", "This payment will be marked as paid.")) return;
+    if (!await confirmAction(tr("confirmPaymentTitle"), tr("confirmPaymentHelp"))) return;
     await api.put(`/payments/${payment.id}/confirm`);
-    toastSuccess("Payment marked as paid.");
+    toastSuccess(tr("paymentMarkedPaid"));
     setSelected((current) => current?.id === payment.id ? { ...current, status: "confirmed" } : current);
     await queryClient.invalidateQueries({ queryKey: queryKeys.payments() });
   };
 
   const reject = async (payment) => {
-    const result = await promptText("Reject payment?", "Reason", "Reject");
+    const result = await promptText(tr("rejectPaymentTitle"), tr("rejectReasonLabel"), tr("rejectAction"));
     if (!result.isConfirmed) return;
     await api.put(`/payments/${payment.id}/reject`, { reason: result.value });
-    toastSuccess("Payment was rejected.");
+    toastSuccess(tr("paymentRejected"));
     setSelected((current) => current?.id === payment.id ? { ...current, status: "rejected", failure_reason: result.value } : current);
     await queryClient.invalidateQueries({ queryKey: queryKeys.payments() });
   };
@@ -96,29 +98,29 @@ export default function PaymentsPage() {
   const columns = [
     {
       accessorKey: "order.order_number",
-      header: "Order",
+      header: tr("order"),
       cell: ({ row }) => (
         <div>
           <p className="font-black text-slate-950">{row.original.order?.order_number || `Payment #${row.original.id}`}</p>
-          <p className="text-xs text-slate-500">{row.original.created_at ? new Date(row.original.created_at).toLocaleString() : "Time not available"}</p>
+          <p className="text-xs text-slate-500">{row.original.created_at ? new Date(row.original.created_at).toLocaleString() : tr("timeNotAvailable")}</p>
         </div>
       ),
     },
-    { accessorKey: "payment_method", header: "Method", cell: ({ row }) => row.original.payment_method },
-    { accessorKey: "provider", header: "Provider", cell: ({ row }) => providerLabel(row.original) },
-    { accessorKey: "amount", header: "Amount", cell: ({ row }) => formatCurrency(row.original.amount, row.original.currency_code) },
+    { accessorKey: "payment_method", header: tr("method"), cell: ({ row }) => row.original.payment_method },
+    { accessorKey: "provider", header: tr("provider"), cell: ({ row }) => providerLabel(row.original) },
+    { accessorKey: "amount", header: tr("amount"), cell: ({ row }) => formatCurrency(row.original.amount, row.original.currency_code) },
     {
       accessorKey: "transaction_reference",
-      header: "Reference",
+      header: tr("reference"),
       cell: ({ row }) => <span className="line-clamp-1 max-w-xs text-xs text-slate-600">{row.original.provider_reference || row.original.transaction_reference || "-"}</span>,
     },
     {
       accessorKey: "status",
-      header: "Status",
+      header: tr("status"),
       cell: ({ row }) => (
         <div className="grid gap-1">
           <PaymentStatusBadge value={row.original.status} />
-          {row.original.provider === "bakong_khqr" && row.original.webhook_verified_at ? <span className="text-xs font-semibold text-emerald-600">Verified</span> : null}
+          {row.original.provider === "bakong_khqr" && row.original.webhook_verified_at ? <span className="khmer-text text-xs font-semibold text-emerald-600">{tr("verified")}</span> : null}
           {row.original.failure_reason || failedPaymentReason(row.original) ? <span className="text-xs text-rose-600">{row.original.failure_reason || failedPaymentReason(row.original)}</span> : null}
         </div>
       ),
@@ -128,7 +130,7 @@ export default function PaymentsPage() {
   return (
     <div className="grid gap-5">
       <AppPageHeader
-        eyebrow="Finance operations"
+        eyebrow={tr("financeWorkflow")}
         title={t("pageTitles.paymentsTitle")}
         description={t("pageTitles.paymentsSubtitle")}
         primaryAction={{ children: t("pageTitles.paymentsCta"), onClick: () => load(), iconLeft: <RefreshCw className="h-4 w-4" />, variant: "secondary" }}
@@ -137,17 +139,17 @@ export default function PaymentsPage() {
       <OperationStatusTabs
         value={statusFilter}
         onChange={setStatusFilter}
-        options={paymentStatuses.map(([value, label]) => [value, label, statusCounts[value] || 0])}
+        options={paymentStatuses.map((value) => [value, statusLabel(value), statusCounts[value] || 0])}
       />
 
       <CrudToolbar
         search={search}
         onSearch={setSearch}
-        searchPlaceholder="Search order, reference, customer..."
+        searchPlaceholder={tr("searchPaymentsPlaceholder")}
         filters={(
           <>
-            <SelectFilter ariaLabel="Payment method" value={methodFilter} onChange={setMethodFilter} options={[["all", "All methods"], ...methods.map((method) => [method, method])]} />
-            <input aria-label="Payment date" type="date" value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100" />
+            <SelectFilter ariaLabel={tr("paymentMethod", "Payment method")} value={methodFilter} onChange={setMethodFilter} options={[["all", tr("allMethods")], ...methods.map((method) => [method, method])]} />
+            <input aria-label={tr("paymentDate")} type="date" value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100" />
           </>
         )}
         onClear={() => {
@@ -160,19 +162,19 @@ export default function PaymentsPage() {
 
       <AppCard bodyClassName="p-0">
         {loadError ? (
-          <AppEmptyState title="Payments could not load" description={loadError} actionLabel="Retry" onAction={load} />
+          <AppEmptyState title={tr("paymentsCouldNotLoad")} description={loadError} actionLabel={tr("retry")} onAction={load} />
         ) : (
           <AppTable
             columns={columns}
             data={filteredPayments}
             loading={loading}
-            emptyTitle="No payments found"
-            emptyDescription="Payment records will appear here after customers submit proof or online payments."
+            emptyTitle={tr("noPaymentsFound")}
+            emptyDescription={tr("noPaymentsFoundHelp")}
             rowActions={(payment) => (
               <div className="flex flex-wrap justify-end gap-2">
-                <AppButton type="button" size="sm" variant="secondary" onClick={() => setSelected(payment)}>View details</AppButton>
-                {allowPaymentActions ? <AppButton type="button" size="sm" variant="success" onClick={() => confirm(payment)}>Confirm</AppButton> : null}
-                {allowPaymentActions ? <AppButton type="button" size="sm" variant="danger" onClick={() => reject(payment)}>Reject</AppButton> : null}
+                <AppButton type="button" size="sm" variant="secondary" onClick={() => setSelected(payment)}>{tr("viewDetails")}</AppButton>
+                {allowPaymentActions ? <AppButton type="button" size="sm" variant="success" onClick={() => confirm(payment)}>{tr("confirmPayment")}</AppButton> : null}
+                {allowPaymentActions ? <AppButton type="button" size="sm" variant="danger" onClick={() => reject(payment)}>{tr("rejectPayment")}</AppButton> : null}
               </div>
             )}
           />

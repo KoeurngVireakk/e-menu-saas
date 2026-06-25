@@ -330,3 +330,15 @@
 - Khmer checklist: edited text must use Khmer-readable rhythm, natural wrapping, no uppercase, and no letter spacing.
 - Performance checklist: no new UI libraries, no backend logic changes, no fake data, preserve lazy routes/charts, public ordering, PWA behavior, and Vitest/Playwright separation.
 - Final-check checklist: run backend tests, route list, frontend lint/test/build, `git diff --check`, and do not claim GitHub Actions unless actually checked.
+
+## Module 63 Premium UX Consistency Cleanup QA
+
+- Scope checklist: clean remaining UI debt without repainting the app, changing backend business logic, adding UI libraries, faking realtime, faking notifications, or removing routes.
+- Header checklist: reviewed routes should use consistent page context, title hierarchy, action hierarchy, and Khmer-readable eyebrow/label styling.
+- CRUD checklist: list-first workflow must stay intact, add/edit forms remain centered modals, destructive actions stay confirmed, and empty states explain what to do next.
+- Operations checklist: orders, kitchen, and payments should be scannable with clear status labels, grouped actions, explicit proof-review states, and mobile-safe action wrapping.
+- Customer QR checklist: category tabs, product cards, option feedback, sticky cart, cart summary, payment instructions, proof upload, and order success should feel like one premium mobile app.
+- Khmer/i18n checklist: edited user-facing strings should use translations where practical, avoid uppercase/tracking pressure, and leave backend data such as product names, order numbers, and payment references untranslated.
+- State checklist: loading, empty, error, offline, cached, and no-proof states should avoid blank screens and state whether retry, reconnect, clear filters, or another action is useful.
+- Regression checklist: preserve auth, public ordering, reports, PWA behavior, notifications, profile, settings, performance chunks, API behavior, and Vitest/Playwright separation.
+- Final-check checklist: run backend tests, route list, frontend lint/test/build, `git diff --check`, commit intentionally, and report stashes plus worktree status.

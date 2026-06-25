@@ -71,7 +71,7 @@ export default function PaymentPage() {
   };
 
   if (error) return <div className="mx-auto min-h-dvh max-w-xl bg-slate-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{!online ? <OfflineBanner /> : null}<ErrorState message={error} /></div>;
-  if (!order) return <div className="mx-auto min-h-dvh max-w-xl bg-slate-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{!online ? <OfflineBanner /> : null}<PublicPageSkeleton label="Loading payment..." /></div>;
+  if (!order) return <div className="mx-auto min-h-dvh max-w-xl bg-slate-50 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">{!online ? <OfflineBanner /> : null}<PublicPageSkeleton label={t(locale, "loadingPayment")} /></div>;
 
   return (
     <div className="mx-auto min-h-dvh max-w-xl bg-slate-50 p-4 pb-[calc(2rem+env(safe-area-inset-bottom))]" lang={locale}>
@@ -86,6 +86,9 @@ export default function PaymentPage() {
 
       <form onSubmit={submit} className="mt-6 grid gap-3">
         <AppCard title={t(locale, "paymentMethod")} description={t(locale, "paymentSafeDescription")} bodyClassName="grid gap-3 p-4">
+          <p className="khmer-text rounded-2xl border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-semibold leading-6 text-blue-800">
+            {t(locale, "paymentInstructions")}
+          </p>
           {!online ? (
             <p className="rounded-2xl bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900" role="status">
               {t(locale, "paymentOfflineSubmit")}
@@ -101,9 +104,10 @@ export default function PaymentPage() {
               <Input label={t(locale, "transactionReference")} placeholder={t(locale, "referenceNumber")} disabled={!online} value={form.transaction_reference} onChange={(event) => setForm({ ...form, transaction_reference: event.target.value })} />
               <Input label={t(locale, "proofImage")} type="file" accept="image/*" disabled={!online} description={t(locale, "proofUploadHelp")} onChange={(event) => setForm({ ...form, proof_image: event.target.files?.[0] || null })} />
               {form.proof_image ? (
-                <p className="khmer-text rounded-2xl border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-semibold leading-6 text-blue-800" role="status">
-                  {t(locale, "proofSelected")}: {form.proof_image.name}
-                </p>
+                <div className="khmer-text rounded-2xl border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-semibold leading-6 text-blue-800" role="status">
+                  <p>{t(locale, "proofSelected")}: {form.proof_image.name}</p>
+                  <p className="mt-1 text-blue-700">{t(locale, "proofReadyHelp")}</p>
+                </div>
               ) : null}
               {proofPreview ? (
                 <figure className="rounded-3xl border border-slate-200 bg-slate-50 p-3">
