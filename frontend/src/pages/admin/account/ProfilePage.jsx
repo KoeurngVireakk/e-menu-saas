@@ -127,6 +127,8 @@ export default function ProfilePage() {
               <SummaryRow label={t("account.role", "Role")} value={profile?.role} />
               <SummaryRow label={t("account.status", "Account status")} value={<AppBadge status={profile?.status === "active" ? "success" : "warning"}>{profile?.status}</AppBadge>} />
               <SummaryRow label={t("account.createdAt", "Created")} value={formatDate(profile?.created_at)} />
+              <SummaryRow label={t("account.activityCount", "Recent activity")} value={activity.length ? `${activity.length} events` : t("account.noActivityShort", "No events")} />
+              <SummaryRow label={t("account.lastActivity", "Last activity")} value={formatDateTime(activity[0]?.created_at) || t("account.noActivityShort", "No events")} />
             </div>
           </AppCard>
 

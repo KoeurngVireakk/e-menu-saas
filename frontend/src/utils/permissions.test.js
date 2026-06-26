@@ -10,6 +10,7 @@ import {
   canManagePayments,
   canManageProducts,
   canManagePrintStations,
+  canManageReviews,
   canManageShopSettings,
   canManageStaff,
   canManageTenantSettings,
@@ -27,6 +28,7 @@ import {
   canUpdate,
   canView,
   canViewPrintStations,
+  canViewReviews,
   canViewReports,
   canViewCashLedger,
   canViewExpenses,
@@ -85,6 +87,8 @@ describe("permissions", () => {
     expect(canManageTranslations(user)).toBe(true);
     expect(canViewStaff(user)).toBe(true);
     expect(canManageStaff(user)).toBe(false);
+    expect(canViewReviews(user)).toBe(true);
+    expect(canManageReviews(user)).toBe(true);
     expect(canCreate(user, "categories")).toBe(true);
     expect(canUpdate(user, "branches")).toBe(true);
     expect(canManageShopSettings(user)).toBe(false);
@@ -120,6 +124,7 @@ describe("permissions", () => {
     expect(canView(user, "products")).toBe(false);
     expect(canView(user, "translations")).toBe(false);
     expect(canManageTranslations(user)).toBe(false);
+    expect(canViewReviews(user)).toBe(false);
     expect(canDelete(user, "products")).toBe(false);
   });
 
@@ -148,6 +153,7 @@ describe("permissions", () => {
     expect(canManageKitchenStations(user)).toBe(false);
     expect(canPrintReceipt(user)).toBe(false);
     expect(canView(user, "payments")).toBe(false);
+    expect(canView(user, "reviews")).toBe(false);
     expect(canView(user, "invoices")).toBe(false);
     expect(canManageInvoices(user)).toBe(false);
   });

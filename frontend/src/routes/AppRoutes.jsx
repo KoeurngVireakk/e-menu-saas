@@ -19,6 +19,7 @@ const TablesPage = lazy(() => import("../pages/admin/tables/TablesPage"));
 const OrdersPage = lazy(() => import("../pages/admin/orders/OrdersPage"));
 const KitchenPage = lazy(() => import("../pages/admin/kitchen/KitchenPage"));
 const PaymentsPage = lazy(() => import("../pages/admin/payments/PaymentsPage"));
+const ReviewsPage = lazy(() => import("../pages/admin/reviews/ReviewsPage"));
 const InvoicesPage = lazy(() => import("../pages/admin/invoices/InvoicesPage"));
 const ReportsPage = lazy(() => import("../pages/admin/reports/ReportsPage"));
 const DailyClosingPage = lazy(() => import("../pages/admin/reports/DailyClosingPage"));
@@ -65,6 +66,7 @@ export default function AppRoutes() {
             <Route path="orders" element={<PermissionRoute feature="orders"><OrdersPage /></PermissionRoute>} />
             <Route path="kitchen" element={<PermissionRoute feature="kitchen"><KitchenPage /></PermissionRoute>} />
             <Route path="payments" element={<PermissionRoute feature="payments"><PaymentsPage /></PermissionRoute>} />
+            <Route path="reviews" element={<PermissionRoute feature="reviews"><ReviewsPage /></PermissionRoute>} />
             <Route path="invoices" element={<PermissionRoute feature="invoices"><InvoicesPage /></PermissionRoute>} />
             <Route path="reports" element={<PermissionRoute feature="reports"><ReportsPage /></PermissionRoute>} />
             <Route path="daily-closing" element={<PermissionRoute feature="dailyClosing"><DailyClosingPage /></PermissionRoute>} />

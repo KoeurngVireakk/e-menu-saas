@@ -355,3 +355,14 @@
 - Accessibility checklist: navigation has labels, language toggle keeps `aria-pressed`, decorative icons are hidden, FAQ uses native details, and focus rings remain visible.
 - Performance checklist: no new UI libraries, no external image dependency, no global chart/realtime imports, and preserve Vite route splitting and PWA behavior.
 - Final-check checklist: run backend tests, route list, frontend lint/test/build, `git diff --check`, commit intentionally, and report stashes plus worktree status.
+
+## Module 64 Premium User/Profile/Shop/Reviews QA
+
+- Staff checklist: keep user management list-first, expose only backend-supported actions, show role/status/branch hierarchy clearly, and prevent self role/status changes in backend and UI affordances.
+- Profile checklist: email remains read-only unless a verified change flow exists, password changes require current password, preferences save to the real account endpoint, and account activity is scoped to the current user.
+- Settings checklist: show only fields saved by the backend settings contract, keep public menu preview easy to find, avoid fake payment/provider readiness, and summarize reviews only from the real reviews endpoint.
+- Reviews checklist: reviews must be order/shop/branch scoped, paginated, filterable, safe from private customer data exposure, and moderated through authenticated authorized actions.
+- Public review checklist: customers can submit one validated rating/comment only after the order is completed and paid; duplicate reviews and unrelated order editing must be rejected.
+- Khmer/i18n checklist: review, staff, profile, and settings labels should have English and Khmer keys where practical, wrap naturally, and avoid uppercase or letter-spacing pressure.
+- Empty/no-results checklist: staff and reviews empty states should explain when real data appears and provide clear filter reset guidance when filters hide rows.
+- Regression checklist: preserve auth, tenant permissions, public ordering, payments, reports, PWA behavior, lazy routes, Vitest/Playwright separation, and no new UI libraries.

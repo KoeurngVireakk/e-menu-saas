@@ -55,4 +55,31 @@ describe("StaffPage", () => {
     await waitFor(() => expect(screen.getByRole("dialog", { name: "Add staff" })).toBeInTheDocument());
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
   });
+
+  it("renders premium search and filters for staff list review", async () => {
+    api.get.mockImplementation((url) => {
+      if (url === "/shops") return Promise.resolve({ data: { data: { shops: [{ id: 1, name: "QA Cafe" }] } } });
+      if (url.includes("/branches")) return Promise.resolve({ data: { data: { branches: [{ id: 7, name: "Main Branch" }] } } });
+      return Promise.resolve({
+        data: {
+          data: {
+            staff: [
+              { id: 10, user_id: 20, role: "manager", status: "active", branch_id: 7, user: { id: 20, name: "Dara Manager", email: "dara@example.test" }, branch: { id: 7, name: "Main Branch" } },
+            ],
+          },
+        },
+      });
+    });
+
+    renderStaffPage();
+
+    await screen.findByText("Dara Manager");
+    expect(screen.getByLabelText("Search")).toBeInTheDocument();
+    expect(screen.getByLabelText("Role")).toBeInTheDocument();
+    expect(screen.getByLabelText("Status")).toBeInTheDocument();
+    expect(screen.getByLabelText("Branch")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Search"), { target: { value: "missing" } });
+    expect(screen.getByText("No staff match these filters.")).toBeInTheDocument();
+  });
 });

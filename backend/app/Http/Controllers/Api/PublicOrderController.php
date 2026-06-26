@@ -126,7 +126,7 @@ class PublicOrderController extends Controller
 
     public function show(string $orderNumber)
     {
-        $order = Order::where('order_number', $orderNumber)->with(['items', 'payment', 'shop', 'branch', 'diningTable'])->firstOrFail();
+        $order = Order::where('order_number', $orderNumber)->with(['items', 'payment', 'shop', 'branch', 'diningTable', 'review'])->firstOrFail();
 
         return $this->success('Order loaded', [
             'order' => $this->publicOrderPayload($order),
@@ -260,6 +260,13 @@ class PublicOrderController extends Controller
                 'selected_options' => $item->selected_options_json,
             ])->values()->all(),
             'payment' => $order->payment ? $this->publicPaymentPayload($order->payment) : null,
+            'review' => $order->review ? [
+                'id' => $order->review->id,
+                'rating' => $order->review->rating,
+                'comment' => $order->review->comment,
+                'status' => $order->review->status,
+                'created_at' => $order->review->created_at,
+            ] : null,
         ];
     }
 

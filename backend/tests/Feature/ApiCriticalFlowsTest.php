@@ -18,6 +18,7 @@ use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\PrintStation;
 use App\Models\Product;
+use App\Models\Review;
 use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Database\QueryException;
@@ -481,6 +482,76 @@ class ApiCriticalFlowsTest extends TestCase
             'email' => 'blocked-admin@example.test',
             'role' => 'super_admin',
         ])->assertUnprocessable();
+
+        $selfStaff = $catalog['shop']->staffAssignments()->create([
+            'branch_id' => null,
+            'user_id' => $catalog['owner']->id,
+            'role' => 'manager',
+            'status' => 'active',
+        ]);
+        $this->putJson("/api/shop-staff/{$selfStaff->id}", [
+            'branch_id' => null,
+            'role' => 'waiter',
+            'status' => 'inactive',
+        ])->assertUnprocessable();
+        $this->putJson("/api/shop-staff/{$selfStaff->id}/status", ['status' => 'inactive'])
+            ->assertUnprocessable();
+    }
+
+    public function test_reviews_are_order_scoped_safe_and_admin_moderated(): void
+    {
+        $catalog = $this->createCatalog();
+        $order = $this->submitOrder($catalog)->assertCreated()->json('data.order');
+
+        $this->postJson("/api/public/orders/{$order['order_number']}/review", [
+            'rating' => 5,
+            'comment' => 'Great service before completion',
+        ])->assertUnprocessable();
+
+        $this->markCompletedPaid($order['id']);
+
+        $this->postJson("/api/public/orders/{$order['order_number']}/review", [
+            'rating' => 5,
+            'comment' => 'Great service and fast kitchen.',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.review.rating', 5)
+            ->assertJsonMissingPath('data.review.order')
+            ->assertJsonMissing(['customer_phone' => '+85510000004']);
+
+        $this->postJson("/api/public/orders/{$order['order_number']}/review", [
+            'rating' => 4,
+        ])->assertUnprocessable();
+
+        $review = Review::where('order_id', $order['id'])->firstOrFail();
+
+        $this->getJson("/api/public/shops/{$catalog['shop']->slug}/reviews")
+            ->assertOk()
+            ->assertJsonPath('data.summary.count', 1)
+            ->assertJsonPath('data.reviews.0.comment', 'Great service and fast kitchen.')
+            ->assertJsonMissingPath('data.reviews.0.order');
+
+        Sanctum::actingAs($catalog['owner']);
+        $this->getJson("/api/shops/{$catalog['shop']->id}/reviews?rating=5&status=visible")
+            ->assertOk()
+            ->assertJsonPath('data.summary.count', 1)
+            ->assertJsonPath('data.reviews.0.order.order_number', $order['order_number'])
+            ->assertJsonMissing(['customer_phone' => '+85510000004']);
+
+        $this->putJson("/api/reviews/{$review->id}/status", ['status' => 'hidden'])
+            ->assertOk()
+            ->assertJsonPath('data.review.status', 'hidden');
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'review.status_updated',
+            'entity_type' => 'review',
+            'entity_id' => $review->id,
+        ]);
+
+        $this->getJson("/api/public/shops/{$catalog['shop']->slug}/reviews")
+            ->assertOk()
+            ->assertJsonPath('data.summary.count', 0)
+            ->assertJsonCount(0, 'data.reviews');
     }
 
     public function test_public_menu_returns_khmer_translations_when_locale_is_km(): void

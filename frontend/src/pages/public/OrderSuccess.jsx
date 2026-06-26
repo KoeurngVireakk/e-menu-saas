@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { CheckCircle2, CreditCard, Printer, ReceiptText } from "lucide-react";
+import { CheckCircle2, CreditCard, Printer, ReceiptText, Send, Star } from "lucide-react";
 import api from "../../api/axios";
 import OfflineBanner from "../../components/OfflineBanner";
 import LiveOrderStatus from "../../components/orders/LiveOrderStatus";
@@ -8,7 +8,7 @@ import OrderStatusTimeline from "../../components/public/OrderStatusTimeline";
 import PaymentStatusCard from "../../components/public/PaymentStatusCard";
 import { PublicPageSkeleton } from "../../components/public/PublicSkeletons";
 import { AppBadge, AppButton, AppCard } from "../../design-system/components";
-import { ErrorState } from "../../components/ui";
+import { ErrorState, Textarea, alertError, toastSuccess } from "../../components/ui";
 import useOnlineStatus from "../../hooks/useOnlineStatus";
 import { formatCurrency, formatDualCurrency } from "../../utils/currency";
 import { getPreferredLocale, normalizeLocale, t } from "../../utils/localization";
@@ -29,6 +29,7 @@ function safeOrderSnapshot(order) {
     secondary_currency_code: order.secondary_currency_code,
     shop: order.shop ? { name: order.shop.name, currency_code: order.shop.currency_code } : null,
     branch: order.branch ? { name: order.branch.name } : null,
+    review: order.review || null,
     items: [],
   };
 }
@@ -50,6 +51,8 @@ export default function OrderSuccess() {
   const [error, setError] = useState("");
   const [showReceipt, setShowReceipt] = useState(false);
   const [cachedStatus, setCachedStatus] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const online = useOnlineStatus();
 
   useEffect(() => {
@@ -83,6 +86,21 @@ export default function OrderSuccess() {
 
   const updatePaymentStatus = () => {
     setOrder((current) => current ? { ...current, payment_status: "paid" } : current);
+  };
+
+  const reviewEligible = online && order.order_status === "completed" && order.payment_status === "paid";
+  const submitReview = async (event) => {
+    event.preventDefault();
+    setReviewSubmitting(true);
+    try {
+      const response = await api.post(`/public/orders/${order.order_number}/review`, reviewForm);
+      setOrder((current) => current ? { ...current, review: response.data.data.review } : current);
+      await toastSuccess(t(locale, "reviewSubmitted"));
+    } catch (requestError) {
+      alertError(requestError, t(locale, "reviewSubmitError"));
+    } finally {
+      setReviewSubmitting(false);
+    }
   };
 
   return (
@@ -130,7 +148,64 @@ export default function OrderSuccess() {
       <div className="mt-4 grid gap-4">
         <OrderStatusTimeline status={order.order_status} />
         <PaymentStatusCard order={order} />
+        <ReviewPanel
+          order={order}
+          locale={locale}
+          eligible={reviewEligible}
+          form={reviewForm}
+          submitting={reviewSubmitting}
+          onChange={setReviewForm}
+          onSubmit={submitReview}
+        />
       </div>
+    </div>
+  );
+}
+
+function ReviewPanel({ order, locale, eligible, form, submitting, onChange, onSubmit }) {
+  if (order.review) {
+    return (
+      <AppCard bodyClassName="p-5 text-left">
+        <p className="khmer-heading text-lg font-black text-slate-950">{t(locale, "reviewThanksTitle")}</p>
+        <RatingInput value={order.review.rating} readOnly />
+        {order.review.comment ? <p className="khmer-text mt-3 text-sm font-semibold leading-6 text-slate-600">{order.review.comment}</p> : null}
+      </AppCard>
+    );
+  }
+
+  if (!eligible) {
+    return (
+      <AppCard bodyClassName="p-5 text-left">
+        <p className="khmer-heading text-lg font-black text-slate-950">{t(locale, "reviewLockedTitle")}</p>
+        <p className="khmer-text mt-2 text-sm font-semibold leading-6 text-slate-500">{t(locale, "reviewLockedDescription")}</p>
+      </AppCard>
+    );
+  }
+
+  return (
+    <AppCard bodyClassName="p-5 text-left">
+      <p className="khmer-heading text-lg font-black text-slate-950">{t(locale, "reviewFormTitle")}</p>
+      <p className="khmer-text mt-2 text-sm font-semibold leading-6 text-slate-500">{t(locale, "reviewFormDescription")}</p>
+      <form className="mt-4 grid gap-4" onSubmit={onSubmit}>
+        <div>
+          <p className="khmer-label text-sm font-bold text-slate-700">{t(locale, "rating")}</p>
+          <RatingInput value={form.rating} onChange={(rating) => onChange({ ...form, rating })} />
+        </div>
+        <Textarea label={t(locale, "reviewComment")} value={form.comment} maxLength={1000} onChange={(event) => onChange({ ...form, comment: event.target.value })} />
+        <AppButton type="submit" loading={submitting} disabled={submitting} iconLeft={<Send className="h-4 w-4" aria-hidden="true" />}>{t(locale, "submitReview")}</AppButton>
+      </form>
+    </AppCard>
+  );
+}
+
+function RatingInput({ value, onChange, readOnly = false }) {
+  return (
+    <div className="mt-2 flex gap-1" aria-label={`${value} stars`}>
+      {[1, 2, 3, 4, 5].map((rating) => (
+        <button key={rating} type="button" disabled={readOnly} aria-label={`${rating} stars`} onClick={() => onChange?.(rating)} className="rounded-xl p-1 text-amber-400 disabled:cursor-default">
+          <Star className={`h-7 w-7 ${rating <= value ? "fill-amber-400" : "fill-transparent text-slate-300"}`} aria-hidden="true" />
+        </button>
+      ))}
     </div>
   );
 }

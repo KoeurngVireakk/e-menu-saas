@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\PublicMenuController;
 use App\Http\Controllers\Api\PublicOrderController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ShiftController;
 use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\ShopSettingsController;
@@ -45,10 +46,12 @@ Route::prefix('auth')->group(function () {
 
 Route::prefix('public')->group(function () {
     Route::get('/shops/{slug}/menu', [PublicMenuController::class, 'menu'])->middleware('throttle:public-menu');
+    Route::get('/shops/{slug}/reviews', [ReviewController::class, 'publicIndex'])->middleware('throttle:public-menu');
     Route::get('/shops/{slug}/products/{product}', [PublicMenuController::class, 'product'])->middleware('throttle:public-menu');
     Route::post('/orders', [PublicOrderController::class, 'store'])->middleware('throttle:public-orders');
     Route::get('/orders/{orderNumber}', [PublicOrderController::class, 'show'])->middleware('throttle:public-orders');
     Route::post('/orders/{orderNumber}/payment', [PublicOrderController::class, 'payment'])->middleware('throttle:payment-proof');
+    Route::post('/orders/{orderNumber}/review', [ReviewController::class, 'store'])->middleware('throttle:public-orders');
 });
 
 Route::post('/webhooks/bakong-khqr', BakongKhqrWebhookController::class)->middleware('throttle:webhooks');
@@ -118,6 +121,8 @@ Route::middleware(['auth:sanctum', 'throttle:admin-api'])->group(function () {
     Route::get('/shifts/{shift}/report', [ShiftController::class, 'report']);
 
     Route::apiResource('shops', ShopController::class);
+    Route::get('/shops/{shop}/reviews', [ReviewController::class, 'index']);
+    Route::put('/reviews/{review}/status', [ReviewController::class, 'updateStatus']);
     Route::get('/shops/{shop}/settings', [ShopSettingsController::class, 'show']);
     Route::post('/shops/{shop}/settings', [ShopSettingsController::class, 'update']);
     Route::post('/shops/{shop}/notifications/test-telegram', [ShopSettingsController::class, 'testTelegram']);

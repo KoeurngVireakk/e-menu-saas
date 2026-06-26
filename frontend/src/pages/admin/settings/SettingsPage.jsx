@@ -1,4 +1,4 @@
-import { Bell, CreditCard, ExternalLink, Palette, QrCode, Save, ShieldCheck, Store } from "lucide-react";
+import { Bell, CreditCard, ExternalLink, MessageSquareText, Palette, QrCode, Save, ShieldCheck, Star, Store } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { getApiErrorMessage } from "../../../api/axios";
@@ -11,7 +11,7 @@ import AppPageHeader from "../../../design-system/components/AppPageHeader";
 import AppEmptyState from "../../../design-system/components/AppEmptyState";
 import { useShopsQuery } from "../../../hooks/useShopsQuery";
 import { useBranchesQuery } from "../../../hooks/useBranchesQuery";
-import { useBranchTables, useShopCategories, useShopProducts } from "../../../hooks/useApiQueries";
+import { useBranchTables, useShopCategories, useShopProducts, useShopReviews } from "../../../hooks/useApiQueries";
 import useLanguage from "../../../i18n/useLanguage";
 import { canManageTenantSettings } from "../../../utils/permissions";
 import SettingsCompletionCard from "../../../components/settings/SettingsCompletionCard";
@@ -109,6 +109,7 @@ export default function SettingsPage() {
   const branchesQuery = useBranchesQuery(shopId);
   const categoriesQuery = useShopCategories(shopId);
   const productsQuery = useShopProducts(shopId, {});
+  const reviewsQuery = useShopReviews(shopId, { status: "visible", per_page: 5 });
   const selectedBranchId = branchesQuery.data?.[0]?.id;
   const tablesQuery = useBranchTables(selectedBranchId, { enabled: Boolean(selectedBranchId) });
   const loading = shopsLoading || settingsLoading;
@@ -320,6 +321,7 @@ export default function SettingsPage() {
             tables={tablesQuery.data || []}
             loading={completionLoading}
           />
+          <ReviewSummaryCard summary={reviewsQuery.data?.summary} loading={reviewsQuery.isLoading} onOpen={() => navigate("/admin/reviews")} />
           <BrandPreview form={form} selectedShop={selectedShop} />
           <AppCard title="Access" description="Settings changes are limited to owner-level roles." bodyClassName="grid gap-3">
             <div className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
@@ -333,6 +335,31 @@ export default function SettingsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function ReviewSummaryCard({ summary = {}, loading, onOpen }) {
+  const average = Number(summary.average_rating || 0);
+  const count = Number(summary.count || 0);
+
+  return (
+    <AppCard title="Customer reviews" description="Real feedback from completed paid orders." bodyClassName="grid gap-3">
+      <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-black text-slate-500">Visible review rating</p>
+            <p className="mt-1 text-2xl font-black text-slate-950">{loading ? "..." : average.toFixed(1)}</p>
+          </div>
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-50 text-amber-600">
+            <Star className="h-6 w-6 fill-amber-400" aria-hidden="true" />
+          </div>
+        </div>
+        <p className="mt-2 text-sm font-semibold text-slate-500">{loading ? "Loading reviews..." : `${count} visible review${count === 1 ? "" : "s"}`}</p>
+      </div>
+      <AppButton type="button" variant="secondary" iconLeft={<MessageSquareText className="h-4 w-4" aria-hidden="true" />} onClick={onOpen}>
+        Open reviews
+      </AppButton>
+    </AppCard>
   );
 }
 

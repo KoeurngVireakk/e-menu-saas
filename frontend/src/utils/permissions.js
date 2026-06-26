@@ -46,6 +46,10 @@ const featurePermissions = {
     view: ["super_admin", "shop_owner", "manager", "cashier"],
     update: ["super_admin", "shop_owner", "manager", "cashier"],
   },
+  reviews: {
+    view: ["super_admin", "shop_owner", "manager"],
+    update: ["super_admin", "shop_owner", "manager"],
+  },
   invoices: {
     view: ["super_admin", "shop_owner", "manager", "cashier"],
     create: ["super_admin", "shop_owner", "manager", "cashier"],
@@ -131,6 +135,14 @@ export function canDelete(user, feature) {
 
 export function canManagePayments(user) {
   return canUpdate(user, "payments");
+}
+
+export function canViewReviews(user) {
+  return canView(user, "reviews");
+}
+
+export function canManageReviews(user) {
+  return canUpdate(user, "reviews");
 }
 
 export function canManageInvoices(user) {

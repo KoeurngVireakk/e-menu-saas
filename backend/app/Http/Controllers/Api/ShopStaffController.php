@@ -97,6 +97,7 @@ class ShopStaffController extends Controller
     public function update(Request $request, ShopStaff $staff)
     {
         $this->authorizeStaffManagement($request, $staff->shop);
+        abort_if($staff->user_id === $request->user()->id, 422, 'You cannot change your own staff role or status.');
 
         $validated = $this->validateStaffUpdate($request, $staff->shop);
         $staff->update($validated);
@@ -117,6 +118,7 @@ class ShopStaffController extends Controller
     public function updateStatus(Request $request, ShopStaff $staff)
     {
         $this->authorizeStaffManagement($request, $staff->shop);
+        abort_if($staff->user_id === $request->user()->id, 422, 'You cannot change your own staff status.');
 
         $validated = $request->validate([
             'status' => ['required', Rule::in(['active', 'inactive'])],
@@ -137,6 +139,7 @@ class ShopStaffController extends Controller
     public function destroy(Request $request, ShopStaff $staff)
     {
         $this->authorizeStaffManagement($request, $staff->shop);
+        abort_if($staff->user_id === $request->user()->id, 422, 'You cannot remove your own staff access.');
 
         $staffId = $staff->id;
         $shopId = $staff->shop_id;

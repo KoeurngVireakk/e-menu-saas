@@ -33,6 +33,10 @@ vi.mock("../../../api/axios", () => ({
         return Promise.resolve({ data: { data: { tables: [{ id: 41, table_name: "A1" }] } } });
       }
 
+      if (url === "/shops/1/reviews") {
+        return Promise.resolve({ data: { data: { reviews: [], summary: { count: 2, average_rating: 4.5, visible_count: 2, hidden_count: 0 }, pagination: { total: 2 } } } });
+      }
+
       return Promise.resolve({
         data: {
           data: {
@@ -87,6 +91,8 @@ describe("SettingsPage", () => {
     expect(screen.getByLabelText("Payment instructions")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Public QR menu" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Setup completion" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Customer reviews" })).toBeInTheDocument();
+    expect(await screen.findByText("4.5")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Brand preview" })).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Settings sections" })).toHaveClass("overflow-x-auto");
     expect(screen.getByLabelText("Shop name")).toBeInTheDocument();

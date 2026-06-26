@@ -213,6 +213,16 @@ class User extends Authenticatable
         return in_array($this->role, ['super_admin', 'shop_owner'], true);
     }
 
+    public function canViewReviews(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
+    }
+
+    public function canManageReviews(): bool
+    {
+        return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);
+    }
+
     public function canViewTenantSettings(): bool
     {
         return in_array($this->role, ['super_admin', 'shop_owner', 'manager'], true);

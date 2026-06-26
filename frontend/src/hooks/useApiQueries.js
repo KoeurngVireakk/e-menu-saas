@@ -118,3 +118,15 @@ export function usePayments(filters = {}, options = {}) {
     ...options,
   });
 }
+
+export function useShopReviews(shopId, filters = {}, options = {}) {
+  const params = stableFilters(filters);
+  return useQuery({
+    queryKey: queryKeys.shopReviews(shopId, params),
+    queryFn: ({ signal }) => getData(`/shops/${shopId}/reviews`, params, signal),
+    enabled: Boolean(shopId),
+    staleTime: 15 * 1000,
+    placeholderData: keepPreviousData,
+    ...options,
+  });
+}

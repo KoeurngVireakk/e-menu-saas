@@ -20,6 +20,7 @@ export const queryKeys = {
   branchTables: (branchId) => ["branches", branchId, "tables"],
   orders: (filters = {}) => ["orders", stableFilters(filters)],
   payments: (filters = {}) => ["payments", stableFilters(filters)],
+  shopReviews: (shopId, filters = {}) => ["shops", shopId, "reviews", stableFilters(filters)],
 };
 
 export { stableFilters };
