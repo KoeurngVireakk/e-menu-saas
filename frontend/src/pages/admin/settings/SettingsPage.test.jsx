@@ -93,6 +93,8 @@ describe("SettingsPage", () => {
     expect(screen.getByRole("heading", { name: "Setup completion" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Customer reviews" })).toBeInTheDocument();
     expect(await screen.findByText("4.5")).toBeInTheDocument();
+    expect(screen.getByText("2 visible reviews")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Open reviews" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Brand preview" })).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Settings sections" })).toHaveClass("overflow-x-auto");
     expect(screen.getByLabelText("Shop name")).toBeInTheDocument();

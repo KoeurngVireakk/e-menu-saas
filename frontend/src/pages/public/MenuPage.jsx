@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Star } from "lucide-react";
 import api, { createAbortController, isRequestCanceled, withAbortSignal } from "../../api/axios";
 import OfflineBanner from "../../components/OfflineBanner";
 import CategoryTabs from "../../components/public/CategoryTabs";
@@ -40,6 +41,7 @@ export default function MenuPage() {
   const [error, setError] = useState("");
   const [offlineCached, setOfflineCached] = useState(false);
   const [cacheAge, setCacheAge] = useState(null);
+  const [reviewsInfo, setReviewsInfo] = useState(null);
 
   useEffect(() => {
     if (searchParams.get("locale") !== selectedLocale) {
@@ -70,7 +72,17 @@ export default function MenuPage() {
         savePublicMenuCache(cacheKey, data);
         setOfflineCached(false);
         setCacheAge(null);
+        setReviewsInfo(null);
         setError("");
+
+        api
+          .get(`/public/shops/${shopSlug}/reviews`, withAbortSignal({ params: { per_page: 3 } }, controller.signal))
+          .then((reviewsResponse) => setReviewsInfo(reviewsResponse.data.data))
+          .catch((reviewsError) => {
+            if (!isRequestCanceled(reviewsError)) {
+              setReviewsInfo(null);
+            }
+          });
       })
       .catch((requestError) => {
         if (isRequestCanceled(requestError)) {
@@ -84,6 +96,7 @@ export default function MenuPage() {
           setActive(cached.data.categories[0]?.id || "");
           setOfflineCached(true);
           setCacheAge(getPublicMenuCacheAge(cacheKey));
+          setReviewsInfo(null);
           setError("");
           return;
         }
@@ -188,6 +201,8 @@ export default function MenuPage() {
       ) : null}
       <PublicShopHeader menu={menu} locale={selectedLocale} query={query} onQuery={setQuery} onClearQuery={() => setQuery("")} onLocale={changeLocale} />
 
+      <PublicReviewPreview reviewsInfo={reviewsInfo} locale={selectedLocale} />
+
       <CategoryTabs categories={menu.categories} active={active} counts={categoryCounts} locale={selectedLocale} onSelect={scrollToCategory} />
 
       {featuredProducts.length ? (
@@ -228,5 +243,44 @@ export default function MenuPage() {
         onClick={() => navigate(`/cart?${checkoutParams.toString()}`)}
       />
     </div>
+  );
+}
+
+function PublicReviewPreview({ reviewsInfo, locale }) {
+  const reviews = reviewsInfo?.reviews || [];
+  const summary = reviewsInfo?.summary || {};
+  const count = Number(summary.count || 0);
+  const average = Number(summary.average_rating || 0);
+
+  if (!count || !reviews.length) {
+    return null;
+  }
+
+  return (
+    <section className="mt-5 rounded-3xl border border-slate-200 bg-white p-4 text-left shadow-sm shadow-slate-900/5" aria-label={t(locale, "publicReviewsTitle")}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="khmer-label text-xs font-black text-slate-500">{t(locale, "publicReviewsEyebrow")}</p>
+          <h2 className="khmer-heading mt-1 text-lg font-black text-slate-950">{t(locale, "publicReviewsTitle")}</h2>
+        </div>
+        <div className="flex items-center gap-2 rounded-2xl bg-amber-50 px-3 py-2 text-amber-700">
+          <Star className="h-5 w-5 fill-amber-400" aria-hidden="true" />
+          <span className="text-sm font-black">{average.toFixed(1)}</span>
+          <span className="text-xs font-bold text-amber-700/80">{t(locale, "publicReviewsCount").replace("{{count}}", count)}</span>
+        </div>
+      </div>
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        {reviews.slice(0, 3).map((review) => (
+          <article key={review.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            <div className="flex gap-0.5" aria-label={`${t(locale, "rating")}: ${review.rating}`}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star key={star} className={`h-4 w-4 ${star <= review.rating ? "fill-amber-400 text-amber-400" : "text-slate-300"}`} aria-hidden="true" />
+              ))}
+            </div>
+            {review.comment ? <p className="khmer-text mt-2 line-clamp-3 text-sm font-semibold leading-6 text-slate-600">{review.comment}</p> : null}
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }

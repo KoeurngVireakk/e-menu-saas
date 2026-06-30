@@ -16,6 +16,12 @@ vi.mock("../../../api/axios", () => ({
   },
 }));
 
+vi.mock("sweetalert2", () => ({
+  default: {
+    fire: vi.fn(() => Promise.resolve({ isConfirmed: true })),
+  },
+}));
+
 let queryClient;
 
 function renderReviewsPage() {
@@ -83,6 +89,7 @@ describe("ReviewsPage", () => {
     expect(screen.getByText("ORD-100")).toBeInTheDocument();
     expect(screen.getByText("Main Branch")).toBeInTheDocument();
     expect(screen.getByText("5.0")).toBeInTheDocument();
+    expect(screen.getAllByText("Visible").length).toBeGreaterThan(1);
 
     fireEvent.click(screen.getByRole("button", { name: "Hide" }));
     await waitFor(() => expect(api.put).toHaveBeenCalledWith("/reviews/10/status", { status: "hidden" }));

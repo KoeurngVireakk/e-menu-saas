@@ -26,8 +26,9 @@ Module 64 upgrades staff/user management, account profile, shop settings, and cu
 - Staff management keeps a list-first workflow with premium summary cards, search, role/status/branch filters, mobile-safe row cards, role badges, status badges, and clear real actions.
 - Account profile keeps email read-only, requires the current password for password changes, and adds recent activity context to the profile summary.
 - Settings keeps only backend-saved fields, improves the restaurant profile area, preserves public menu preview, and adds a real review summary from the reviews endpoint.
-- Reviews adds `/admin/reviews` with summary metrics, filters, rating stars, status badges, safe order references, empty/no-results states, and moderation actions.
+- Reviews adds `/admin/reviews` with summary metrics, localized filters, rating stars, status badges, safe order references, empty/no-results states, confirmed moderation actions, and status labels.
 - Order success adds a customer review form only when the order is completed and paid, with a submitted state and locked-state explanation otherwise.
+- QR menu now renders a compact public review preview only from `GET /api/public/shops/{slug}/reviews` when visible real reviews exist.
 
 ## Khmer And I18n
 
@@ -37,10 +38,10 @@ Module 64 upgrades staff/user management, account profile, shop settings, and cu
 ## Tests
 
 - Backend feature coverage validates review eligibility, duplicate prevention, safe public/admin payloads, admin status updates, public visibility filtering, and staff self-target protection.
-- Frontend coverage validates staff filters, review admin list/actions/empty state, settings review summary, public review submission, permissions, and centered staff modal behavior.
+- Frontend coverage validates staff filters, review admin list/actions/empty state, settings review summary, public review submission, QR menu review preview, permissions, and centered staff modal behavior.
 
 ## Known Limitations
 
-- Public reviews are shown only through the new endpoint and order-success submission flow; the QR menu page does not render a public reviews preview yet.
+- Public QR menu reviews are intentionally preview-only; customers still submit reviews only through the eligible order-success flow.
 - Review submission is intentionally unavailable until an order is completed and paid.
 - Physical-device QA and Playwright visual review are not part of this local module pass.

@@ -1,7 +1,7 @@
 import { Eye, EyeOff, MessageSquareText, RotateCcw, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import api from "../../../api/axios";
-import { ErrorState, LoadingState, Select, alertError, toastSuccess } from "../../../components/ui";
+import { ErrorState, LoadingState, Select, alertError, confirmAction, toastSuccess } from "../../../components/ui";
 import { useAuth } from "../../../context/AuthContext";
 import AppBadge from "../../../design-system/components/AppBadge";
 import AppButton from "../../../design-system/components/AppButton";
@@ -15,9 +15,6 @@ import { queryKeys } from "../../../lib/queryKeys";
 import { canManageReviews } from "../../../utils/permissions";
 import { useQueryClient } from "@tanstack/react-query";
 
-const statusOptions = [["", "All statuses"], ["visible", "Visible"], ["hidden", "Hidden"], ["reviewed", "Reviewed"]];
-const ratingOptions = [["", "All ratings"], ["5", "5 stars"], ["4", "4 stars"], ["3", "3 stars"], ["2", "2 stars"], ["1", "1 star"]];
-
 export default function ReviewsPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -27,6 +24,20 @@ export default function ReviewsPage() {
   const [shopId, setShopId] = useState("");
   const [filters, setFilters] = useState({ rating: "", status: "", date_from: "", date_to: "" });
   const [updatingId, setUpdatingId] = useState(null);
+  const statusOptions = useMemo(() => [
+    ["", t("reviews.allStatuses", "All statuses")],
+    ["visible", t("reviews.statuses.visible", "Visible")],
+    ["hidden", t("reviews.statuses.hidden", "Hidden")],
+    ["reviewed", t("reviews.statuses.reviewed", "Reviewed")],
+  ], [t]);
+  const ratingOptions = useMemo(() => [
+    ["", t("reviews.allRatings", "All ratings")],
+    ["5", t("reviews.ratingOption5", "5 stars")],
+    ["4", t("reviews.ratingOption4", "4 stars")],
+    ["3", t("reviews.ratingOption3", "3 stars")],
+    ["2", t("reviews.ratingOption2", "2 stars")],
+    ["1", t("reviews.ratingOption1", "1 star")],
+  ], [t]);
 
   useEffect(() => {
     if (shops.length && !shopId) {
@@ -45,6 +56,13 @@ export default function ReviewsPage() {
   const hasFilters = Object.values(filters).some(Boolean);
 
   const updateStatus = async (review, status) => {
+    const confirmed = await confirmAction(
+      t("reviews.confirmStatusTitle", "Update review status?"),
+      t(`reviews.confirmStatus.${status}`, "This changes how the review is moderated."),
+    );
+
+    if (!confirmed) return;
+
     setUpdatingId(review.id);
     try {
       await api.put(`/reviews/${review.id}/status`, { status });
@@ -122,8 +140,8 @@ export default function ReviewsPage() {
               <article key={review.id} className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <RatingStars rating={review.rating} />
-                    <ReviewStatus status={review.status} />
+                    <RatingStars rating={review.rating} label={t("reviews.starRatingLabel", "Rating")} />
+                    <ReviewStatus status={review.status} label={t(`reviews.statuses.${review.status}`, review.status)} />
                     {review.order?.order_number ? <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-600">{review.order.order_number}</span> : null}
                     <span className="text-xs font-bold text-slate-400">{formatDate(review.created_at)}</span>
                   </div>
@@ -157,9 +175,9 @@ function Metric({ label, value, helper }) {
   );
 }
 
-function RatingStars({ rating }) {
+function RatingStars({ rating, label }) {
   return (
-    <div className="flex items-center gap-1" aria-label={`${rating} stars`}>
+    <div className="flex items-center gap-1" aria-label={`${label}: ${rating}`}>
       {[1, 2, 3, 4, 5].map((value) => (
         <Star key={value} className={`h-4 w-4 ${value <= rating ? "fill-amber-400 text-amber-400" : "text-slate-300"}`} aria-hidden="true" />
       ))}
@@ -167,9 +185,9 @@ function RatingStars({ rating }) {
   );
 }
 
-function ReviewStatus({ status }) {
+function ReviewStatus({ status, label }) {
   const badgeStatus = status === "visible" ? "success" : status === "hidden" ? "warning" : "info";
-  return <AppBadge status={badgeStatus}>{status}</AppBadge>;
+  return <AppBadge status={badgeStatus}>{label}</AppBadge>;
 }
 
 function formatDate(value) {

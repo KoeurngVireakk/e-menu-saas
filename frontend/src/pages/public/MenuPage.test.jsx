@@ -53,7 +53,13 @@ describe("MenuPage", () => {
   beforeEach(() => {
     localStorage.clear();
     api.get.mockReset();
-    api.get.mockResolvedValue({ data: { data: menuResponse } });
+    api.get.mockImplementation((url) => {
+      if (String(url).includes("/reviews")) {
+        return Promise.resolve({ data: { data: { reviews: [], summary: { count: 0, average_rating: 0 }, pagination: { total: 0 } } } });
+      }
+
+      return Promise.resolve({ data: { data: menuResponse } });
+    });
   });
 
   it("renders menu search/category/product and opens product detail sheet", async () => {
@@ -96,6 +102,40 @@ describe("MenuPage", () => {
 
     await waitFor(() => expect(screen.getByText("MenuDIGI Cafe")).toBeInTheDocument());
     expect(screen.getByText(/Showing the last saved menu/i)).toBeInTheDocument();
+  });
+
+  it("renders safe public review previews from the real reviews endpoint", async () => {
+    api.get.mockImplementation((url) => {
+      if (String(url).includes("/reviews")) {
+        return Promise.resolve({
+          data: {
+            data: {
+              reviews: [
+                { id: 1, rating: 5, comment: "Fresh coffee.", created_at: "2026-06-30T01:00:00Z" },
+                { id: 2, rating: 4, comment: "Fast service.", created_at: "2026-06-30T02:00:00Z" },
+              ],
+              summary: { count: 2, average_rating: 4.5 },
+              pagination: { total: 2 },
+            },
+          },
+        });
+      }
+
+      return Promise.resolve({ data: { data: menuResponse } });
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/menu/menudigi-cafe?locale=en"]}>
+        <Routes>
+          <Route path="/menu/:shopSlug" element={<MenuPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByRole("heading", { name: "Recent reviews" })).toBeInTheDocument();
+    expect(screen.getByText("4.5")).toBeInTheDocument();
+    expect(screen.getByText("Fresh coffee.")).toBeInTheDocument();
+    expect(screen.queryByText("ORD-100")).not.toBeInTheDocument();
   });
 
   it("shows inline validation when a required product option is missing", async () => {
