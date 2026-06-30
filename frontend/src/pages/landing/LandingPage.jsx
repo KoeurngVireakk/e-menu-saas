@@ -190,18 +190,18 @@ function HeroVisual() {
   };
 
   return (
-    <motion.div {...getMotion(reduced, 0.08)} className="relative mx-auto h-[640px] w-full max-w-[680px] sm:h-[700px] lg:h-[720px]" aria-hidden="true">
-      <div className="absolute inset-x-4 top-10 h-[540px] rounded-[3rem] border border-white/70 bg-white/55 shadow-xl shadow-blue-950/10" aria-hidden="true" />
-      <div className="absolute left-0 right-6 top-[4.5rem] z-10">
+    <motion.div {...getMotion(reduced, 0.08)} className="relative mx-auto h-160 w-full max-w-170 sm:h-175 lg:h-180" aria-hidden="true">
+      <div className="absolute inset-x-4 top-10 h-135 rounded-[3rem] border border-white/70 bg-white/55 shadow-xl shadow-blue-950/10" aria-hidden="true" />
+      <div className="absolute left-0 right-6 top-18 z-10">
         <AdminHeroDashboard />
       </div>
 
-      <motion.div {...floatMotion} className="absolute bottom-20 right-2 z-30 w-[210px] sm:right-7 sm:w-[245px]">
+      <motion.div {...floatMotion} className="absolute bottom-20 right-2 z-30 w-52.5 sm:right-7 sm:w-61.25">
         <PhoneMockup />
       </motion.div>
 
-      <FloatingCard className="left-0 top-5 z-30 max-w-[190px]" icon={<QrCode className="h-5 w-5" />} title={t("landing.floating.qrTitle")} copy={t("landing.floating.qrCopy")} />
-      <FloatingCard className="left-2 bottom-[8.5rem] z-30 max-w-[230px]" icon={<CreditCard className="h-5 w-5" />} title={t("landing.floating.opsTitle")} copy={t("landing.floating.opsCopy")} />
+      <FloatingCard className="left-0 top-5 z-30 max-w-47.5" icon={<QrCode className="h-5 w-5" />} title={t("landing.floating.qrTitle")} copy={t("landing.floating.qrCopy")} />
+      <FloatingCard className="left-2 bottom-34 z-30 max-w-57.5" icon={<CreditCard className="h-5 w-5" />} title={t("landing.floating.opsTitle")} copy={t("landing.floating.opsCopy")} />
     </motion.div>
   );
 }
@@ -210,7 +210,7 @@ function AdminHeroDashboard() {
   const { t } = useLanguage();
 
   return (
-    <div className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/10 sm:p-5">
+    <div className="rounded-4xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/10 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
         <div>
           <p className="khmer-label text-xs font-black text-blue-600">{t("landing.dashboardTitle")}</p>
@@ -407,7 +407,7 @@ function FeatureBentoSection() {
 
 function MiniQrPreview() {
   return (
-    <div className="grid h-[4.5rem] w-[4.5rem] grid-cols-3 gap-1 rounded-2xl border border-slate-200 bg-slate-50 p-2" aria-hidden="true">
+    <div className="grid h-18 w-18 grid-cols-3 gap-1 rounded-2xl border border-slate-200 bg-slate-50 p-2" aria-hidden="true">
       {Array.from({ length: 9 }).map((_, index) => (
         <span key={index} className={`rounded-sm ${[0, 2, 4, 6, 8].includes(index) ? "bg-slate-900" : "bg-blue-200"}`} />
       ))}
@@ -445,7 +445,7 @@ function DashboardPreviewSection() {
 
   return (
     <Section id="dashboard-preview" eyebrow={t("landing.dashboardEyebrow")} title={t("landing.sections.dashboardTitle")} description={t("landing.sections.dashboardCopy")}>
-      <div className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/10 sm:p-6">
+      <div className="rounded-4xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/10 sm:p-6">
         <div className="grid gap-4 lg:grid-cols-[1fr_0.75fr]">
           <div className="grid gap-4">
             <div className="grid gap-3 sm:grid-cols-4">
@@ -504,7 +504,7 @@ function CustomerFlowSection() {
   return (
     <Section id="customer-preview" eyebrow={t("landing.customerFlowEyebrow")} title={t("landing.sections.customerFlowTitle")} description={t("landing.sections.customerFlowCopy")}>
       <div className="grid items-center gap-8 lg:grid-cols-[0.76fr_1.24fr]">
-        <div className="mx-auto w-full max-w-sm rounded-[2rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/10"><PhoneMockup /></div>
+        <div className="mx-auto w-full max-w-sm rounded-4xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/10"><PhoneMockup /></div>
         <div className="grid gap-4 sm:grid-cols-2">
           {t("landing.customerFlow", []).map(([title, copy], index) => {
             const Icon = [ScanLine, Smartphone, CustomizeIcon, ReceiptText, UploadCloud, Clock3][index] || Check;
