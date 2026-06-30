@@ -207,7 +207,7 @@ export default function StaffPage() {
   return (
     <div className="grid gap-4">
       <Card className="overflow-hidden p-0">
-        <div className="grid gap-4 bg-gradient-to-br from-blue-50 via-white to-slate-50 p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div className="grid gap-4 bg-linear-to-br from-blue-50 via-white to-slate-50 p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="min-w-0">
             <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-3 py-1 text-xs font-black text-blue-700 shadow-sm shadow-blue-900/5">
               <ShieldCheck className="h-4 w-4" aria-hidden="true" />
