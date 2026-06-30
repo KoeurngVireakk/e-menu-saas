@@ -13,11 +13,11 @@ import {
   Languages,
   LayoutDashboard,
   Menu as MenuIcon,
-  Package,
   QrCode,
   ReceiptText,
   ScanLine,
   ShieldCheck,
+  Smartphone,
   ShoppingCart,
   Sparkles,
   Store,
@@ -69,7 +69,7 @@ export default function LandingPage() {
       <LandingNavbar />
       <main>
         <HeroSection />
-        <HowItWorksSection />
+        <RestaurantWorkflowSection />
         <FeatureBentoSection />
         <DashboardPreviewSection />
         <CustomerFlowSection />
@@ -90,12 +90,12 @@ function LandingNavbar() {
   const close = () => setOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 shadow-sm shadow-slate-900/5 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 backdrop-blur-xl">
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 lg:px-8" aria-label={t("landing.mainNavigation")}>
         <AppLogo to="/" size="md" ariaLabel={t("navbar.goDashboard", "Go to MenuDIGI home")} />
-        <div className="hidden items-center gap-6 lg:flex">
+        <div className="hidden items-center gap-5 rounded-full border border-slate-200 bg-white/80 px-4 py-2 lg:flex">
           {navItems.map(([labelKey, href]) => (
-            <a key={href} href={href} className="khmer-button text-sm font-black text-slate-600 transition hover:text-blue-700">
+            <a key={href} href={href} className="khmer-button text-sm font-bold text-slate-600 transition hover:text-blue-700">
               {t(labelKey)}
             </a>
           ))}
@@ -143,10 +143,12 @@ function HeroSection() {
   const reduced = useReducedMotion();
 
   return (
-    <section className="relative overflow-hidden bg-[radial-gradient(circle_at_82%_8%,rgba(251,191,36,0.18),transparent_28%),linear-gradient(180deg,#F8FAFC_0%,#EEF4FF_58%,#F8FAFC_100%)]">
-      <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 sm:py-16 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:py-20">
+    <section className="relative overflow-hidden bg-[linear-gradient(180deg,#F8FAFC_0%,#EFF6FF_52%,#F8FAFC_100%)]">
+      <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-blue-200 to-transparent" aria-hidden="true" />
+      <div className="absolute right-0 top-16 hidden h-96 w-1/2 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.12),transparent_62%)] lg:block" aria-hidden="true" />
+      <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 sm:py-16 lg:grid-cols-[0.92fr_1.08fr] lg:px-8 lg:py-18 xl:py-22">
         <motion.div {...getMotion(reduced)} className="relative z-10 max-w-3xl">
-          <div className="khmer-label inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-4 py-2 text-xs font-black text-blue-700 shadow-sm">
+          <div className="khmer-label inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/85 px-4 py-2 text-xs font-black text-blue-700 shadow-sm">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
             {t("landing.badge")}
           </div>
@@ -155,7 +157,7 @@ function HeroSection() {
           </h1>
           <p className="khmer-text mt-6 max-w-2xl text-lg leading-8 text-slate-600">{t("landing.subheadline")}</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link to="/register" className="khmer-button inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 active:scale-[0.98]">
+            <Link to="/register" className="khmer-button inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-black text-white shadow-sm shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 active:scale-[0.98]">
               {t("landing.heroPrimary")}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
@@ -163,10 +165,11 @@ function HeroSection() {
               {t("landing.heroSecondary")}
             </a>
           </div>
+          <p className="khmer-text mt-5 max-w-xl text-sm font-semibold leading-6 text-slate-500">{t("landing.heroProof")}</p>
           <div className="mt-8 flex flex-wrap gap-2">
             {t("landing.trustPoints", []).map((item) => (
-              <span key={item} className="khmer-text inline-flex min-h-9 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-sm font-black text-slate-700 shadow-sm">
-                <Check className="h-4 w-4 text-emerald-600" aria-hidden="true" />
+              <span key={item} className="khmer-text inline-flex min-h-8 items-center gap-2 rounded-full border border-slate-200/80 bg-white/75 px-3 text-xs font-bold text-slate-600">
+                <Check className="h-3.5 w-3.5 text-blue-600" aria-hidden="true" />
                 {item}
               </span>
             ))}
@@ -187,30 +190,88 @@ function HeroVisual() {
   };
 
   return (
-    <motion.div {...getMotion(reduced, 0.08)} className="relative mx-auto h-155 w-full max-w-160 sm:h-170 lg:h-180" aria-label={t("landing.heroVisualLabel")}>
-      <div className="absolute inset-x-8 top-12 h-80 rounded-full bg-blue-100/60 blur-3xl" aria-hidden="true" />
-      <div className="absolute right-4 top-7 h-28 w-28 rounded-full bg-amber-100" aria-hidden="true" />
-      <div className="absolute bottom-16 left-2 h-20 w-20 rounded-full bg-emerald-100" aria-hidden="true" />
+    <motion.div {...getMotion(reduced, 0.08)} className="relative mx-auto h-[640px] w-full max-w-[680px] sm:h-[700px] lg:h-[720px]" aria-hidden="true">
+      <div className="absolute inset-x-4 top-10 h-[540px] rounded-[3rem] border border-white/70 bg-white/55 shadow-xl shadow-blue-950/10" aria-hidden="true" />
+      <div className="absolute left-0 right-6 top-[4.5rem] z-10">
+        <AdminHeroDashboard />
+      </div>
 
-      <motion.div {...floatMotion} className="absolute left-1/2 top-8 z-20 w-67.5 -translate-x-1/2 sm:w-78.75">
+      <motion.div {...floatMotion} className="absolute bottom-20 right-2 z-30 w-[210px] sm:right-7 sm:w-[245px]">
         <PhoneMockup />
       </motion.div>
 
-      <FloatingCard className="left-0 top-20 z-30 max-w-47.5" icon={<QrCode className="h-5 w-5" />} title={t("landing.floating.qrTitle")} copy={t("landing.floating.qrCopy")} />
-      <FloatingCard className="right-0 top-28 z-30 max-w-52.5" icon={<ReceiptText className="h-5 w-5" />} title={t("landing.floating.orderTitle")} copy={t("landing.floating.orderCopy")} />
-      <FloatingCard className="bottom-28 left-2 z-30 max-w-52.5" icon={<CreditCard className="h-5 w-5" />} title={t("landing.floating.paymentTitle")} copy={t("landing.floating.paymentCopy")} />
-      <FloatingCard className="bottom-8 right-2 z-30 max-w-55" icon={<ChefHat className="h-5 w-5" />} title={t("landing.floating.kitchenTitle")} copy={t("landing.floating.kitchenCopy")} />
-
-      <div className="absolute bottom-0 left-1/2 z-10 w-[min(100%,560px)] -translate-x-1/2 rounded-4xl border border-white/80 bg-white/90 p-4 shadow-2xl shadow-slate-900/15 backdrop-blur">
-        <DashboardMiniPreview />
-      </div>
+      <FloatingCard className="left-0 top-5 z-30 max-w-[190px]" icon={<QrCode className="h-5 w-5" />} title={t("landing.floating.qrTitle")} copy={t("landing.floating.qrCopy")} />
+      <FloatingCard className="left-2 bottom-[8.5rem] z-30 max-w-[230px]" icon={<CreditCard className="h-5 w-5" />} title={t("landing.floating.opsTitle")} copy={t("landing.floating.opsCopy")} />
     </motion.div>
+  );
+}
+
+function AdminHeroDashboard() {
+  const { t } = useLanguage();
+
+  return (
+    <div className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/10 sm:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+        <div>
+          <p className="khmer-label text-xs font-black text-blue-600">{t("landing.dashboardTitle")}</p>
+          <p className="khmer-heading mt-1 text-lg font-black text-slate-950">MenuDIGI Operations</p>
+        </div>
+        <div className="khmer-text inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-black text-slate-700">
+          <QrCode className="h-4 w-4 text-blue-600" aria-hidden="true" />
+          {t("landing.tableBadge")}
+        </div>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-4">
+        {t("landing.dashboardMetrics", []).map(([label, value]) => (
+          <div key={label} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            <p className="khmer-label text-[11px] font-black text-slate-500">{label}</p>
+            <p className="khmer-text mt-1 text-sm font-black text-slate-950">{value}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3">
+          <p className="khmer-heading text-sm font-black text-slate-950">{t("landing.recentOrderTitle")}</p>
+          <div className="mt-3 grid gap-2">
+            {t("landing.recentOrderRows", []).slice(0, 3).map(([order, status]) => (
+              <div key={order} className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2 text-xs font-bold text-slate-700">
+                <span className="truncate">{order}</span>
+                <span className="khmer-text shrink-0 rounded-full bg-blue-50 px-2 py-1 text-[11px] font-black text-blue-700">{status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="grid gap-3">
+          <HeroStatusCard icon={<CreditCard className="h-4 w-4" />} title={t("landing.paymentStatusTitle")} rows={t("landing.paymentStatusRows", []).slice(0, 2)} />
+          <HeroStatusCard icon={<ChefHat className="h-4 w-4" />} title={t("landing.kitchenStatusTitle")} rows={t("landing.kitchenStatusRows", []).slice(0, 2)} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HeroStatusCard({ icon, title, rows }) {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-3">
+      <div className="flex items-center gap-2">
+        <div className="grid h-8 w-8 place-items-center rounded-2xl bg-blue-50 text-blue-700">{icon}</div>
+        <p className="khmer-heading text-sm font-black text-slate-950">{title}</p>
+      </div>
+      <div className="mt-2 grid gap-1.5">
+        {rows.map(([label, status]) => (
+          <div key={label} className="flex items-center justify-between gap-2 text-xs font-bold text-slate-600">
+            <span className="khmer-text truncate">{label}</span>
+            <span className="khmer-text shrink-0 text-slate-400">{status}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
 function FloatingCard({ icon, title, copy, className }) {
   return (
-    <div className={`absolute hidden rounded-3xl border border-white/80 bg-white/95 p-4 shadow-xl shadow-slate-900/10 backdrop-blur sm:block ${className}`}>
+    <div className={`absolute hidden rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-sm shadow-slate-900/10 sm:block ${className}`}>
       <div className="grid h-10 w-10 place-items-center rounded-2xl bg-blue-50 text-blue-700">{icon}</div>
       <p className="khmer-heading mt-3 text-sm font-black text-slate-950">{title}</p>
       <p className="khmer-text mt-1 text-xs font-semibold leading-5 text-slate-500">{copy}</p>
@@ -224,10 +285,10 @@ function PhoneMockup() {
   const categories = t("landing.categories", []);
 
   return (
-    <div className="rounded-[3rem] border border-slate-900 bg-slate-950 p-3 shadow-2xl shadow-slate-950/30">
+    <div className="rounded-[3rem] border border-slate-900 bg-slate-950 p-3 shadow-xl shadow-slate-950/25">
       <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-50">
         <div className="absolute left-1/2 top-3 z-10 h-6 w-24 -translate-x-1/2 rounded-full bg-slate-950" aria-hidden="true" />
-        <div className="bg-slate-950 px-5 pb-5 pt-12 text-white">
+        <div className="bg-[linear-gradient(145deg,#020617_0%,#0F2D58_58%,#1D4ED8_100%)] px-5 pb-5 pt-12 text-white">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="khmer-text text-xs font-bold text-blue-200">{t("landing.phoneRestaurant")}</p>
@@ -287,43 +348,22 @@ function FoodSwatch({ index }) {
   );
 }
 
-function DashboardMiniPreview() {
+function RestaurantWorkflowSection() {
   const { t } = useLanguage();
-
-  return (
-    <div className="grid gap-3">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="khmer-label text-xs font-black text-blue-600">{t("landing.dashboardTitle")}</p>
-          <p className="khmer-heading mt-1 text-lg font-black text-slate-950">MenuDIGI OS</p>
-        </div>
-        <LayoutDashboard className="h-6 w-6 text-blue-600" aria-hidden="true" />
-      </div>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {t("landing.dashboardMetrics", []).map(([label, value]) => (
-          <div key={label} className="rounded-2xl bg-slate-50 p-3">
-            <p className="khmer-label text-[11px] font-black text-slate-500">{label}</p>
-            <p className="khmer-text mt-1 text-sm font-black text-slate-950">{value}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function HowItWorksSection() {
-  const { t } = useLanguage();
+  const icons = [QrCode, ShoppingCart, ChefHat, CreditCard, BarChart3];
 
   return (
     <Section id="how-it-works" eyebrow={t("nav.howItWorks")} title={t("landing.sections.howTitle")} description={t("landing.sections.howCopy")}>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {t("landing.steps", []).map(([number, title, copy], index) => {
-          const Icon = [Package, QrCode, ScanLine, LayoutDashboard][index] || Check;
+      <div className="grid gap-3 md:grid-cols-5">
+        {t("landing.workflowSteps", []).map(([title, copy], index) => {
+          const Icon = icons[index] || Check;
           return (
-            <div key={number} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5">
+            <div key={title} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5">
               <div className="flex items-center justify-between gap-3">
-                <div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-950 text-sm font-black text-white">{number}</div>
-                <Icon className="h-5 w-5 text-blue-600" aria-hidden="true" />
+                <div className="grid h-11 w-11 place-items-center rounded-2xl bg-blue-50 text-blue-700">
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <span className="text-xs font-black text-slate-400">0{index + 1}</span>
               </div>
               <h3 className="khmer-heading mt-5 text-lg font-black text-slate-950">{title}</h3>
               <p className="khmer-text mt-2 text-sm leading-6 text-slate-600">{copy}</p>
@@ -346,12 +386,17 @@ function FeatureBentoSection() {
           const Icon = featureIcons[key] || Utensils;
           const span = index === 0 || index === 4 ? "lg:col-span-3" : "lg:col-span-2";
           return (
-            <article key={key} className={`premium-interactive rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5 ${span}`}>
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-blue-700">
-                <Icon className="h-5 w-5" aria-hidden="true" />
+            <article key={key} className={`premium-interactive overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm shadow-slate-900/5 ${span}`}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-blue-700">
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </div>
+                {index === 0 ? <MiniQrPreview /> : null}
               </div>
               <h3 className="khmer-heading mt-5 text-xl font-black text-slate-950">{title}</h3>
               <p className="khmer-text mt-2 text-sm leading-6 text-slate-600">{copy}</p>
+              {index === 4 ? <KitchenPreview /> : null}
+              {index === 2 ? <MobileOrderingStrip /> : null}
             </article>
           );
         })}
@@ -360,12 +405,47 @@ function FeatureBentoSection() {
   );
 }
 
+function MiniQrPreview() {
+  return (
+    <div className="grid h-[4.5rem] w-[4.5rem] grid-cols-3 gap-1 rounded-2xl border border-slate-200 bg-slate-50 p-2" aria-hidden="true">
+      {Array.from({ length: 9 }).map((_, index) => (
+        <span key={index} className={`rounded-sm ${[0, 2, 4, 6, 8].includes(index) ? "bg-slate-900" : "bg-blue-200"}`} />
+      ))}
+    </div>
+  );
+}
+
+function KitchenPreview() {
+  const { t } = useLanguage();
+  return (
+    <div className="mt-5 grid gap-2 rounded-3xl bg-slate-50 p-3">
+      {t("landing.kitchenStatusRows", []).slice(0, 3).map(([item, status]) => (
+        <div key={item} className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-2">
+          <span className="khmer-text text-sm font-bold text-slate-700">{item}</span>
+          <span className="khmer-text rounded-full bg-blue-50 px-2 py-1 text-xs font-black text-blue-700">{status}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MobileOrderingStrip() {
+  const { t } = useLanguage();
+  return (
+    <div className="mt-5 flex gap-2 overflow-hidden rounded-3xl bg-slate-50 p-3" aria-label={t("landing.customerFlowEyebrow")}>
+      {t("landing.categories", []).map((item, index) => (
+        <span key={item} className={`khmer-text shrink-0 rounded-full px-3 py-2 text-xs font-black ${index === 0 ? "bg-blue-600 text-white" : "bg-white text-slate-600"}`}>{item}</span>
+      ))}
+    </div>
+  );
+}
+
 function DashboardPreviewSection() {
   const { t } = useLanguage();
 
   return (
     <Section id="dashboard-preview" eyebrow={t("landing.dashboardEyebrow")} title={t("landing.sections.dashboardTitle")} description={t("landing.sections.dashboardCopy")}>
-      <div className="rounded-4xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/10 sm:p-6">
+      <div className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/10 sm:p-6">
         <div className="grid gap-4 lg:grid-cols-[1fr_0.75fr]">
           <div className="grid gap-4">
             <div className="grid gap-3 sm:grid-cols-4">
@@ -423,14 +503,19 @@ function CustomerFlowSection() {
 
   return (
     <Section id="customer-preview" eyebrow={t("landing.customerFlowEyebrow")} title={t("landing.sections.customerFlowTitle")} description={t("landing.sections.customerFlowCopy")}>
-      <div className="grid items-center gap-8 lg:grid-cols-[0.75fr_1.25fr]">
-        <div className="mx-auto w-full max-w-sm"><PhoneMockup /></div>
+      <div className="grid items-center gap-8 lg:grid-cols-[0.76fr_1.24fr]">
+        <div className="mx-auto w-full max-w-sm rounded-[2rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/10"><PhoneMockup /></div>
         <div className="grid gap-4 sm:grid-cols-2">
           {t("landing.customerFlow", []).map(([title, copy], index) => {
-            const Icon = [ScanLine, Package, CustomizeIcon, ReceiptText, UploadCloud, Clock3][index] || Check;
+            const Icon = [ScanLine, Smartphone, CustomizeIcon, ReceiptText, UploadCloud, Clock3][index] || Check;
             return (
               <div key={title} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                <Icon className="h-6 w-6 text-blue-600" aria-hidden="true" />
+                <div className="flex items-center gap-3">
+                  <div className="grid h-11 w-11 place-items-center rounded-2xl bg-blue-50 text-blue-700">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <span className="text-xs font-black text-slate-400">0{index + 1}</span>
+                </div>
                 <h3 className="khmer-heading mt-4 text-lg font-black text-slate-950">{title}</h3>
                 <p className="khmer-text mt-2 text-sm leading-6 text-slate-600">{copy}</p>
               </div>
@@ -540,7 +625,7 @@ function FinalCTASection() {
 
   return (
     <section className="px-4 py-16 lg:px-8">
-      <div className="mx-auto max-w-7xl overflow-hidden rounded-[2.25rem] bg-slate-950 p-8 text-white shadow-2xl shadow-slate-900/20 lg:p-12">
+      <div className="mx-auto max-w-7xl overflow-hidden rounded-[2.25rem] bg-[linear-gradient(135deg,#020617_0%,#0F2D58_54%,#1D4ED8_100%)] p-8 text-white shadow-2xl shadow-slate-900/20 lg:p-12">
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
             <p className="khmer-label text-sm font-black text-blue-300">MenuDIGI</p>
