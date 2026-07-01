@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\Category;
 use App\Models\DiningTable;
 use App\Models\NotificationLog;
+use App\Models\NotificationLogRead;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
@@ -180,7 +181,14 @@ class AccountNotificationsSettingsTest extends TestCase
             'event' => 'order.created',
             'status' => 'sent',
             'message_preview' => 'New order: ORD-1',
-            'metadata_json' => ['order_id' => 1, 'secret' => 'do-not-return'],
+            'metadata_json' => [
+                'order_id' => 1,
+                'order_number' => 'ORD-1',
+                'customer_phone' => '+85510000001',
+                'proof_image_path' => 'payments/private-proof.jpg',
+                'provider_response' => ['token' => 'secret-token'],
+                'secret' => 'do-not-return',
+            ],
             'sent_at' => now(),
         ]);
 
@@ -203,11 +211,15 @@ class AccountNotificationsSettingsTest extends TestCase
             ->assertJsonPath('data.notifications.0.id', $visible->id)
             ->assertJsonPath('data.notifications.0.category', 'orders')
             ->assertJsonPath('data.notifications.0.type', 'new_order')
+            ->assertJsonPath('data.notifications.0.data.order_number', 'ORD-1')
+            ->assertJsonMissingPath('data.notifications.0.data.customer_phone')
+            ->assertJsonMissingPath('data.notifications.0.data.proof_image_path')
+            ->assertJsonMissingPath('data.notifications.0.data.provider_response')
             ->assertJsonMissingPath('data.notifications.0.data.secret');
 
         $this->getJson('/api/notifications/unread-count')
             ->assertOk()
-            ->assertJsonPath('data.count', 1);
+            ->assertJsonPath('data.unread_count', 1);
 
         Sanctum::actingAs($otherOwner);
 
@@ -215,6 +227,30 @@ class AccountNotificationsSettingsTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'data.notifications')
             ->assertJsonPath('data.notifications.0.body', 'Other payment');
+    }
+
+    public function test_notification_unread_count_returns_zero_when_user_has_no_notifications(): void
+    {
+        [$owner] = $this->shopWithBranch();
+
+        Sanctum::actingAs($owner);
+
+        $this->getJson('/api/notifications/unread-count')
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.unread_count', 0);
+    }
+
+    public function test_notification_unread_count_returns_zero_when_user_has_no_shop(): void
+    {
+        $user = User::factory()->create(['role' => 'shop_owner']);
+
+        Sanctum::actingAs($user);
+
+        $this->getJson('/api/notifications/unread-count')
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.unread_count', 0);
     }
 
     public function test_mark_as_read_and_read_all_are_user_scoped(): void
@@ -254,19 +290,59 @@ class AccountNotificationsSettingsTest extends TestCase
             ->assertJsonPath('data.notification.id', $first->id);
 
         $this->getJson('/api/notifications/unread-count')
-            ->assertJsonPath('data.count', 1);
+            ->assertJsonPath('data.unread_count', 1);
 
         Sanctum::actingAs($manager);
 
         $this->getJson('/api/notifications/unread-count')
-            ->assertJsonPath('data.count', 2);
+            ->assertJsonPath('data.unread_count', 2);
 
         $this->postJson('/api/notifications/read-all')
             ->assertOk()
             ->assertJsonPath('data.updated', 2);
 
         $this->getJson('/api/notifications/unread-count')
-            ->assertJsonPath('data.count', 0);
+            ->assertJsonPath('data.unread_count', 0);
+    }
+
+    public function test_notification_unread_count_ignores_another_users_read_state(): void
+    {
+        [$owner, $shop] = $this->shopWithBranch();
+        $manager = User::factory()->create(['role' => 'manager']);
+        ShopStaff::create([
+            'shop_id' => $shop->id,
+            'branch_id' => null,
+            'user_id' => $manager->id,
+            'role' => 'manager',
+            'status' => 'active',
+        ]);
+
+        $notification = NotificationLog::create([
+            'shop_id' => $shop->id,
+            'branch_id' => null,
+            'channel' => 'telegram',
+            'event' => 'order.created',
+            'status' => 'sent',
+            'message_preview' => 'New order: ORD-2',
+        ]);
+
+        NotificationLogRead::create([
+            'notification_log_id' => $notification->id,
+            'user_id' => $manager->id,
+            'read_at' => now(),
+        ]);
+
+        Sanctum::actingAs($owner);
+
+        $this->getJson('/api/notifications/unread-count')
+            ->assertOk()
+            ->assertJsonPath('data.unread_count', 1);
+
+        Sanctum::actingAs($manager);
+
+        $this->getJson('/api/notifications/unread-count')
+            ->assertOk()
+            ->assertJsonPath('data.unread_count', 0);
     }
 
     public function test_settings_update_permission_is_preserved(): void

@@ -90,7 +90,7 @@ export function useNotifications(filters = {}, options = {}) {
 export function useNotificationUnreadCount(options = {}) {
   return useQuery({
     queryKey: queryKeys.notificationUnreadCount,
-    queryFn: ({ signal }) => getData("/notifications/unread-count", undefined, signal).then((data) => data.count),
+    queryFn: ({ signal }) => getData("/notifications/unread-count", undefined, signal).then((data) => data.unread_count ?? data.count ?? 0),
     staleTime: 15 * 1000,
     refetchInterval: 60 * 1000,
     ...options,

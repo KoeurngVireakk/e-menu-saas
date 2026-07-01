@@ -82,7 +82,7 @@ describe("Navbar", () => {
     localStorage.setItem("emenu_token", "token");
     apiMock.get.mockImplementation((url) => {
       if (url === "/notifications/unread-count") {
-        return Promise.resolve({ data: { data: { count: 3 } } });
+        return Promise.resolve({ data: { data: { unread_count: 3 } } });
       }
 
       return Promise.resolve({

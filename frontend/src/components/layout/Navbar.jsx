@@ -70,7 +70,10 @@ export default function Navbar({ onOpenCommand, onToggleNavigation }) {
 
     return api
       .get("/notifications/unread-count")
-      .then((response) => setUnreadCount(Number(response.data.data.count || 0)))
+      .then((response) => {
+        const data = response.data?.data || {};
+        setUnreadCount(Number(data.unread_count ?? data.count ?? 0));
+      })
       .catch(() => setUnreadCount(0));
   }, [hasToken]);
 

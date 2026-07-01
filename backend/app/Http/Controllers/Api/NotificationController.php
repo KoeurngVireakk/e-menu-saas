@@ -42,7 +42,7 @@ class NotificationController extends Controller
     public function unreadCount(Request $request)
     {
         return $this->success('Unread notification count loaded', [
-            'count' => $this->scopeUnread($this->baseQuery($request), $request->user()->id)->count(),
+            'unread_count' => $this->scopeUnread($this->baseQuery($request), $request->user()->id)->count(),
         ]);
     }
 
@@ -87,10 +87,18 @@ class NotificationController extends Controller
 
     private function baseQuery(Request $request): Builder
     {
+        $shopIds = $request->user()->accessibleShopIds();
+
+        if (empty($shopIds)) {
+            return NotificationLog::query()
+                ->with('shop:id,name')
+                ->whereRaw('1 = 0');
+        }
+
         return NotificationLog::query()
             ->with('shop:id,name')
-            ->where(function (Builder $query) use ($request) {
-                foreach ($request->user()->accessibleShopIds() as $shopId) {
+            ->where(function (Builder $query) use ($request, $shopIds) {
+                foreach ($shopIds as $shopId) {
                     $branchIds = $request->user()->accessibleBranchIdsForShop($shopId);
 
                     $query->orWhere(function (Builder $shopQuery) use ($shopId, $branchIds) {
@@ -98,7 +106,11 @@ class NotificationController extends Controller
 
                         if (is_array($branchIds)) {
                             $shopQuery->where(function (Builder $branchQuery) use ($branchIds) {
-                                $branchQuery->whereNull('branch_id')->orWhereIn('branch_id', $branchIds);
+                                $branchQuery->whereNull('branch_id');
+
+                                if (! empty($branchIds)) {
+                                    $branchQuery->orWhereIn('branch_id', $branchIds);
+                                }
                             });
                         }
                     });
