@@ -46,13 +46,18 @@ class ReviewController extends Controller
 
     public function publicIndex(Request $request, string $slug)
     {
-        $shop = Shop::where('slug', $slug)->where('status', 'active')->firstOrFail();
+        $shop = Shop::where('slug', $slug)->where('status', 'active')->first();
+
+        if (! $shop) {
+            return $this->error('Shop not found', null, 404);
+        }
+
         $query = $shop->reviews()->where('status', 'visible');
         $paginator = (clone $query)->latest()->paginate($this->paginationLimit($request, 10, 20));
 
         return $this->success('Reviews loaded', [
             'reviews' => collect($paginator->items())->map(fn (Review $review) => $this->publicPayload($review))->values()->all(),
-            'summary' => $this->summary($query),
+            'summary' => $this->publicSummary($query),
             'pagination' => $this->paginationMeta($paginator),
         ]);
     }
@@ -152,7 +157,6 @@ class ReviewController extends Controller
     private function publicPayload(Review $review): array
     {
         return [
-            'id' => $review->id,
             'rating' => $review->rating,
             'comment' => $review->comment,
             'status' => $review->status,
@@ -172,6 +176,17 @@ class ReviewController extends Controller
             'visible_count' => (clone $base)->where('status', 'visible')->count(),
             'hidden_count' => (clone $base)->where('status', 'hidden')->count(),
             'reviewed_count' => (clone $base)->where('status', 'reviewed')->count(),
+        ];
+    }
+
+    private function publicSummary($query): array
+    {
+        $base = clone $query;
+        $count = (clone $base)->count();
+
+        return [
+            'average_rating' => $count ? round((float) (clone $base)->avg('rating'), 1) : 0,
+            'total_reviews' => $count,
         ];
     }
 }

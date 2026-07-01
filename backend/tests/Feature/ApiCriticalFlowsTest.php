@@ -527,8 +527,9 @@ class ApiCriticalFlowsTest extends TestCase
 
         $this->getJson("/api/public/shops/{$catalog['shop']->slug}/reviews")
             ->assertOk()
-            ->assertJsonPath('data.summary.count', 1)
+            ->assertJsonPath('data.summary.total_reviews', 1)
             ->assertJsonPath('data.reviews.0.comment', 'Great service and fast kitchen.')
+            ->assertJsonMissingPath('data.reviews.0.id')
             ->assertJsonMissingPath('data.reviews.0.order');
 
         Sanctum::actingAs($catalog['owner']);
@@ -550,7 +551,7 @@ class ApiCriticalFlowsTest extends TestCase
 
         $this->getJson("/api/public/shops/{$catalog['shop']->slug}/reviews")
             ->assertOk()
-            ->assertJsonPath('data.summary.count', 0)
+            ->assertJsonPath('data.summary.total_reviews', 0)
             ->assertJsonCount(0, 'data.reviews');
     }
 

@@ -22,13 +22,13 @@ describe("LandingPage", () => {
   it("renders hero CTAs and navigation links", () => {
     renderLanding();
 
-    expect(screen.getByRole("heading", { level: 1, name: /Run your restaurant menu, orders, kitchen, and payments from one QR platform/i })).toBeInTheDocument();
-    expect(screen.getByText(/MenuDIGI helps restaurants create QR menus/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: /Run your restaurant from one QR ordering platform/i })).toBeInTheDocument();
+    expect(screen.getByText(/Create QR menus, receive table orders/i)).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /Get started/i }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("link", { name: /View QR menu demo/i }).length).toBeGreaterThan(0);
     expect(screen.getAllByRole("link", { name: /Sign in/i }).length).toBeGreaterThan(0);
     expect(screen.getByText("Restaurant QR operations platform")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: /Product preview showing a restaurant admin dashboard/i })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Product preview summary: clean restaurant admin dashboard/i })).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Features" })[0]).toHaveAttribute("href", "#features");
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
@@ -51,16 +51,18 @@ describe("LandingPage", () => {
     renderLanding();
 
     expect(screen.getAllByText("MenuDIGI Demo Cafe").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("MenuDIGI operations").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Table A01").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Iced Latte").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/3 items/).length).toBeGreaterThan(0);
     expect(screen.getAllByText("Recent order preview").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Proof and kitchen status").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Payment proof workflow").length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getAllByRole("button", { name: /Switch language to ខ្មែរ/ })[0]);
 
     expect(localStorage.getItem("menudigi_language")).toBe("km");
-    expect(screen.getByRole("heading", { level: 1, name: /គ្រប់គ្រងម៉ឺនុយ/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: /គ្រប់គ្រងភោជនីយដ្ឋាន/ })).toBeInTheDocument();
+    expect(screen.getAllByText("ប្រតិបត្តិការ MenuDIGI").length).toBeGreaterThan(0);
     expect(screen.getAllByText("តុ A01").length).toBeGreaterThan(0);
     expect(screen.getByText("លំហូរភោជនីយដ្ឋានពីម៉ឺនុយ QR ទៅរបាយការណ៍")).toBeInTheDocument();
   });
