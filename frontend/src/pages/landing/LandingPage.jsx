@@ -166,10 +166,10 @@ function HeroSection() {
             </a>
           </div>
           <p className="khmer-text mt-5 max-w-xl text-sm font-semibold leading-6 text-slate-500">{t("landing.heroProof")}</p>
-          <div className="mt-8 flex flex-wrap gap-2">
+          <div className="mt-7 flex flex-wrap gap-2">
             {t("landing.trustPoints", []).map((item) => (
-              <span key={item} className="khmer-text inline-flex min-h-8 items-center gap-2 rounded-full border border-slate-200/80 bg-white/75 px-3 text-xs font-bold text-slate-600">
-                <Check className="h-3.5 w-3.5 text-blue-600" aria-hidden="true" />
+              <span key={item} className="khmer-text inline-flex min-h-8 items-center gap-1.5 rounded-full border border-slate-200/70 bg-white/55 px-3 text-xs font-semibold text-slate-500">
+                <Check className="h-3 w-3 text-slate-400" aria-hidden="true" />
                 {item}
               </span>
             ))}
@@ -190,13 +190,13 @@ function HeroVisual() {
   };
 
   return (
-    <motion.div {...getMotion(reduced, 0.08)} className="relative mx-auto h-160 w-full max-w-170 sm:h-175 lg:h-180" aria-hidden="true">
-      <div className="absolute inset-x-4 top-10 h-135 rounded-[3rem] border border-white/70 bg-white/55 shadow-xl shadow-blue-950/10" aria-hidden="true" />
-      <div className="absolute left-0 right-6 top-18 z-10">
+    <motion.div {...getMotion(reduced, 0.08)} className="relative mx-auto h-128 w-full max-w-170 sm:h-165 lg:h-180" role="img" aria-label={t("landing.heroVisualLabel")}>
+      <div className="absolute inset-x-4 top-10 h-104 rounded-[3rem] border border-white/70 bg-white/50 shadow-lg shadow-blue-950/8 sm:h-135" aria-hidden="true" />
+      <div className="absolute left-0 right-3 top-10 z-10 sm:right-6 sm:top-18">
         <AdminHeroDashboard />
       </div>
 
-      <motion.div {...floatMotion} className="absolute bottom-20 right-2 z-30 w-52.5 sm:right-7 sm:w-61.25">
+      <motion.div {...floatMotion} className="absolute bottom-8 right-0 z-30 w-40 sm:bottom-20 sm:right-7 sm:w-61.25">
         <PhoneMockup />
       </motion.div>
 
@@ -210,27 +210,27 @@ function AdminHeroDashboard() {
   const { t } = useLanguage();
 
   return (
-    <div className="rounded-4xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/10 sm:p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+    <div className="rounded-4xl border border-slate-200 bg-white/95 p-3 shadow-lg shadow-slate-900/8 sm:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3 sm:pb-4">
         <div>
           <p className="khmer-label text-xs font-black text-blue-600">{t("landing.dashboardTitle")}</p>
-          <p className="khmer-heading mt-1 text-lg font-black text-slate-950">MenuDIGI Operations</p>
+          <p className="khmer-heading mt-1 text-base font-black text-slate-950 sm:text-lg">{t("landing.dashboardProductTitle")}</p>
         </div>
-        <div className="khmer-text inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-black text-slate-700">
+        <div className="khmer-text inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50/80 px-3 py-2 text-xs font-black text-slate-700">
           <QrCode className="h-4 w-4 text-blue-600" aria-hidden="true" />
           {t("landing.tableBadge")}
         </div>
       </div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:grid-cols-4 sm:gap-3">
         {t("landing.dashboardMetrics", []).map(([label, value]) => (
-          <div key={label} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+          <div key={label} className="rounded-2xl border border-slate-200 bg-slate-50/80 p-2.5 sm:p-3">
             <p className="khmer-label text-[11px] font-black text-slate-500">{label}</p>
             <p className="khmer-text mt-1 text-sm font-black text-slate-950">{value}</p>
           </div>
         ))}
       </div>
-      <div className="mt-4 grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3">
+      <div className="mt-4 hidden gap-3 sm:grid lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="rounded-3xl border border-slate-200 bg-slate-50/80 p-3">
           <p className="khmer-heading text-sm font-black text-slate-950">{t("landing.recentOrderTitle")}</p>
           <div className="mt-3 grid gap-2">
             {t("landing.recentOrderRows", []).slice(0, 3).map(([order, status]) => (
@@ -271,8 +271,8 @@ function HeroStatusCard({ icon, title, rows }) {
 
 function FloatingCard({ icon, title, copy, className }) {
   return (
-    <div className={`absolute hidden rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-sm shadow-slate-900/10 sm:block ${className}`}>
-      <div className="grid h-10 w-10 place-items-center rounded-2xl bg-blue-50 text-blue-700">{icon}</div>
+    <div className={`absolute hidden rounded-3xl border border-slate-200 bg-white/95 p-3.5 shadow-sm shadow-slate-900/8 sm:block ${className}`}>
+      <div className="grid h-9 w-9 place-items-center rounded-2xl bg-blue-50 text-blue-700">{icon}</div>
       <p className="khmer-heading mt-3 text-sm font-black text-slate-950">{title}</p>
       <p className="khmer-text mt-1 text-xs font-semibold leading-5 text-slate-500">{copy}</p>
     </div>
@@ -285,7 +285,7 @@ function PhoneMockup() {
   const categories = t("landing.categories", []);
 
   return (
-    <div className="rounded-[3rem] border border-slate-900 bg-slate-950 p-3 shadow-xl shadow-slate-950/25">
+    <div className="rounded-[3rem] border border-slate-800 bg-slate-950 p-2.5 shadow-lg shadow-slate-950/15 sm:p-3">
       <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-50">
         <div className="absolute left-1/2 top-3 z-10 h-6 w-24 -translate-x-1/2 rounded-full bg-slate-950" aria-hidden="true" />
         <div className="bg-[linear-gradient(145deg,#020617_0%,#0F2D58_58%,#1D4ED8_100%)] px-5 pb-5 pt-12 text-white">
