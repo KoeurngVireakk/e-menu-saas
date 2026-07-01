@@ -90,22 +90,22 @@ function LandingNavbar() {
   const close = () => setOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/85 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-slate-200/55 bg-white/82 backdrop-blur-xl">
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 lg:px-8" aria-label={t("landing.mainNavigation")}>
         <AppLogo to="/" size="md" ariaLabel={t("navbar.goDashboard", "Go to MenuDIGI home")} />
-        <div className="hidden items-center gap-5 rounded-full border border-slate-200/70 bg-white/55 px-4 py-1.5 lg:flex">
+        <div className="hidden items-center gap-1 rounded-full border border-slate-200/60 bg-slate-50/55 p-1 lg:flex">
           {navItems.map(([labelKey, href]) => (
-            <a key={href} href={href} className="khmer-button text-sm font-semibold text-slate-600 transition hover:text-blue-700">
+            <a key={href} href={href} className="khmer-button rounded-full px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-slate-950 hover:shadow-sm hover:shadow-slate-900/4">
               {t(labelKey)}
             </a>
           ))}
         </div>
         <div className="hidden items-center gap-3 lg:flex">
           <LanguageToggle />
-          <Link to="/login" className="khmer-button rounded-2xl px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-100">
+          <Link to="/login" className="khmer-button rounded-full px-4 py-2 text-sm font-bold text-slate-600 transition hover:bg-slate-100 hover:text-slate-950">
             {t("common.signIn")}
           </Link>
-          <Link to="/register" className="khmer-button inline-flex min-h-10 items-center gap-2 rounded-2xl bg-blue-600 px-4 text-sm font-black text-white shadow-sm shadow-blue-600/15 transition hover:-translate-y-0.5 hover:bg-blue-700">
+          <Link to="/register" className="khmer-button inline-flex min-h-10 items-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-black text-white shadow-sm shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-blue-700">
             {t("landing.heroPrimary")}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
@@ -114,23 +114,23 @@ function LandingNavbar() {
           type="button"
           aria-label={open ? t("landing.closeNavigation") : t("landing.openNavigation")}
           aria-expanded={open}
-          className="grid h-11 w-11 place-items-center rounded-2xl text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 lg:hidden"
+          className="grid h-11 w-11 place-items-center rounded-2xl border border-slate-200/70 bg-white/70 text-slate-700 shadow-sm shadow-slate-900/4 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 lg:hidden"
           onClick={() => setOpen((value) => !value)}
         >
           {open ? <X className="h-6 w-6" aria-hidden="true" /> : <MenuIcon className="h-6 w-6" aria-hidden="true" />}
         </button>
       </nav>
-      <motion.div initial={false} animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }} className="overflow-hidden border-t border-slate-100 bg-white lg:hidden">
+      <motion.div initial={false} animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }} className="overflow-hidden border-t border-slate-100 bg-white/95 lg:hidden">
         <div className="grid gap-2 px-4 py-4">
           <LanguageToggle className="mb-2 w-fit" />
           {navItems.map(([labelKey, href]) => (
-            <a key={href} href={href} className="khmer-button rounded-2xl px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-50" onClick={close}>
+            <a key={href} href={href} className="khmer-button rounded-2xl px-3 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950" onClick={close}>
               {t(labelKey)}
             </a>
           ))}
           <div className="mt-2 grid gap-2 border-t border-slate-100 pt-3">
-            <Link to="/login" className="khmer-button rounded-2xl px-3 py-2 text-sm font-black text-slate-700 hover:bg-slate-50" onClick={close}>{t("common.signIn")}</Link>
-            <Link to="/register" className="khmer-button rounded-2xl bg-blue-600 px-3 py-3 text-center text-sm font-black text-white hover:bg-blue-700" onClick={close}>{t("landing.heroPrimary")}</Link>
+            <Link to="/login" className="khmer-button rounded-2xl px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50" onClick={close}>{t("common.signIn")}</Link>
+            <Link to="/register" className="khmer-button rounded-2xl bg-slate-950 px-3 py-3 text-center text-sm font-black text-white hover:bg-blue-700" onClick={close}>{t("landing.heroPrimary")}</Link>
           </div>
         </div>
       </motion.div>
@@ -143,10 +143,10 @@ function HeroSection() {
   const reduced = useReducedMotion();
 
   return (
-    <section className="relative overflow-hidden bg-[linear-gradient(180deg,#F8FAFC_0%,#F3F7FC_56%,#F8FAFC_100%)]">
+    <section className="relative overflow-hidden bg-[linear-gradient(180deg,#F8FAFC_0%,#F2F6FB_52%,#F8FAFC_100%)]">
       <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-blue-200 to-transparent" aria-hidden="true" />
-      <div className="absolute right-0 top-20 hidden h-80 w-1/2 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.06),transparent_66%)] lg:block" aria-hidden="true" />
-      <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-10 sm:py-12 lg:grid-cols-[0.95fr_1.05fr] lg:px-8 lg:py-16 xl:py-18">
+      <div className="absolute right-0 top-24 hidden h-76 w-1/2 bg-[radial-gradient(circle_at_center,rgba(30,64,175,0.055),transparent_68%)] lg:block" aria-hidden="true" />
+      <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-10 sm:py-12 lg:grid-cols-[0.92fr_1.08fr] lg:px-8 lg:py-16 xl:py-18">
         <motion.div {...getMotion(reduced)} className="relative z-10 max-w-3xl">
           <div className="khmer-label inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white/70 px-3 py-1.5 text-xs font-black text-blue-700 shadow-sm shadow-blue-950/5">
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
@@ -167,8 +167,8 @@ function HeroSection() {
           </div>
           <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2">
             {t("landing.trustPoints", []).map((item) => (
-              <span key={item} className="khmer-text inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-                <Check className="h-3 w-3 text-blue-500/70" aria-hidden="true" />
+              <span key={item} className="khmer-text inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                <Check className="h-3 w-3 text-slate-400" aria-hidden="true" />
                 {item}
               </span>
             ))}
@@ -185,11 +185,16 @@ function HeroVisual() {
   const { t } = useLanguage();
 
   return (
-    <motion.div {...getMotion(reduced, 0.08)} className="relative mx-auto h-80 w-full max-w-140 overflow-hidden sm:h-98 lg:h-112" role="img" aria-label={t("landing.heroVisualLabel")}>
-      <div className="absolute inset-x-4 top-5 h-64 rounded-4xl border border-slate-200/50 bg-white/35 shadow-sm shadow-blue-950/4 sm:inset-x-8 sm:h-76 lg:h-86" aria-hidden="true" />
-      <div className="absolute inset-x-0 top-0 z-10" aria-hidden="true">
+    <motion.div {...getMotion(reduced, 0.08)} className="relative mx-auto h-80 w-full max-w-148 overflow-hidden sm:h-104 lg:h-118" role="img" aria-label={t("landing.heroVisualLabel")}>
+      <div className="absolute inset-x-3 top-6 h-62 rounded-4xl border border-slate-200/50 bg-white/30 shadow-sm shadow-blue-950/4 sm:inset-x-8 sm:h-84 lg:h-94" aria-hidden="true" />
+      <div className="absolute inset-x-0 top-3 z-10 sm:right-18 sm:top-4 lg:right-24">
         <AdminHeroDashboard />
       </div>
+      <div className="absolute bottom-3 right-0 z-20 w-30 sm:bottom-4 sm:w-42 lg:w-48">
+        <PhoneMockup compact />
+      </div>
+      <FloatingQrBadge />
+      <HeroFlowChip />
     </motion.div>
   );
 }
@@ -198,30 +203,27 @@ function AdminHeroDashboard() {
   const { t } = useLanguage();
 
   return (
-    <div className="rounded-4xl border border-slate-200/70 bg-white/90 p-3 shadow-sm shadow-slate-900/4 backdrop-blur sm:p-4 lg:p-5">
+    <div className="rounded-4xl border border-slate-200/70 bg-white/92 p-3 shadow-sm shadow-slate-900/4 backdrop-blur sm:p-4 lg:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100/80 pb-3">
         <div>
           <p className="khmer-label text-[11px] font-black text-blue-600">{t("landing.dashboardTitle")}</p>
-          <p className="khmer-heading mt-1 text-base font-black text-slate-950">{t("landing.dashboardProductTitle")}</p>
+          <p className="khmer-heading mt-1 text-base font-black text-slate-950 sm:text-lg">{t("landing.dashboardProductTitle")}</p>
         </div>
-        <div className="khmer-text inline-flex items-center gap-2 rounded-full border border-slate-200/70 bg-slate-50/60 px-2.5 py-1.5 text-xs font-black text-slate-600">
-          <QrCode className="h-4 w-4 text-blue-600" aria-hidden="true" />
-          {t("landing.tableBadge")}
-        </div>
+        <FlowDots />
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {t("landing.dashboardMetrics", []).map(([label, value]) => (
-          <div key={label} className="rounded-2xl border border-slate-200/70 bg-slate-50/55 p-2.5">
+          <div key={label} className="rounded-2xl border border-slate-200/60 bg-slate-50/50 p-2.5">
             <p className="khmer-label text-[10px] font-black text-slate-500">{label}</p>
             <p className="khmer-text mt-1 text-xs font-bold text-slate-900 sm:text-sm">{value}</p>
           </div>
         ))}
       </div>
       <div className="mt-3 hidden gap-3 sm:grid sm:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-3xl border border-slate-200/70 bg-slate-50/55 p-3">
+        <div className="rounded-3xl border border-slate-200/60 bg-slate-50/50 p-3">
           <p className="khmer-heading text-sm font-black text-slate-950">{t("landing.recentOrderTitle")}</p>
           {t("landing.recentOrderRows", []).slice(0, 1).map(([order, status]) => (
-            <div key={order} className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-white/90 px-3 py-2 text-xs font-bold text-slate-700">
+            <div key={order} className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-white/90 px-3 py-2 text-xs font-bold text-slate-700 shadow-sm shadow-slate-900/3">
               <span className="khmer-text min-w-0 truncate">{order}</span>
               <span className="khmer-text shrink-0 rounded-full bg-blue-50 px-2 py-1 text-[11px] font-bold text-blue-700">{status}</span>
             </div>
@@ -237,7 +239,7 @@ function HeroStatusCard() {
   const { t } = useLanguage();
 
   return (
-    <div className="rounded-3xl border border-slate-200/70 bg-white/85 p-3">
+    <div className="rounded-3xl border border-slate-200/60 bg-white/85 p-3">
       <div className="flex items-center gap-2">
         <div className="grid h-8 w-8 place-items-center rounded-2xl bg-blue-50 text-blue-700">
           <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
@@ -256,6 +258,51 @@ function HeroStatusCard() {
   );
 }
 
+function FlowDots() {
+  const { t } = useLanguage();
+
+  return (
+    <div className="hidden items-center gap-1.5 rounded-full border border-slate-200/60 bg-slate-50/65 px-2.5 py-1.5 sm:flex" aria-label={t("landing.heroFlowLabel")}>
+      {[QrCode, ShoppingCart, ChefHat, CreditCard, LayoutDashboard].map((Icon, index) => (
+        <span key={index} className={`grid h-6 w-6 place-items-center rounded-full ${index === 0 ? "bg-blue-600 text-white" : "bg-white text-slate-500"}`}>
+          <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function FloatingQrBadge() {
+  const { t } = useLanguage();
+
+  return (
+    <div className="absolute left-1 top-61 z-20 hidden max-w-40 rounded-3xl border border-slate-200/70 bg-white/92 p-3 shadow-sm shadow-slate-900/6 backdrop-blur sm:block lg:left-2 lg:top-72">
+      <div className="flex items-center gap-3">
+        <MiniQrPreview />
+        <div className="min-w-0">
+          <p className="khmer-heading text-xs font-black text-slate-950">{t("landing.floating.qrTitle")}</p>
+          <p className="khmer-text mt-1 text-[11px] leading-4 text-slate-500">{t("landing.tableBadge")}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HeroFlowChip() {
+  const { t } = useLanguage();
+
+  return (
+    <div className="absolute bottom-5 left-4 z-20 max-w-52 rounded-full border border-slate-200/70 bg-white/90 px-3 py-2 shadow-sm shadow-slate-900/6 backdrop-blur sm:bottom-8 sm:left-28">
+      <div className="flex items-center gap-2">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-700">
+          <Check className="h-4 w-4" aria-hidden="true" />
+        </span>
+        <p className="khmer-text text-xs font-bold leading-4 text-slate-700">{t("landing.floating.opsTitle")}</p>
+      </div>
+    </div>
+  );
+}
+
 function PhoneMockup({ compact = false }) {
   const { t } = useLanguage();
   const products = t("landing.products", []);
@@ -263,24 +310,24 @@ function PhoneMockup({ compact = false }) {
   const categories = t("landing.categories", []);
 
   return (
-    <div className={`rounded-[2.6rem] border border-slate-800 bg-slate-950 shadow-md shadow-slate-950/10 ${compact ? "p-2 sm:p-2.5" : "p-2.5 sm:rounded-[3rem] sm:p-3"}`}>
+    <div className={`rounded-[2.6rem] border border-slate-800 bg-slate-950 shadow-md shadow-slate-950/10 ${compact ? "p-1.5 sm:p-2" : "p-2.5 sm:rounded-[3rem] sm:p-3"}`}>
       <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-50">
         <div className="absolute left-1/2 top-3 z-10 h-6 w-24 -translate-x-1/2 rounded-full bg-slate-950" aria-hidden="true" />
-        <div className={`bg-[linear-gradient(145deg,#020617_0%,#0F2D58_58%,#1D4ED8_100%)] text-white ${compact ? "px-4 pb-4 pt-10 sm:px-5 sm:pb-5 sm:pt-12" : "px-5 pb-5 pt-12"}`}>
+        <div className={`bg-[linear-gradient(145deg,#020617_0%,#0F2D58_58%,#1D4ED8_100%)] text-white ${compact ? "px-3 pb-3 pt-10 sm:px-4 sm:pb-4 sm:pt-11" : "px-5 pb-5 pt-12"}`}>
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="khmer-text text-xs font-bold text-blue-200">{t("landing.phoneRestaurant")}</p>
-              <p className={`khmer-heading mt-1 font-black ${compact ? "text-lg sm:text-xl" : "text-xl"}`}>MenuDIGI</p>
+              <p className={`khmer-heading mt-1 font-black ${compact ? "text-base sm:text-lg" : "text-xl"}`}>MenuDIGI</p>
             </div>
-            <span className="khmer-text rounded-full bg-white/15 px-3 py-1 text-xs font-black">{t("landing.tableBadge")}</span>
+            <span className="khmer-text rounded-full bg-white/15 px-2.5 py-1 text-xs font-black">{t("landing.tableBadge")}</span>
           </div>
-          <div className={`${compact ? "mt-4" : "mt-5"} flex gap-2 overflow-hidden`}>
+          <div className={`${compact ? "mt-3" : "mt-5"} flex gap-2 overflow-hidden`}>
             {categories.map((item, index) => (
               <span key={item} className={`khmer-text shrink-0 rounded-full px-3 py-1.5 text-xs font-black ${index === 0 ? "bg-white text-slate-950" : "bg-white/15 text-white"}`}>{item}</span>
             ))}
           </div>
         </div>
-        <div className={`grid ${compact ? "gap-2.5 p-3 sm:gap-3 sm:p-4" : "gap-3 p-4"}`}>
+        <div className={`grid ${compact ? "gap-2 p-2.5 sm:gap-2.5 sm:p-3" : "gap-3 p-4"}`}>
           {visibleProducts.map((item, index) => (
             <div key={item} className={`grid border border-slate-100 bg-white shadow-sm shadow-slate-900/4 ${compact ? "grid-cols-[48px_1fr] gap-2 rounded-2xl p-2.5 sm:grid-cols-[58px_1fr] sm:gap-3 sm:rounded-3xl sm:p-3" : "grid-cols-[58px_1fr] gap-3 rounded-3xl p-3"}`}>
               <FoodSwatch index={index} compact={compact} />
@@ -297,6 +344,7 @@ function PhoneMockup({ compact = false }) {
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </div>
           </div>
+          {!compact ? <PhonePaymentPreview /> : null}
           <div className={`${compact ? "hidden sm:grid" : "grid"} gap-2 rounded-3xl border border-slate-200 bg-white p-3`}>
             <p className="khmer-label text-xs font-black text-slate-500">{t("common.orderStatus")}</p>
             <p className="khmer-text text-sm font-black text-slate-950">{t("landing.statusPreview")}</p>
@@ -305,6 +353,30 @@ function PhoneMockup({ compact = false }) {
               <span className="khmer-text rounded-full bg-blue-50 px-2 py-1 text-[11px] font-black text-blue-700">{t("landing.realtimeBadge")}</span>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PhonePaymentPreview() {
+  const { t } = useLanguage();
+
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <div className="rounded-3xl border border-slate-200 bg-white p-3">
+        <p className="khmer-label text-[11px] font-black text-slate-500">{t("landing.paymentBadge")}</p>
+        <div className="mt-2 rounded-2xl bg-slate-50 p-2">
+          <div className="h-2 w-16 rounded-full bg-slate-200" />
+          <div className="mt-2 h-2 w-10 rounded-full bg-blue-200" />
+        </div>
+      </div>
+      <div className="rounded-3xl border border-slate-200 bg-white p-3">
+        <p className="khmer-label text-[11px] font-black text-slate-500">{t("landing.statusPreviewLabel")}</p>
+        <div className="mt-3 flex items-center gap-1.5">
+          {[0, 1, 2].map((item) => (
+            <span key={item} className={`h-2 flex-1 rounded-full ${item < 2 ? "bg-blue-600" : "bg-slate-200"}`} />
+          ))}
         </div>
       </div>
     </div>
@@ -332,11 +404,11 @@ function RestaurantWorkflowSection() {
 
   return (
     <Section id="how-it-works" eyebrow={t("nav.howItWorks")} title={t("landing.sections.howTitle")} description={t("landing.sections.howCopy")}>
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid gap-3 md:grid-cols-5">
         {t("landing.workflowSteps", []).map(([title, copy], index) => {
           const Icon = icons[index] || Check;
           return (
-            <div key={title} className="rounded-3xl border border-slate-200/80 bg-white/80 p-4 shadow-sm shadow-slate-900/4 sm:p-5">
+            <div key={title} className="rounded-3xl border border-slate-200/70 bg-white/78 p-4 shadow-sm shadow-slate-900/3 sm:p-5">
               <div className="flex items-center justify-between gap-3">
                 <div className="grid h-10 w-10 place-items-center rounded-2xl bg-blue-50 text-blue-700">
                   <Icon className="h-5 w-5" aria-hidden="true" />
@@ -360,21 +432,23 @@ function FeatureBentoSection() {
   return (
     <Section id="features" eyebrow={t("nav.features")} title={t("landing.sections.featuresTitle")} description={t("landing.sections.featuresCopy")}>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        {features.map(([key, title, copy], index) => {
+        {features.map(([key, title, copy]) => {
           const Icon = featureIcons[key] || Utensils;
-          const span = index === 0 || index === 4 ? "md:col-span-2 lg:col-span-3" : "lg:col-span-2";
+          const span = ["qrMenuBuilder", "tableQrGenerator", "kitchenDisplay", "paymentProofReview"].includes(key) ? "md:col-span-2 lg:col-span-3" : "lg:col-span-2";
           return (
-            <article key={key} className={`premium-interactive overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white/85 p-5 shadow-sm shadow-slate-900/4 ${span}`}>
+            <article key={key} className={`premium-interactive overflow-hidden rounded-[1.75rem] border border-slate-200/70 bg-white/86 p-5 shadow-sm shadow-slate-900/3 ${span}`}>
               <div className="flex items-start justify-between gap-4">
                 <div className="grid h-11 w-11 place-items-center rounded-2xl bg-blue-50 text-blue-700">
                   <Icon className="h-5 w-5" aria-hidden="true" />
                 </div>
-                {index === 0 ? <MiniQrPreview /> : null}
+                {key === "qrMenuBuilder" ? <MiniQrPreview /> : null}
               </div>
               <h3 className="khmer-heading mt-5 text-lg font-black text-slate-950">{title}</h3>
               <p className="khmer-text mt-2 text-sm leading-6 text-slate-600">{copy}</p>
-              {index === 4 ? <KitchenPreview /> : null}
-              {index === 2 ? <MobileOrderingStrip /> : null}
+              {key === "qrMenuBuilder" ? <MenuBuilderPreview /> : null}
+              {key === "tableQrGenerator" ? <TableQrPreview /> : null}
+              {key === "kitchenDisplay" || key === "paymentProofReview" ? <KitchenPreview compact={key === "paymentProofReview"} /> : null}
+              {key === "customerMobileOrdering" ? <MobileOrderingStrip /> : null}
             </article>
           );
         })}
@@ -393,11 +467,44 @@ function MiniQrPreview() {
   );
 }
 
-function KitchenPreview() {
+function MenuBuilderPreview() {
+  return (
+    <div className="mt-5 grid gap-2 rounded-3xl border border-slate-200/60 bg-slate-50/65 p-3" aria-hidden="true">
+      <div className="flex gap-2">
+        <span className="h-8 flex-1 rounded-2xl bg-white" />
+        <span className="h-8 w-16 rounded-2xl bg-blue-100" />
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <span className="h-14 rounded-2xl bg-amber-100" />
+        <span className="h-14 rounded-2xl bg-emerald-100" />
+        <span className="h-14 rounded-2xl bg-slate-200" />
+      </div>
+    </div>
+  );
+}
+
+function TableQrPreview() {
   const { t } = useLanguage();
+
+  return (
+    <div className="mt-5 grid gap-3 rounded-3xl border border-slate-200/60 bg-slate-50/65 p-3 sm:grid-cols-[auto_1fr]" aria-hidden="true">
+      <MiniQrPreview />
+      <div className="grid content-center gap-2">
+        <span className="khmer-text text-xs font-black text-slate-500">{t("landing.tableBadge")}</span>
+        <div className="h-2 w-full rounded-full bg-white" />
+        <div className="h-2 w-2/3 rounded-full bg-blue-100" />
+      </div>
+    </div>
+  );
+}
+
+function KitchenPreview({ compact = false }) {
+  const { t } = useLanguage();
+  const rows = compact ? t("landing.paymentStatusRows", []) : t("landing.kitchenStatusRows", []);
+
   return (
     <div className="mt-5 grid gap-2 rounded-3xl border border-slate-200/70 bg-slate-50/70 p-3">
-      {t("landing.kitchenStatusRows", []).slice(0, 3).map(([item, status]) => (
+      {rows.slice(0, 3).map(([item, status]) => (
         <div key={item} className="flex items-center justify-between gap-3 rounded-2xl bg-white/90 px-3 py-2">
           <span className="khmer-text text-sm font-bold text-slate-700">{item}</span>
           <span className="khmer-text rounded-full bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700">{status}</span>
@@ -423,23 +530,32 @@ function DashboardPreviewSection() {
 
   return (
     <Section id="dashboard-preview" eyebrow={t("landing.dashboardEyebrow")} title={t("landing.sections.dashboardTitle")} description={t("landing.sections.dashboardCopy")}>
-      <div className="rounded-4xl border border-slate-200/80 bg-white/85 p-3 shadow-sm shadow-slate-900/4 sm:p-5">
+      <div className="overflow-hidden rounded-4xl border border-slate-200/70 bg-white/86 shadow-sm shadow-slate-900/4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/60 px-4 py-3 sm:px-5">
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-rose-300" />
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" />
+          </div>
+          <span className="khmer-text rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-500">{t("landing.dashboardTitle")}</span>
+        </div>
+        <div className="p-3 sm:p-5">
         <div className="grid gap-4 lg:grid-cols-[1fr_0.78fr]">
           <div className="grid gap-4">
             <div className="grid gap-3 sm:grid-cols-4">
               {t("landing.dashboardPreviewMetrics", []).map(([label, value, help]) => (
-                <div key={label} className="rounded-3xl border border-slate-200/80 bg-slate-50/70 p-4">
+                <div key={label} className="rounded-3xl border border-slate-200/70 bg-slate-50/60 p-4">
                   <p className="khmer-label text-xs font-black text-slate-500">{label}</p>
                   <p className="khmer-text mt-3 text-xl font-black text-slate-950">{value}</p>
                   <p className="khmer-text mt-1 text-xs font-semibold leading-5 text-slate-500">{help}</p>
                 </div>
               ))}
             </div>
-            <div className="rounded-3xl border border-slate-200/80 bg-slate-50/70 p-4">
+            <div className="rounded-3xl border border-slate-200/70 bg-slate-50/60 p-4">
               <p className="khmer-heading text-base font-black text-slate-950 sm:text-lg">{t("landing.recentOrderTitle")}</p>
               <div className="mt-3 grid gap-2">
                 {t("landing.recentOrderRows", []).map(([order, status]) => (
-                  <div key={order} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white/90 px-4 py-3 text-sm font-bold text-slate-700">
+                  <div key={order} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white/92 px-4 py-3 text-sm font-bold text-slate-700">
                     <span className="khmer-text min-w-0 truncate">{order}</span>
                     <span className="khmer-text shrink-0 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{status}</span>
                   </div>
@@ -451,6 +567,7 @@ function DashboardPreviewSection() {
             <PreviewPanel icon={<CreditCard className="h-5 w-5" />} title={t("landing.paymentStatusTitle")} rows={t("landing.paymentStatusRows", [])} />
             <PreviewPanel icon={<ChefHat className="h-5 w-5" />} title={t("landing.kitchenStatusTitle")} rows={t("landing.kitchenStatusRows", [])} />
           </div>
+        </div>
         </div>
       </div>
     </Section>
@@ -481,13 +598,13 @@ function CustomerFlowSection() {
 
   return (
     <Section id="customer-preview" eyebrow={t("landing.customerFlowEyebrow")} title={t("landing.sections.customerFlowTitle")} description={t("landing.sections.customerFlowCopy")}>
-      <div className="grid items-center gap-8 lg:grid-cols-[0.72fr_1.28fr]">
-        <div className="mx-auto w-full max-w-sm rounded-4xl border border-slate-200/80 bg-white/85 p-3 shadow-sm shadow-slate-900/4 sm:p-4"><PhoneMockup /></div>
+      <div className="grid items-center gap-8 lg:grid-cols-[0.78fr_1.22fr]">
+        <div className="mx-auto w-full max-w-sm rounded-4xl border border-slate-200/70 bg-white/88 p-3 shadow-sm shadow-slate-900/4 sm:p-4"><PhoneMockup /></div>
         <div className="grid gap-4 sm:grid-cols-2">
           {t("landing.customerFlow", []).map(([title, copy], index) => {
             const Icon = [ScanLine, Smartphone, CustomizeIcon, ReceiptText, UploadCloud, Clock3][index] || Check;
             return (
-              <div key={title} className="rounded-3xl border border-slate-200/80 bg-white/85 p-5 shadow-sm shadow-slate-900/4">
+              <div key={title} className="rounded-3xl border border-slate-200/70 bg-white/84 p-5 shadow-sm shadow-slate-900/3">
                 <div className="flex items-center gap-3">
                   <div className="grid h-10 w-10 place-items-center rounded-2xl bg-blue-50 text-blue-700">
                     <Icon className="h-5 w-5" aria-hidden="true" />
@@ -518,7 +635,7 @@ function PaymentReadySection() {
         {t("landing.paymentReadiness", []).map(([title, copy], index) => {
           const Icon = [ReceiptText, CreditCard, QrCode, ShieldCheck][index] || CreditCard;
           return (
-            <div key={title} className="rounded-3xl border border-slate-200/80 bg-white/85 p-5 shadow-sm shadow-slate-900/4">
+            <div key={title} className="rounded-3xl border border-slate-200/70 bg-white/84 p-5 shadow-sm shadow-slate-900/3">
               <div className="grid h-11 w-11 place-items-center rounded-2xl bg-amber-50 text-amber-700">
                 <Icon className="h-5 w-5" aria-hidden="true" />
               </div>
@@ -541,7 +658,7 @@ function AudienceSection() {
         {t("landing.audiences", []).map((item, index) => {
           const Icon = audienceIcons[index] || Store;
           return (
-            <div key={item} className="flex items-center gap-3 rounded-3xl border border-slate-200/80 bg-white/80 p-4 shadow-sm shadow-slate-900/4">
+            <div key={item} className="flex items-center gap-3 rounded-3xl border border-slate-200/70 bg-white/80 p-4 shadow-sm shadow-slate-900/3">
               <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-slate-100 text-slate-700">
                 <Icon className="h-5 w-5" aria-hidden="true" />
               </div>
@@ -561,9 +678,12 @@ function PricingSection() {
     <Section id="pricing" eyebrow={t("nav.pricing")} title={t("landing.sections.pricingTitle")} description={t("landing.sections.pricingCopy")}>
       <div className="grid gap-4 lg:grid-cols-3">
         {t("landing.pricingPlans", []).map(([name, copy, items], index) => (
-          <div key={name} className={`flex flex-col rounded-[1.75rem] border bg-white/85 p-6 shadow-sm shadow-slate-900/4 ${index === 1 ? "border-blue-300 ring-4 ring-blue-50/80" : "border-slate-200/80"}`}>
-            <p className="khmer-label text-sm font-black text-blue-600">{name}</p>
-            <h3 className="khmer-heading mt-3 text-xl font-black text-slate-950">{t("landing.pricingPlanLabel")}</h3>
+          <div key={name} className={`flex flex-col rounded-[1.75rem] border bg-white/86 p-6 shadow-sm shadow-slate-900/3 ${index === 1 ? "border-blue-300 ring-4 ring-blue-50/80" : "border-slate-200/70"}`}>
+            <div className="flex items-center justify-between gap-3">
+              <p className="khmer-label text-sm font-black text-blue-600">{name}</p>
+              {index === 1 ? <span className="khmer-text rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{t("landing.pricingPlanLabel")}</span> : null}
+            </div>
+            <h3 className="khmer-heading mt-3 text-xl font-black text-slate-950">{t("landing.pricingCardTitle")}</h3>
             <p className="khmer-text mt-2 text-sm leading-6 text-slate-600">{copy}</p>
             <ul className="khmer-text mt-6 grid gap-3 text-sm font-semibold leading-6 text-slate-700">
               {items.map((item) => <li key={item} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />{item}</li>)}
@@ -585,7 +705,7 @@ function FAQSection() {
     <Section id="faq" eyebrow={t("nav.faq")} title={t("landing.sections.faqTitle")}>
       <div className="grid gap-3">
         {t("landing.faqs", []).map(([question, answer]) => (
-          <details key={question} className="group rounded-3xl border border-slate-200/80 bg-white/85 p-5 shadow-sm shadow-slate-900/4">
+          <details key={question} className="group rounded-3xl border border-slate-200/70 bg-white/84 p-5 shadow-sm shadow-slate-900/3">
             <summary className="khmer-heading flex cursor-pointer list-none items-center justify-between gap-4 font-black leading-7 text-slate-950">
               <span>{question}</span>
               <ChevronDown className="h-5 w-5 shrink-0 text-slate-400 transition group-open:rotate-180" aria-hidden="true" />
@@ -603,10 +723,9 @@ function FinalCTASection() {
 
   return (
     <section className="px-4 py-14 sm:py-16 lg:px-8">
-      <div className="mx-auto max-w-7xl overflow-hidden rounded-4xl bg-[linear-gradient(135deg,#020617_0%,#0F2D58_58%,#1D4ED8_100%)] p-7 text-white shadow-xl shadow-slate-900/15 sm:p-8 lg:p-12">
+      <div className="mx-auto max-w-7xl overflow-hidden rounded-4xl bg-[linear-gradient(135deg,#020617_0%,#10233F_52%,#1D4ED8_100%)] p-7 text-white shadow-lg shadow-slate-900/12 sm:p-8 lg:p-12">
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
-            <p className="khmer-label text-xs font-black text-blue-300">MenuDIGI</p>
             <h2 className="khmer-heading mt-3 text-3xl font-black leading-tight sm:text-4xl">{t("landing.sections.finalTitle")}</h2>
             <p className="khmer-text mt-4 max-w-2xl text-sm leading-6 text-slate-300">{t("landing.sections.finalCopy")}</p>
           </div>
