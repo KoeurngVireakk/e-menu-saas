@@ -53,9 +53,12 @@ describe("LandingPage", () => {
     expect(screen.getAllByText("MenuDIGI Demo Cafe").length).toBeGreaterThan(0);
     expect(screen.getAllByText("MenuDIGI operations").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Table A01").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("QR table badge").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Payment proof + kitchen status").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Iced Latte").length).toBeGreaterThan(0);
     expect(screen.getAllByText(/3 items/).length).toBeGreaterThan(0);
     expect(screen.getAllByText("Recent order preview").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Live service flow").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Payment proof workflow").length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getAllByRole("button", { name: /Switch language to ខ្មែរ/ })[0]);
@@ -64,6 +67,7 @@ describe("LandingPage", () => {
     expect(screen.getByRole("heading", { level: 1, name: /គ្រប់គ្រងភោជនីយដ្ឋាន/ })).toBeInTheDocument();
     expect(screen.getAllByText("ប្រតិបត្តិការ MenuDIGI").length).toBeGreaterThan(0);
     expect(screen.getAllByText("តុ A01").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("ស្លាក QR តុ").length).toBeGreaterThan(0);
     expect(screen.getByText("លំហូរភោជនីយដ្ឋានពីម៉ឺនុយ QR ទៅរបាយការណ៍")).toBeInTheDocument();
   });
 });
