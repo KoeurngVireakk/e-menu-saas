@@ -149,7 +149,7 @@ function HeroSection() {
     <section className="relative overflow-hidden bg-[linear-gradient(180deg,#F8FAFC_0%,#F4F7FB_58%,#F8FAFC_100%)]">
       <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-blue-200 to-transparent" aria-hidden="true" />
       <div className="absolute right-0 top-24 hidden h-76 w-1/2 bg-[radial-gradient(circle_at_center,rgba(30,64,175,0.035),transparent_70%)] lg:block" aria-hidden="true" />
-      <div className="mx-auto grid max-w-7xl items-center gap-6 px-4 py-8 sm:gap-8 sm:py-14 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:py-18 xl:py-20">
+      <div className="mx-auto grid max-w-7xl items-center gap-6 px-4 py-8 sm:gap-8 sm:py-12 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:py-8 xl:py-16">
         <motion.div {...getMotion(reduced)} className="relative z-10 max-w-3xl">
           <div className="khmer-label inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white/70 px-3 py-1.5 text-xs font-black text-blue-700 shadow-sm shadow-blue-950/5">
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
@@ -188,8 +188,8 @@ function HeroVisual() {
   const { t } = useLanguage();
 
   return (
-    <motion.div {...getMotion(reduced, 0.08)} className="relative mx-auto h-72 w-full max-w-156 overflow-hidden sm:h-110 lg:h-126" role="img" aria-label={t("landing.heroVisualLabel")}>
-      <div className="absolute inset-x-3 top-6 h-54 rounded-4xl border border-slate-200/45 bg-white/28 shadow-sm shadow-blue-950/3 sm:inset-x-8 sm:top-7 sm:h-88 lg:h-102" aria-hidden="true" />
+    <motion.div {...getMotion(reduced, 0.08)} className="relative mx-auto h-72 w-full max-w-156 overflow-hidden sm:h-100 lg:h-112 xl:h-120" role="img" aria-label={t("landing.heroVisualLabel")}>
+      <div className="absolute inset-x-3 top-6 h-54 rounded-4xl border border-slate-200/45 bg-white/28 shadow-sm shadow-blue-950/3 sm:inset-x-8 sm:top-7 sm:h-80 lg:h-90 xl:h-98" aria-hidden="true" />
       <div className="absolute inset-x-0 top-2 z-10 sm:right-18 sm:top-5 lg:right-22">
         <AdminHeroDashboard />
       </div>
