@@ -307,7 +307,7 @@ function HeroTableStatusBadge() {
       <div className="grid grid-cols-[auto_1fr] gap-3">
         <span className="grid h-12 w-12 shrink-0 grid-cols-3 gap-0.5 rounded-2xl bg-slate-950 p-2" aria-hidden="true">
           {Array.from({ length: 9 }).map((_, index) => (
-            <span key={index} className={`rounded-xs ${[0, 2, 4, 6, 8].includes(index) ? "bg-white" : "bg-blue-300"}`} />
+            <span key={index} className={`rounded-[2px] ${[0, 2, 4, 6, 8].includes(index) ? "bg-white" : "bg-blue-300"}`} />
           ))}
         </span>
         <div className="min-w-0">
@@ -315,9 +315,9 @@ function HeroTableStatusBadge() {
             <p className="khmer-heading text-xs font-black text-slate-950">{t("landing.heroTableBadgeTitle")}</p>
             <span className="khmer-text rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-black text-blue-700">{t("landing.tableBadge")}</span>
           </div>
-          <div className="mt-1.5 flex items-center gap-1.5 text-[11px] font-bold text-slate-500">
+          <div className="mt-1.5 flex items-start gap-1.5 text-[11px] font-bold leading-4 text-slate-500">
             <Check className="h-3.5 w-3.5 shrink-0 text-emerald-600" aria-hidden="true" />
-            <span className="khmer-text truncate">{t("landing.heroStatusChip")}</span>
+            <span className="khmer-text">{t("landing.heroStatusChip")}</span>
           </div>
         </div>
       </div>
