@@ -100,8 +100,8 @@ class PublicMenuController extends Controller
             'id' => $shop->id,
             'name' => $shop->localizedName($locale),
             'slug' => $shop->slug,
-            'phone' => $shop->phone,
-            'email' => $shop->email,
+            'phone' => $shop->is_demo ? null : $shop->phone,
+            'email' => $shop->is_demo ? null : $shop->email,
             'address' => $shop->localizedAddress($locale),
             'description' => $shop->localizedDescription($locale),
             'logo_path' => $shop->logo_path,
@@ -109,6 +109,12 @@ class PublicMenuController extends Controller
             'primary_color' => $shop->primary_color,
             'secondary_color' => $shop->secondary_color,
             'currency_code' => $shop->currency_code,
+            'is_demo' => $shop->is_demo,
+            'demo' => $shop->is_demo ? [
+                'mode' => 'read_only',
+                'checkout_mode' => 'simulated',
+                'message' => 'Demo workspace: checkout is simulated and no payment or personal data is stored.',
+            ] : null,
         ];
     }
 

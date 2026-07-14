@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\LogSlowApiRequests;
+use App\Http\Middleware\ProtectDemoWorkspace;
 use Illuminate\Foundation\Application;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -25,6 +26,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ['prefix' => 'api', 'middleware' => ['api', 'auth:sanctum', 'throttle:admin-api']],
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+            'demo.readonly' => ProtectDemoWorkspace::class,
+        ]);
+
         $middleware->api(append: [
             SecurityHeaders::class,
             LogSlowApiRequests::class,

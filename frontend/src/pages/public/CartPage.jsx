@@ -69,7 +69,16 @@ export default function CartPage() {
       clearCart();
       setCart([]);
       await toastSuccess(`${t(locale, "orderSubmitted")} ${response.data.data.order.order_number}`);
-      navigate(`/order-success/${response.data.data.order.order_number}?locale=${locale}`);
+      if (response.data.data.simulated) {
+        navigate(`/demo/order-status?locale=${locale}`, {
+          state: {
+            order: response.data.data.order,
+            message: response.data.data.message,
+          },
+        });
+      } else {
+        navigate(`/order-success/${response.data.data.order.order_number}?locale=${locale}`);
+      }
     } catch (error) {
       alertError(error, t(locale, "reviewCart"));
     } finally {

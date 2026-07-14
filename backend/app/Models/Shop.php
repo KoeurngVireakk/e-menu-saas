@@ -26,7 +26,15 @@ class Shop extends Model
         'secondary_color',
         'currency_code',
         'status',
+        'is_demo',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_demo' => 'boolean',
+        ];
+    }
 
     public function owner(): BelongsTo
     {

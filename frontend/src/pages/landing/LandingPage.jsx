@@ -177,9 +177,9 @@ function HeroSection() {
               {t("landing.heroPrimary")}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
-            <a href="#customer-preview" className="khmer-button inline-flex min-h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white/75 px-5 text-sm font-black text-slate-800 shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5 hover:bg-white active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+            <Link to="/demo" className="khmer-button inline-flex min-h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white/75 px-5 text-sm font-black text-slate-800 shadow-sm shadow-slate-900/5 transition hover:-translate-y-0.5 hover:bg-white active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
               {t("landing.heroSecondary")}
-            </a>
+            </Link>
           </div>
           <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2">
             {t("landing.trustPoints", []).map((item) => (
@@ -997,7 +997,7 @@ function FinalCTASection() {
           </div>
           <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
             <Link to="/register" className="khmer-button inline-flex min-h-12 items-center justify-center rounded-2xl bg-blue-600 px-5 text-sm font-black text-white shadow-sm shadow-blue-950/20 hover:bg-blue-700">{t("landing.finalCreate")}</Link>
-            <a href="#customer-preview" className="khmer-button inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 px-5 text-sm font-black text-white hover:bg-white/10">{t("landing.viewDemo")}</a>
+            <Link to="/demo" className="khmer-button inline-flex min-h-12 items-center justify-center rounded-2xl border border-white/20 px-5 text-sm font-black text-white hover:bg-white/10">{t("landing.viewDemo")}</Link>
           </div>
         </div>
       </div>
@@ -1017,7 +1017,7 @@ function LandingFooter() {
           <LanguageToggle className="mt-4" />
         </div>
         <FooterGroup title={t("landing.footerProduct")} links={[[t("nav.howItWorks"), "#how-it-works"], [t("nav.features"), "#features"], [t("nav.pricing"), "#pricing"]]} />
-        <FooterGroup title={t("landing.footerSupport")} links={[[t("common.signIn"), "/login"], [t("common.getStarted"), "/register"], [t("nav.faq"), "#faq"]]} />
+        <FooterGroup title={t("landing.footerSupport")} links={[[t("landing.viewDemo"), "/demo"], [t("common.signIn"), "/login"], [t("common.getStarted"), "/register"], [t("nav.faq"), "#faq"]]} />
       </div>
       <p className="mx-auto mt-8 max-w-7xl text-xs font-semibold text-slate-500">© {new Date().getFullYear()} MenuDIGI.</p>
     </footer>

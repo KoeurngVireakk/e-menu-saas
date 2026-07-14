@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import { motion } from "framer-motion";
 import Navbar from "../components/layout/Navbar";
 import Sidebar from "../components/Sidebar";
+import DemoWorkspaceBanner from "../components/demo/DemoWorkspaceBanner";
 
 const AppCommandPalette = lazy(() => import("../components/command/AppCommandPalette"));
 
@@ -28,6 +29,7 @@ export default function AdminLayout() {
         <Sidebar mobileOpen={navigationOpen} onClose={() => setNavigationOpen(false)} />
         <div className="min-w-0">
           <Navbar onOpenCommand={() => setCommandOpen(true)} onToggleNavigation={() => setNavigationOpen((open) => !open)} />
+          <DemoWorkspaceBanner />
           <motion.main
             className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8"
             initial={{ opacity: 0, y: 10 }}

@@ -121,6 +121,12 @@ const dictionary = {
     takeaway: "Takeaway",
     total: "Total",
     tryAnotherSearch: "Try another category or search term.",
+    demoPreview: "Demo preview",
+    demoOrderTitle: "Your simulated order is ready",
+    demoOrderDescription: "The checkout flow completed without creating a real restaurant order.",
+    demoOrderSafety: "Nothing was charged or stored. No payment provider, notification channel, or restaurant operation was triggered.",
+    demoTryAgain: "Try another order",
+    demoChooseView: "Choose another demo view",
   },
   km: {
     addToCart: "បន្ថែមទៅកន្ត្រក",
@@ -237,6 +243,12 @@ const dictionary = {
     takeaway: "ខ្ចប់យកទៅ",
     total: "សរុប",
     tryAnotherSearch: "សូមសាកល្បងប្រភេទផ្សេង ឬពាក្យស្វែងរកផ្សេង។",
+    demoPreview: "ការមើលសាកល្បង",
+    demoOrderTitle: "ការកុម្ម៉ង់សាកល្បងរបស់អ្នករួចរាល់",
+    demoOrderDescription: "លំហូរបញ្ជាទិញបានបញ្ចប់ដោយមិនបង្កើតការកុម្ម៉ង់ពិតនៅហាង។",
+    demoOrderSafety: "មិនមានការគិតប្រាក់ ឬរក្សាទុកទិន្នន័យទេ។ សេវាទូទាត់ ការជូនដំណឹង និងប្រតិបត្តិការហាងមិនត្រូវបានដំណើរការទេ។",
+    demoTryAgain: "សាកល្បងកុម្ម៉ង់ម្តងទៀត",
+    demoChooseView: "ជ្រើសទិដ្ឋភាព demo ផ្សេង",
   },
 };
 

@@ -6,6 +6,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('menudigi:demo-reset')
+    ->dailyAt('03:00')
+    ->when(fn (): bool => (bool) config('demo.reset_enabled'))
+    ->withoutOverlapping();
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());

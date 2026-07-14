@@ -38,6 +38,15 @@ export function AuthProvider({ children }) {
     await toastSuccess(response.data.message || "Account created");
   };
 
+  const startDemo = async () => {
+    const response = await api.post("/demo/session");
+    localStorage.setItem("emenu_token", response.data.data.token);
+    setSessionUser(response.data.data.user);
+    queryClient.setQueryData(queryKeys.currentUser, response.data.data.user);
+    queryClient.setQueryData(queryKeys.shops, response.data.data.user.shops || []);
+    return response.data.data.demo;
+  };
+
   const logout = async () => {
     try {
       await api.post("/auth/logout");
@@ -50,7 +59,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const value = { user, loading, authenticated: Boolean(user), login, register, logout };
+  const value = { user, loading, authenticated: Boolean(user), login, register, startDemo, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

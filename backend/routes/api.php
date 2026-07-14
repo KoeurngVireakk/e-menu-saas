@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CashLedgerController;
 use App\Http\Controllers\Api\DiningTableController;
+use App\Http\Controllers\Api\DemoWorkspaceController;
 use App\Http\Controllers\Api\ExpenseCategoryController;
 use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\HealthController;
@@ -34,6 +35,9 @@ Route::get('/health', [HealthController::class, 'public']);
 Route::get('/health/live', [HealthController::class, 'live']);
 Route::get('/health/ready', [HealthController::class, 'ready']);
 
+Route::get('/demo/workspace', [DemoWorkspaceController::class, 'show'])->middleware('throttle:public-menu');
+Route::post('/demo/session', [DemoWorkspaceController::class, 'session'])->middleware('throttle:demo-session');
+
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:auth');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:auth');
@@ -56,7 +60,7 @@ Route::prefix('public')->group(function () {
 
 Route::post('/webhooks/bakong-khqr', BakongKhqrWebhookController::class)->middleware('throttle:webhooks');
 
-Route::middleware(['auth:sanctum', 'throttle:admin-api'])->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:admin-api', 'demo.readonly'])->group(function () {
     Route::get('/account/profile', [AccountController::class, 'profile']);
     Route::put('/account/profile', [AccountController::class, 'updateProfile']);
     Route::put('/account/password', [AccountController::class, 'updatePassword']);

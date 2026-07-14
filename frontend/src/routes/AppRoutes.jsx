@@ -9,6 +9,8 @@ import ProtectedRoute from "./ProtectedRoute";
 const Login = lazy(() => import("../pages/auth/Login"));
 const Register = lazy(() => import("../pages/auth/Register"));
 const LandingPage = lazy(() => import("../pages/landing/LandingPage"));
+const DemoEntryPage = lazy(() => import("../pages/demo/DemoEntryPage"));
+const DemoOrderStatusPage = lazy(() => import("../pages/demo/DemoOrderStatusPage"));
 const Dashboard = lazy(() => import("../pages/admin/Dashboard"));
 const ShopsPage = lazy(() => import("../pages/admin/shops/ShopsPage"));
 const BranchesPage = lazy(() => import("../pages/admin/branches/BranchesPage"));
@@ -54,6 +56,7 @@ export default function AppRoutes() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/demo" element={<DemoEntryPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
@@ -86,6 +89,7 @@ export default function AppRoutes() {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/order-success/:orderNumber" element={<OrderSuccess />} />
           <Route path="/payment/:orderNumber" element={<PaymentPage />} />
+          <Route path="/demo/order-status" element={<DemoOrderStatusPage />} />
         </Route>
       </Routes>
     </Suspense>

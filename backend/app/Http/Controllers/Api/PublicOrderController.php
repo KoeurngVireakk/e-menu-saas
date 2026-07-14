@@ -68,38 +68,18 @@ class PublicOrderController extends Controller
             ]);
         }
 
-        $order = DB::transaction(function () use ($validated, $shop, $branch, $table) {
-            $subtotal = 0;
-            $items = [];
+        [$items, $subtotal] = $this->buildItems($validated['items'], $shop, $branch);
+        $totals = $this->billing->totals($subtotal, $shop);
 
-            foreach ($validated['items'] as $index => $item) {
-                $product = Product::whereKey($item['product_id'])
-                    ->where('shop_id', $shop->id)
-                    ->where(fn ($query) => $query->whereNull('branch_id')->orWhere('branch_id', $branch->id))
-                    ->where('status', 'active')
-                    ->where('is_available', true)
-                    ->with('options.values')
-                    ->firstOrFail();
+        if ($shop->is_demo) {
+            return $this->success('Demo order simulated successfully', [
+                'order' => $this->demoOrderPayload($shop, $branch, $table, $items, $totals, $validated['order_type']),
+                'simulated' => true,
+                'message' => 'This is a safe preview. No order, payment, notification, or personal data was stored.',
+            ], 201);
+        }
 
-                [$selectedOptions, $optionTotal] = $this->selectedOptions($product, $item['selected_options'] ?? [], $index);
-                $unitPrice = (float) ($product->discount_price ?? $product->price);
-                $lineUnitPrice = $unitPrice + $optionTotal;
-                $total = $lineUnitPrice * $item['quantity'];
-                $subtotal += $total;
-
-                $items[] = [
-                    'product_id' => $product->id,
-                    'product_name' => $product->name,
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $product->price,
-                    'discount_price' => $product->discount_price,
-                    'total_price' => $total,
-                    'note' => $item['note'] ?? null,
-                    'selected_options_json' => $selectedOptions,
-                ];
-            }
-
-            $totals = $this->billing->totals($subtotal, $shop);
+        $order = DB::transaction(function () use ($validated, $shop, $branch, $table, $items, $totals) {
 
             $order = Order::create([
                 'order_number' => $this->orderNumber(),
@@ -137,6 +117,17 @@ class PublicOrderController extends Controller
     public function payment(Request $request, string $orderNumber)
     {
         $order = Order::where('order_number', $orderNumber)->with(['shop', 'invoice'])->firstOrFail();
+
+        if ($order->shop->is_demo) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Payments are disabled in the demo workspace. No payment details were submitted.',
+                'code' => 'DEMO_PAYMENT_DISABLED',
+                'demo_mode' => true,
+                'errors' => (object) [],
+            ], 409);
+        }
+
         $validated = $request->validate([
             'payment_method' => ['required', Rule::in(['cash', 'khqr_manual', 'bakong_khqr'])],
             'transaction_reference' => ['nullable', 'string', 'max:255'],
@@ -292,6 +283,80 @@ class PublicOrderController extends Controller
         } while (Order::where('order_number', $number)->exists());
 
         return $number;
+    }
+
+    private function buildItems(array $requestedItems, Shop $shop, Branch $branch): array
+    {
+        $subtotal = 0;
+        $items = [];
+
+        foreach ($requestedItems as $index => $item) {
+            $product = Product::whereKey($item['product_id'])
+                ->where('shop_id', $shop->id)
+                ->where(fn ($query) => $query->whereNull('branch_id')->orWhere('branch_id', $branch->id))
+                ->where('status', 'active')
+                ->where('is_available', true)
+                ->with('options.values')
+                ->firstOrFail();
+
+            [$selectedOptions, $optionTotal] = $this->selectedOptions($product, $item['selected_options'] ?? [], $index);
+            $unitPrice = (float) ($product->discount_price ?? $product->price);
+            $total = ($unitPrice + $optionTotal) * $item['quantity'];
+            $subtotal += $total;
+
+            $items[] = [
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'quantity' => $item['quantity'],
+                'unit_price' => $product->price,
+                'discount_price' => $product->discount_price,
+                'total_price' => $total,
+                'note' => $item['note'] ?? null,
+                'selected_options_json' => $selectedOptions,
+            ];
+        }
+
+        return [$items, $subtotal];
+    }
+
+    private function demoOrderPayload(Shop $shop, Branch $branch, $table, array $items, array $totals, string $orderType): array
+    {
+        return [
+            'id' => null,
+            'order_number' => 'DEMO-PREVIEW',
+            'order_type' => $orderType,
+            ...$totals,
+            'payment_status' => 'simulated',
+            'order_status' => 'preview',
+            'is_demo' => true,
+            'shop' => [
+                'id' => $shop->id,
+                'name' => $shop->name,
+                'slug' => $shop->slug,
+                'currency_code' => $shop->currency_code,
+                'logo_path' => $shop->logo_path,
+            ],
+            'branch' => [
+                'id' => $branch->id,
+                'name' => $branch->name,
+            ],
+            'dining_table' => $table ? [
+                'id' => $table->id,
+                'table_name' => $table->table_name,
+                'table_code' => $table->table_code,
+            ] : null,
+            'items' => collect($items)->map(fn (array $item): array => [
+                'id' => null,
+                'product_name' => $item['product_name'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['unit_price'],
+                'discount_price' => $item['discount_price'],
+                'total_price' => $item['total_price'],
+                'selected_options' => $item['selected_options_json'],
+            ])->all(),
+            'payment' => null,
+            'review' => null,
+        ];
     }
 
     private function selectedOptions(Product $product, array $selected, int $itemIndex): array
