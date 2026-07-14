@@ -15,6 +15,11 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -23,6 +28,8 @@ body {
   font-family:
     Inter, "Noto Sans Khmer", "Khmer OS Battambang", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
   line-height: 1.5;
 }
 
@@ -61,7 +68,8 @@ html[lang="km"] h6,
 .khmer-heading {
   line-height: 1.4;
   letter-spacing: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 html[lang="km"] button,
@@ -71,7 +79,8 @@ html[lang="km"] [role="button"],
 .khmer-button {
   line-height: 1.4;
   letter-spacing: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 html[lang="km"] label,
@@ -81,7 +90,8 @@ html[lang="km"] .khmer-label,
 .khmer-label {
   line-height: 1.55;
   letter-spacing: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 html[lang="km"] p,
@@ -103,15 +113,18 @@ html[lang="km"] textarea,
 .khmer-text {
   line-height: 1.75;
   letter-spacing: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 html[lang="km"] .uppercase,
 html[lang="km"] .tracking-wide,
+html[lang="km"] [class*="tracking-"],
 :lang(km).uppercase,
 :lang(km).tracking-wide,
 :lang(km) .uppercase,
-:lang(km) .tracking-wide {
+:lang(km) .tracking-wide,
+:lang(km) [class*="tracking-"] {
   text-transform: none;
   letter-spacing: 0;
 }
@@ -149,6 +162,10 @@ button:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *,
   *::before,
   *::after {

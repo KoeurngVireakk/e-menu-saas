@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowRight,
   BarChart3,
@@ -90,12 +91,12 @@ function LandingNavbar() {
   const close = () => setOpen(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/45 bg-white/88 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-slate-200/55 bg-white/92 backdrop-blur-xl">
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 lg:px-8" aria-label={t("landing.mainNavigation")}>
         <AppLogo to="/" size="md" ariaLabel={t("navbar.goDashboard", "Go to MenuDIGI home")} />
-        <div className="hidden items-center gap-0.5 rounded-full bg-slate-950/[0.035] p-1 lg:flex">
+        <div className="hidden items-center gap-1 lg:flex">
           {navItems.map(([labelKey, href]) => (
-            <a key={href} href={href} className="khmer-button rounded-full px-3.5 py-1.5 text-sm font-semibold text-slate-600 transition hover:bg-white hover:text-slate-950 hover:shadow-sm hover:shadow-slate-900/4 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+            <a key={href} href={href} className="khmer-button rounded-full px-3.5 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-100/80 hover:text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
               {t(labelKey)}
             </a>
           ))}
@@ -114,29 +115,41 @@ function LandingNavbar() {
           type="button"
           aria-label={open ? t("landing.closeNavigation") : t("landing.openNavigation")}
           aria-expanded={open}
-          className="grid h-11 w-11 place-items-center rounded-2xl border border-slate-200/70 bg-white/70 text-slate-700 shadow-sm shadow-slate-900/4 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 lg:hidden"
+          aria-controls="landing-mobile-navigation"
+          className="grid h-11 w-11 place-items-center rounded-2xl border border-slate-200/70 bg-white text-slate-700 shadow-sm shadow-slate-900/4 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 lg:hidden"
           onClick={() => setOpen((value) => !value)}
         >
           {open ? <X className="h-6 w-6" aria-hidden="true" /> : <MenuIcon className="h-6 w-6" aria-hidden="true" />}
         </button>
       </nav>
-      <motion.div initial={false} animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }} className="overflow-hidden border-t border-slate-100 bg-white/96 lg:hidden">
-        <div className="grid gap-1.5 px-4 py-4 shadow-sm shadow-slate-900/4">
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <span className="khmer-label text-xs font-black text-slate-400">{t("landing.mainNavigation")}</span>
-            <LanguageToggle />
-          </div>
-          {navItems.map(([labelKey, href]) => (
-            <a key={href} href={href} className="khmer-button rounded-2xl px-3 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950" onClick={close}>
-              {t(labelKey)}
-            </a>
-          ))}
-          <div className="mt-2 grid gap-2 border-t border-slate-100 pt-3">
-            <Link to="/login" className="khmer-button rounded-2xl px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50" onClick={close}>{t("common.signIn")}</Link>
-            <Link to="/register" className="khmer-button rounded-2xl bg-blue-600 px-3 py-3 text-center text-sm font-black text-white transition hover:bg-blue-700" onClick={close}>{t("landing.heroPrimary")}</Link>
-          </div>
-        </div>
-      </motion.div>
+      <AnimatePresence initial={false}>
+        {open ? (
+          <motion.div
+            id="landing-mobile-navigation"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="overflow-hidden border-t border-slate-100 bg-white/98 lg:hidden"
+          >
+            <div className="mx-3 my-3 grid gap-1 rounded-3xl border border-slate-200/70 bg-slate-50/75 p-3 shadow-sm shadow-slate-900/4 sm:mx-4">
+              <div className="mb-1 flex items-center justify-between gap-3 px-2 py-1">
+                <span className="khmer-label text-xs font-black text-slate-400">{t("landing.mainNavigation")}</span>
+                <LanguageToggle />
+              </div>
+              {navItems.map(([labelKey, href]) => (
+                <a key={href} href={href} className="khmer-button rounded-2xl px-3 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-white hover:text-slate-950" onClick={close}>
+                  {t(labelKey)}
+                </a>
+              ))}
+              <div className="mt-2 grid gap-2 border-t border-slate-200/70 pt-3 sm:grid-cols-2">
+                <Link to="/login" className="khmer-button rounded-2xl bg-white px-3 py-3 text-center text-sm font-bold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50" onClick={close}>{t("common.signIn")}</Link>
+                <Link to="/register" className="khmer-button rounded-2xl bg-blue-600 px-3 py-3 text-center text-sm font-black text-white transition hover:bg-blue-700" onClick={close}>{t("landing.heroPrimary")}</Link>
+              </div>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </header>
   );
 }
@@ -149,7 +162,7 @@ function HeroSection() {
     <section className="relative overflow-hidden bg-[linear-gradient(180deg,#F8FAFC_0%,#F4F7FB_58%,#F8FAFC_100%)]">
       <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-blue-200 to-transparent" aria-hidden="true" />
       <div className="absolute right-0 top-24 hidden h-76 w-1/2 bg-[radial-gradient(circle_at_center,rgba(30,64,175,0.035),transparent_70%)] lg:block" aria-hidden="true" />
-      <div className="mx-auto grid max-w-7xl items-center gap-6 px-4 py-8 sm:gap-8 sm:py-12 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:py-8 xl:py-16">
+      <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-9 sm:gap-10 sm:py-14 lg:grid-cols-[0.88fr_1.12fr] lg:px-8 lg:py-12 xl:py-18">
         <motion.div {...getMotion(reduced)} className="relative z-10 max-w-3xl">
           <div className="khmer-label inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white/70 px-3 py-1.5 text-xs font-black text-blue-700 shadow-sm shadow-blue-950/5">
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
@@ -168,9 +181,9 @@ function HeroSection() {
               {t("landing.heroSecondary")}
             </a>
           </div>
-          <div className="mt-6 hidden flex-wrap gap-x-4 gap-y-2 sm:flex">
+          <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2">
             {t("landing.trustPoints", []).map((item) => (
-              <span key={item} className="khmer-text inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
+              <span key={item} className="khmer-text inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 sm:text-xs">
                 <Check className="h-3 w-3 text-slate-400" aria-hidden="true" />
                 {item}
               </span>
@@ -188,16 +201,52 @@ function HeroVisual() {
   const { t } = useLanguage();
 
   return (
-    <motion.div {...getMotion(reduced, 0.08)} className="relative mx-auto h-72 w-full max-w-156 overflow-hidden sm:h-100 lg:h-112 xl:h-120" role="img" aria-label={t("landing.heroVisualLabel")}>
-      <div className="absolute inset-x-3 top-6 h-54 rounded-4xl border border-slate-200/45 bg-white/28 shadow-sm shadow-blue-950/3 sm:inset-x-8 sm:top-7 sm:h-80 lg:h-90 xl:h-98" aria-hidden="true" />
-      <div className="absolute inset-x-0 top-2 z-10 sm:right-18 sm:top-5 lg:right-22">
+    <motion.div {...getMotion(reduced, 0.08)} className="relative mx-auto h-80 w-full max-w-156 overflow-hidden sm:h-104 lg:h-112 xl:h-120" role="img" aria-label={t("landing.heroVisualLabel")}>
+      <div className="absolute inset-x-2 top-5 h-60 rounded-4xl border border-slate-200/45 bg-white/36 shadow-sm shadow-blue-950/3 sm:inset-x-8 sm:top-7 sm:h-82 lg:h-90 xl:h-98" aria-hidden="true" />
+      <div className="absolute inset-x-0 top-2 z-10 sm:right-15 sm:top-5 lg:right-18">
         <AdminHeroDashboard />
       </div>
-      <div className="absolute bottom-4 right-0 z-20 w-28 sm:bottom-5 sm:w-44 lg:w-50">
-        <PhoneMockup compact />
+      <div className="absolute bottom-2 right-0 z-20 w-25 sm:bottom-4 sm:w-38 lg:w-42">
+        <HeroPhonePreview />
       </div>
       <HeroTableStatusBadge />
     </motion.div>
+  );
+}
+
+function HeroPhonePreview() {
+  const { t } = useLanguage();
+  const products = t("landing.products", []).slice(0, 2);
+
+  return (
+    <div className="rounded-[1.8rem] border border-slate-800 bg-slate-950 p-1.5 shadow-md shadow-slate-950/10 sm:rounded-[2.2rem] sm:p-2">
+      <div className="overflow-hidden rounded-3xl bg-slate-50 sm:rounded-[1.85rem]">
+        <div className="bg-[linear-gradient(145deg,#07152A_0%,#123A70_62%,#2563EB_100%)] px-2.5 pb-2.5 pt-4 text-white sm:px-3 sm:pb-3 sm:pt-6">
+          <div className="flex items-center justify-between gap-2">
+            <p className="khmer-heading min-w-0 truncate text-[9px] font-black sm:text-[11px]">{t("landing.phoneRestaurant")}</p>
+            <QrCode className="h-3 w-3 shrink-0 text-blue-200 sm:h-3.5 sm:w-3.5" aria-hidden="true" />
+          </div>
+          <p className="khmer-text mt-1 text-[8px] font-semibold text-blue-100 sm:text-[10px]">{t("landing.tableBadge")}</p>
+        </div>
+        <div className="grid gap-1.5 p-1.5 sm:gap-2 sm:p-2.5">
+          {products.map((item, index) => (
+            <div key={item} className="flex items-center gap-1.5 rounded-xl bg-white p-1.5 ring-1 ring-slate-100 sm:gap-2 sm:rounded-2xl sm:p-2">
+              <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-lg sm:h-8 sm:w-8 sm:rounded-xl ${index === 0 ? "bg-amber-100 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
+                <Utensils className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <p className="khmer-text truncate text-[8px] font-black text-slate-900 sm:text-[10px]">{item}</p>
+                <p className="mt-0.5 text-[8px] font-bold text-slate-400 sm:text-[9px]">{index === 0 ? "$3.50" : "$6.00"}</p>
+              </div>
+            </div>
+          ))}
+          <div className="flex items-center justify-between gap-1 rounded-xl bg-blue-600 px-2 py-1.5 text-white sm:rounded-2xl sm:px-2.5 sm:py-2">
+            <span className="khmer-text truncate text-[8px] font-black sm:text-[9px]">{t("landing.phoneJourney", [])[2]}</span>
+            <ArrowRight className="h-2.5 w-2.5 shrink-0 sm:h-3 sm:w-3" aria-hidden="true" />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -303,12 +352,10 @@ function HeroTableStatusBadge() {
   const { t } = useLanguage();
 
   return (
-    <div className="absolute bottom-5 left-3 z-20 max-w-62 rounded-3xl border border-slate-200/70 bg-white/92 p-2.5 shadow-sm shadow-slate-900/6 backdrop-blur sm:bottom-9 sm:left-10 lg:left-16">
-      <div className="grid grid-cols-[auto_1fr] gap-3">
-        <span className="grid h-12 w-12 shrink-0 grid-cols-3 gap-0.5 rounded-2xl bg-slate-950 p-2" aria-hidden="true">
-          {Array.from({ length: 9 }).map((_, index) => (
-            <span key={index} className={`rounded-[2px] ${[0, 2, 4, 6, 8].includes(index) ? "bg-white" : "bg-blue-300"}`} />
-          ))}
+    <div className="absolute bottom-5 left-3 z-20 max-w-56 rounded-3xl border border-slate-200/70 bg-white/92 p-2.5 shadow-sm shadow-slate-900/6 backdrop-blur sm:bottom-9 sm:left-10 sm:max-w-62 lg:left-16">
+      <div className="grid grid-cols-[auto_1fr] gap-2 sm:gap-3">
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-slate-950 p-1.5 sm:h-12 sm:w-12 sm:p-2" aria-hidden="true">
+          <QRCodeSVG value="/menu/demo" size={32} bgColor="#0f172a" fgColor="#ffffff" level="M" />
         </span>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
@@ -470,28 +517,51 @@ function RestaurantWorkflowSection() {
 function FeatureBentoSection() {
   const { t } = useLanguage();
   const features = t("landing.bentoFeatures", []);
+  const featureMap = new Map(features.map((feature) => [feature[0], feature]));
+  const supportFeatures = ["customerMobileOrdering", "cartAndCheckout", "reportsAnalytics", "khmerEnglish"]
+    .map((key) => featureMap.get(key))
+    .filter(Boolean);
+  const primaryFeatures = [
+    { feature: featureMap.get("qrMenuBuilder"), preview: <MenuBuilderPreview />, icon: QrCode },
+    { feature: featureMap.get("tableQrGenerator"), preview: <TableQrPreview />, icon: ScanLine },
+    {
+      feature: ["kitchenPaymentWorkflow", t("landing.operationsFeatureTitle"), t("landing.operationsFeatureCopy")],
+      preview: <KitchenPaymentWorkflowPreview />,
+      icon: ChefHat,
+    },
+  ].filter(({ feature }) => feature);
 
   return (
-    <Section id="features" eyebrow={t("nav.features")} title={t("landing.sections.featuresTitle")} description={t("landing.sections.featuresCopy")}>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        {features.map(([key, title, copy]) => {
-          const Icon = featureIcons[key] || Utensils;
-          const featured = ["qrMenuBuilder", "tableQrGenerator", "kitchenDisplay", "paymentProofReview"].includes(key);
-          const span = featured ? "md:col-span-2 lg:col-span-3" : "lg:col-span-2";
-          return (
-            <article key={key} className={`premium-interactive overflow-hidden rounded-[1.75rem] p-5 shadow-sm shadow-slate-900/3 ring-1 ${featured ? "bg-white/90 ring-slate-200/70" : "bg-white/68 ring-slate-200/45"} ${span}`}>
-              <div className="flex items-start justify-between gap-4">
-                <div className={`grid h-11 w-11 place-items-center rounded-2xl ${featured ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-600"}`}>
-                  <Icon className="h-5 w-5" aria-hidden="true" />
+    <Section id="features" tone="white" eyebrow={t("nav.features")} title={t("landing.sections.featuresTitle")} description={t("landing.sections.featuresCopy")}>
+      <div className="grid gap-4 lg:grid-cols-2">
+        {primaryFeatures.map(({ feature: [key, title, copy], preview, icon: Icon }, index) => (
+          <article key={key} className={`premium-interactive overflow-hidden rounded-4xl bg-white p-5 shadow-sm shadow-slate-900/3 ring-1 ring-slate-200/70 sm:p-6 ${index === 2 ? "lg:col-span-2" : ""}`}>
+            <div className={`grid gap-5 ${index === 2 ? "lg:grid-cols-[0.72fr_1.28fr] lg:items-center" : ""}`}>
+              <div>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="grid h-11 w-11 place-items-center rounded-2xl bg-blue-50 text-blue-700">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  {key === "qrMenuBuilder" ? <MiniQrPreview /> : null}
                 </div>
-                {key === "qrMenuBuilder" ? <MiniQrPreview /> : null}
+                <h3 className="khmer-heading mt-5 text-xl font-black text-slate-950 sm:text-2xl">{title}</h3>
+                <p className="khmer-text mt-2 max-w-xl text-sm leading-6 text-slate-600">{copy}</p>
               </div>
-              <h3 className={`khmer-heading mt-5 font-black text-slate-950 ${featured ? "text-xl" : "text-lg"}`}>{title}</h3>
+              {preview}
+            </div>
+          </article>
+        ))}
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {supportFeatures.map(([key, title, copy]) => {
+          const Icon = featureIcons[key] || Utensils;
+          return (
+            <article key={key} className="premium-interactive rounded-3xl bg-slate-50/80 p-5 ring-1 ring-slate-200/55">
+              <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white text-slate-700 ring-1 ring-slate-200/70">
+                <Icon className="h-4.5 w-4.5" aria-hidden="true" />
+              </div>
+              <h3 className="khmer-heading mt-4 text-base font-black text-slate-950">{title}</h3>
               <p className="khmer-text mt-2 text-sm leading-6 text-slate-600">{copy}</p>
-              {key === "qrMenuBuilder" ? <MenuBuilderPreview /> : null}
-              {key === "tableQrGenerator" ? <TableQrPreview /> : null}
-              {key === "kitchenDisplay" ? <KitchenWorkflowPreview /> : null}
-              {key === "paymentProofReview" ? <PaymentProofPreview /> : null}
               {key === "customerMobileOrdering" ? <MobileOrderingStrip /> : null}
             </article>
           );
@@ -503,10 +573,8 @@ function FeatureBentoSection() {
 
 function MiniQrPreview() {
   return (
-    <div className="grid h-16 w-16 grid-cols-3 gap-1 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-2" aria-hidden="true">
-      {Array.from({ length: 9 }).map((_, index) => (
-        <span key={index} className={`rounded-sm ${[0, 2, 4, 6, 8].includes(index) ? "bg-slate-900" : "bg-blue-200"}`} />
-      ))}
+    <div className="grid h-16 w-16 place-items-center rounded-2xl border border-slate-200/80 bg-white p-2" aria-hidden="true">
+      <QRCodeSVG value="/menu/demo" size={46} bgColor="#ffffff" fgColor="#0f172a" level="M" />
     </div>
   );
 }
@@ -594,12 +662,29 @@ function PaymentProofPreview() {
   );
 }
 
+function KitchenPaymentWorkflowPreview() {
+  const { t } = useLanguage();
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <div>
+        <p className="khmer-label px-1 text-xs font-black text-slate-500">{t("landing.kitchenStatusTitle")}</p>
+        <KitchenWorkflowPreview />
+      </div>
+      <div>
+        <p className="khmer-label px-1 text-xs font-black text-slate-500">{t("landing.paymentStatusTitle")}</p>
+        <PaymentProofPreview />
+      </div>
+    </div>
+  );
+}
+
 function MobileOrderingStrip() {
   const { t } = useLanguage();
   return (
-    <div className="mt-5 flex gap-2 overflow-hidden rounded-3xl bg-slate-50/70 p-3 ring-1 ring-slate-200/55" aria-label={t("landing.customerFlowEyebrow")}>
+    <div className="mt-5 grid grid-cols-2 gap-2 rounded-3xl bg-white/75 p-3 ring-1 ring-slate-200/55" aria-label={t("landing.customerFlowEyebrow")}>
       {t("landing.phoneJourney", []).slice(0, 4).map((item, index) => (
-        <span key={item} className={`khmer-text shrink-0 rounded-full border px-3 py-2 text-xs font-bold ${index === 0 ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-600"}`}>{item}</span>
+        <span key={item} className={`khmer-text min-w-0 rounded-full border px-2 py-2 text-center text-xs font-bold ${index === 0 ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-600"}`}>{item}</span>
       ))}
     </div>
   );
@@ -617,41 +702,78 @@ function DashboardPreviewSection() {
             <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" />
           </div>
-          <span className="khmer-text rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-500">{t("landing.dashboardTitle")}</span>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <span className="khmer-text text-xs font-black text-slate-700">{t("landing.dashboardProductTitle")}</span>
+            <span className="khmer-text rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">{t("landing.demoLive")}</span>
+          </div>
         </div>
-        <div className="p-3 sm:p-5">
-        <div className="grid gap-4 lg:grid-cols-[1fr_0.78fr]">
-          <div className="grid gap-4">
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {t("landing.dashboardPreviewMetrics", []).map(([label, value, help]) => (
-                <div key={label} className="rounded-3xl bg-slate-50/65 p-4 ring-1 ring-slate-200/55">
-                  <p className="khmer-label text-xs font-black text-slate-500">{label}</p>
-                  <p className="khmer-text mt-3 text-xl font-black text-slate-950">{value}</p>
-                  <p className="khmer-text mt-1 text-xs font-semibold leading-5 text-slate-500">{help}</p>
+        <div className="grid lg:grid-cols-[12rem_1fr]">
+          <DashboardPreviewNavigation />
+          <div className="p-3 sm:p-5">
+            <div className="grid gap-4 xl:grid-cols-[1fr_0.72fr]">
+              <div className="grid gap-4">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {t("landing.dashboardPreviewMetrics", []).map(([label, value, help]) => (
+                    <div key={label} className="rounded-3xl bg-slate-50/65 p-4 ring-1 ring-slate-200/55">
+                      <p className="khmer-label text-xs font-black text-slate-500">{label}</p>
+                      <p className="khmer-text mt-3 text-xl font-black text-slate-950">{value}</p>
+                      <p className="khmer-text mt-1 text-xs font-semibold leading-5 text-slate-500">{help}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <DashboardFlowPanel />
-            <div className="rounded-3xl bg-slate-50/60 p-4 ring-1 ring-slate-200/55">
-              <p className="khmer-heading text-base font-black text-slate-950 sm:text-lg">{t("landing.recentOrderTitle")}</p>
-              <div className="mt-3 grid gap-2">
-                {t("landing.recentOrderRows", []).map(([order, status]) => (
-                  <div key={order} className="flex items-center justify-between gap-3 rounded-2xl bg-white/92 px-4 py-3 text-sm font-bold text-slate-700 ring-1 ring-slate-100">
-                    <span className="khmer-text min-w-0 truncate">{order}</span>
-                    <span className="khmer-text shrink-0 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{status}</span>
+                <DashboardFlowPanel />
+                <div className="rounded-3xl bg-slate-50/60 p-4 ring-1 ring-slate-200/55">
+                  <p className="khmer-heading text-base font-black text-slate-950 sm:text-lg">{t("landing.recentOrderTitle")}</p>
+                  <div className="mt-3 grid gap-2">
+                    {t("landing.recentOrderRows", []).map(([order, status]) => (
+                      <div key={order} className="flex items-center justify-between gap-3 rounded-2xl bg-white/92 px-4 py-3 text-sm font-bold text-slate-700 ring-1 ring-slate-100">
+                        <span className="khmer-text min-w-0 truncate">{order}</span>
+                        <span className="khmer-text shrink-0 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{status}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+              </div>
+              <div className="grid content-start gap-4">
+                <PreviewPanel icon={<CreditCard className="h-5 w-5" />} title={t("landing.paymentStatusTitle")} rows={t("landing.paymentStatusRows", [])} />
+                <PreviewPanel icon={<ChefHat className="h-5 w-5" />} title={t("landing.kitchenStatusTitle")} rows={t("landing.kitchenStatusRows", [])} />
               </div>
             </div>
           </div>
-          <div className="grid gap-4">
-            <PreviewPanel icon={<CreditCard className="h-5 w-5" />} title={t("landing.paymentStatusTitle")} rows={t("landing.paymentStatusRows", [])} />
-            <PreviewPanel icon={<ChefHat className="h-5 w-5" />} title={t("landing.kitchenStatusTitle")} rows={t("landing.kitchenStatusRows", [])} />
-          </div>
-        </div>
         </div>
       </div>
     </Section>
+  );
+}
+
+function DashboardPreviewNavigation() {
+  const { t } = useLanguage();
+  const icons = [LayoutDashboard, ReceiptText, ChefHat, CreditCard, BarChart3];
+
+  return (
+    <div className="hidden border-r border-slate-100 bg-slate-950 p-4 text-white lg:block" aria-hidden="true">
+      <div className="flex items-center gap-2 px-2 py-2">
+        <span className="grid h-8 w-8 place-items-center rounded-xl bg-blue-600">
+          <Utensils className="h-4 w-4" />
+        </span>
+        <span className="khmer-heading text-sm font-black">MenuDIGI</span>
+      </div>
+      <div className="mt-5 grid gap-1.5">
+        {t("landing.dashboardNavigation", []).map((item, index) => {
+          const Icon = icons[index] || LayoutDashboard;
+          return (
+            <div key={item} className={`flex items-center gap-2.5 rounded-2xl px-3 py-2.5 text-xs font-bold ${index === 0 ? "bg-white text-slate-950" : "text-slate-400"}`}>
+              <Icon className="h-4 w-4" />
+              <span className="khmer-text">{item}</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-3">
+        <p className="khmer-label text-[10px] font-black text-blue-300">{t("landing.dashboardFlowTitle")}</p>
+        <p className="khmer-text mt-2 text-xs font-semibold leading-5 text-slate-400">{t("landing.dashboardPreviewNote")}</p>
+      </div>
+    </div>
   );
 }
 
@@ -699,26 +821,41 @@ function CustomerFlowSection() {
   const { t } = useLanguage();
 
   return (
-    <Section id="customer-preview" eyebrow={t("landing.customerFlowEyebrow")} title={t("landing.sections.customerFlowTitle")} description={t("landing.sections.customerFlowCopy")}>
-      <div className="grid items-center gap-8 lg:grid-cols-[0.94fr_1.06fr]">
-        <div className="mx-auto w-full max-w-lg rounded-4xl bg-white/88 p-3 shadow-sm shadow-slate-900/4 ring-1 ring-slate-200/65 sm:p-4"><PhoneMockup /></div>
-        <div className="grid gap-4 sm:grid-cols-2">
+    <Section id="customer-preview" tone="white" eyebrow={t("landing.customerFlowEyebrow")} title={t("landing.sections.customerFlowTitle")} description={t("landing.sections.customerFlowCopy")}>
+      <div className="grid items-center gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:gap-12">
+        <div className="relative mx-auto w-full max-w-100 rounded-4xl bg-[linear-gradient(145deg,#EAF1FF_0%,#F8FAFC_55%,#EFF6FF_100%)] p-4 ring-1 ring-blue-100/80 sm:p-6">
+          <div className="absolute inset-x-12 bottom-4 h-20 rounded-full bg-blue-400/10 blur-2xl" aria-hidden="true" />
+          <div className="relative mx-auto max-w-82"><PhoneMockup /></div>
+        </div>
+        <div className="rounded-4xl bg-white p-5 shadow-sm shadow-slate-900/3 ring-1 ring-slate-200/65 sm:p-7">
+          <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-5">
+            <div>
+              <p className="khmer-label text-xs font-black text-blue-600">{t("landing.customerJourneyLabel")}</p>
+              <h3 className="khmer-heading mt-2 text-xl font-black text-slate-950 sm:text-2xl">{t("landing.customerJourneyTitle")}</h3>
+            </div>
+            <Smartphone className="h-6 w-6 shrink-0 text-blue-600" aria-hidden="true" />
+          </div>
+          <ol className="mt-2 divide-y divide-slate-100">
           {t("landing.customerFlow", []).map(([title, copy], index) => {
             const Icon = [ScanLine, Smartphone, CustomizeIcon, ReceiptText, UploadCloud, Clock3][index] || Check;
-            const important = index === 1 || index === 3 || index === 4;
             return (
-              <div key={title} className={`rounded-3xl p-5 shadow-sm shadow-slate-900/3 ring-1 ${important ? "bg-white/90 ring-slate-200/70" : "bg-white/68 ring-slate-200/45"}`}>
-                <div className="flex items-center gap-3">
-                  <div className={`grid h-10 w-10 place-items-center rounded-2xl ${important ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-600"}`}>
+              <li key={title} className="grid grid-cols-[auto_1fr] gap-3 py-4 sm:gap-4">
+                <div className="relative">
+                  <div className={`grid h-10 w-10 place-items-center rounded-2xl ${index < 4 ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-600"}`}>
                     <Icon className="h-5 w-5" aria-hidden="true" />
                   </div>
-                  <span className="text-xs font-bold text-slate-300">0{index + 1}</span>
                 </div>
-                <h3 className="khmer-heading mt-4 text-lg font-black text-slate-950">{title}</h3>
-                <p className="khmer-text mt-2 text-sm leading-6 text-slate-600">{copy}</p>
-              </div>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[10px] font-black text-slate-300">0{index + 1}</span>
+                    <h4 className="khmer-heading text-base font-black text-slate-950">{title}</h4>
+                  </div>
+                  <p className="khmer-text mt-1 text-sm leading-6 text-slate-600">{copy}</p>
+                </div>
+              </li>
             );
           })}
+          </ol>
         </div>
       </div>
     </Section>
@@ -731,22 +868,48 @@ function CustomizeIcon(props) {
 
 function PaymentReadySection() {
   const { t } = useLanguage();
+  const paymentItems = t("landing.paymentReadiness", []);
+  const [primaryItem, ...supportItems] = paymentItems;
 
   return (
     <Section eyebrow={t("common.payment")} title={t("landing.sections.paymentTitle")} description={t("landing.sections.paymentCopy")}>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {t("landing.paymentReadiness", []).map(([title, copy], index) => {
-          const Icon = [ReceiptText, CreditCard, QrCode, ShieldCheck][index] || CreditCard;
-          return (
-            <div key={title} className="rounded-3xl bg-white/78 p-5 shadow-sm shadow-slate-900/3 ring-1 ring-slate-200/55">
-              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-amber-50 text-amber-700">
-                <Icon className="h-5 w-5" aria-hidden="true" />
-              </div>
-              <h3 className="khmer-heading mt-4 text-base font-black text-slate-950 sm:text-lg">{title}</h3>
-              <p className="khmer-text mt-2 text-sm leading-6 text-slate-600">{copy}</p>
+      <div className="grid overflow-hidden rounded-4xl bg-white shadow-sm shadow-slate-900/3 ring-1 ring-slate-200/65 lg:grid-cols-[0.86fr_1.14fr]">
+        {primaryItem ? (
+          <div className="bg-slate-950 p-6 text-white sm:p-8">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-600 text-white">
+              <ReceiptText className="h-5 w-5" aria-hidden="true" />
             </div>
-          );
-        })}
+            <p className="khmer-label mt-8 text-xs font-black text-blue-300">{t("landing.paymentWorkflowLabel")}</p>
+            <h3 className="khmer-heading mt-3 text-2xl font-black sm:text-3xl">{primaryItem[0]}</h3>
+            <p className="khmer-text mt-3 max-w-lg text-sm leading-7 text-slate-300">{primaryItem[1]}</p>
+            <div className="mt-7 flex items-center gap-2" aria-hidden="true">
+              {[UploadCloud, ShieldCheck, Check].map((Icon, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <span className={`grid h-9 w-9 place-items-center rounded-full ${index === 2 ? "bg-emerald-500 text-white" : "bg-white/10 text-blue-200"}`}>
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  {index < 2 ? <span className="h-px w-5 bg-white/15 sm:w-8" /> : null}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        <div className="grid divide-y divide-slate-100 p-5 sm:p-7">
+          {supportItems.map(([title, copy], index) => {
+            const Icon = [QrCode, ShieldCheck, CreditCard][index] || CreditCard;
+            return (
+              <div key={title} className="grid grid-cols-[auto_1fr] gap-4 py-4 first:pt-0 last:pb-0">
+                <div className="grid h-10 w-10 place-items-center rounded-2xl bg-amber-50 text-amber-700">
+                  <Icon className="h-4.5 w-4.5" aria-hidden="true" />
+                </div>
+                <div>
+                  <h3 className="khmer-heading text-base font-black text-slate-950 sm:text-lg">{title}</h3>
+                  <p className="khmer-text mt-1.5 text-sm leading-6 text-slate-600">{copy}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </Section>
   );
@@ -778,15 +941,15 @@ function PricingSection() {
   const { t } = useLanguage();
 
   return (
-    <Section id="pricing" eyebrow={t("nav.pricing")} title={t("landing.sections.pricingTitle")} description={t("landing.sections.pricingCopy")}>
+    <Section id="pricing" tone="white" eyebrow={t("nav.pricing")} title={t("landing.sections.pricingTitle")} description={t("landing.sections.pricingCopy")}>
       <div className="grid gap-4 lg:grid-cols-3">
         {t("landing.pricingPlans", []).map(([name, copy, items], index) => (
           <div key={name} className={`flex flex-col rounded-[1.75rem] bg-white/88 p-6 shadow-sm shadow-slate-900/3 ring-1 ${index === 1 ? "ring-2 ring-blue-300" : "ring-slate-200/55"}`}>
             <div className="flex items-center justify-between gap-3">
-              <p className="khmer-label text-sm font-black text-blue-600">{name}</p>
+              <p className="khmer-label text-xs font-black text-slate-400">{t("landing.pricingCardTitle")}</p>
               {index === 1 ? <span className="khmer-text rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">{t("landing.pricingPlanLabel")}</span> : null}
             </div>
-            <h3 className="khmer-heading mt-3 text-xl font-black text-slate-950">{t("landing.pricingCardTitle")}</h3>
+            <h3 className="khmer-heading mt-4 text-2xl font-black text-slate-950">{name}</h3>
             <p className="khmer-text mt-2 text-sm leading-6 text-slate-600">{copy}</p>
             <ul className="khmer-text mt-6 grid gap-3 border-t border-slate-100 pt-5 text-sm font-semibold leading-6 text-slate-700">
               {items.map((item) => <li key={item} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />{item}</li>)}
@@ -806,7 +969,7 @@ function FAQSection() {
 
   return (
     <Section id="faq" eyebrow={t("nav.faq")} title={t("landing.sections.faqTitle")}>
-      <div className="mx-auto grid max-w-5xl gap-3 lg:grid-cols-2">
+      <div className="mx-auto grid max-w-4xl gap-3">
         {t("landing.faqs", []).map(([question, answer]) => (
           <details key={question} className="group rounded-3xl bg-white/78 p-5 shadow-sm shadow-slate-900/3 ring-1 ring-slate-200/55">
             <summary className="khmer-heading flex cursor-pointer list-none items-center justify-between gap-4 font-black leading-7 text-slate-950">
@@ -876,11 +1039,12 @@ function FooterGroup({ title, links }) {
   );
 }
 
-function Section({ id, eyebrow, title, description, children }) {
+function Section({ id, tone = "default", eyebrow, title, description, children }) {
   const reduced = useReducedMotion();
+  const toneClass = tone === "white" ? "bg-white/60" : "";
 
   return (
-    <motion.section id={id} className="px-4 py-14 sm:py-18 lg:px-8 lg:py-20" {...getMotion(reduced)}>
+    <motion.section id={id} className={`px-4 py-14 sm:py-18 lg:px-8 lg:py-22 ${toneClass}`} {...getMotion(reduced)}>
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 max-w-3xl sm:mb-10">
           {eyebrow ? <p className="khmer-label text-xs font-black text-blue-600">{eyebrow}</p> : null}

@@ -40,9 +40,10 @@ describe("LandingPage", () => {
     expect(screen.getAllByText("QR menu").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Customer order").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Reports").length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("heading", { name: "Everything a QR ordering flow needs." }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("heading", { name: "One connected restaurant flow, built into every screen." }).length).toBeGreaterThan(0);
     expect(screen.getAllByText("QR menu builder").length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("heading", { name: "Simple planning packages for launch." }).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Kitchen and payment workflow").length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("heading", { name: "Choose the operating scope you need at launch." }).length).toBeGreaterThan(0);
     expect(screen.getAllByText("What is MenuDIGI?").length).toBeGreaterThan(0);
     expect(screen.getAllByText("How do customers order?").length).toBeGreaterThan(0);
   });
@@ -60,6 +61,7 @@ describe("LandingPage", () => {
     expect(screen.getAllByText("Recent order preview").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Live service flow").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Payment proof workflow").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("From table scan to ready order").length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getAllByRole("button", { name: /Switch language to ខ្មែរ/ })[0]);
 
