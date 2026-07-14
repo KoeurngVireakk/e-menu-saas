@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Shop extends Model
 {
@@ -139,5 +140,10 @@ class Shop extends Model
     public function translations(): HasMany
     {
         return $this->hasMany(ShopTranslation::class);
+    }
+
+    public function onboardingState(): HasOne
+    {
+        return $this->hasOne(RestaurantOnboardingState::class);
     }
 }

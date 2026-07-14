@@ -36,6 +36,7 @@ import {
 import ChartCard from "../../design-system/charts/ChartCard";
 import { pageTransition, staggerContainer, staggerItem } from "../../design-system/motion/variants";
 import useOperationsRealtime from "../../hooks/useOperationsRealtime";
+import useOnboarding from "../../hooks/useOnboarding";
 import { useOrders } from "../../hooks/useApiQueries";
 import { queryKeys } from "../../lib/queryKeys";
 import { useShopsQuery } from "../../hooks/useShopsQuery";
@@ -55,6 +56,7 @@ export default function Dashboard() {
   const shopsQuery = useShopsQuery();
   const shops = useMemo(() => shopsQuery.data || [], [shopsQuery.data]);
   const ordersQuery = useOrders();
+  const onboarding = useOnboarding();
   const allOrders = useMemo(() => ordersQuery.data?.orders || [], [ordersQuery.data?.orders]);
   const orders = useMemo(() => allOrders.slice(0, 8), [allOrders]);
   const summary = ordersQuery.data?.summary || { new_count: 0, pending_count: 0, today_revenue: 0 };
@@ -320,8 +322,6 @@ export default function Dashboard() {
     );
   }
 
-  const setupShouldBeProminent = !shops.length || !orders.length;
-
   return (
     <motion.div className="grid min-w-0 gap-6" variants={pageTransition} initial="hidden" animate="visible">
       <OverviewHeader
@@ -341,7 +341,7 @@ export default function Dashboard() {
         </AppCard>
       ) : null}
 
-      {setupShouldBeProminent ? <SetupChecklist shops={shops} orders={orders} /> : null}
+      <SetupChecklist onboarding={onboarding} />
 
       <motion.section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6" variants={staggerContainer} initial="hidden" animate="visible" aria-label={t("overview.kpiSection")}>
         {metrics.map((metric) => (
@@ -447,19 +447,14 @@ export default function Dashboard() {
         </AppCard>
       </section>
 
-      {!setupShouldBeProminent ? (
-        <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-          <SetupChecklist shops={shops} orders={orders} />
-          <AutomationInsightCard
-            title={t("overview.automation.title")}
-            description={t("overview.automation.description")}
-            severity="info"
-            icon={Store}
-            actionLabel={t("overview.actions.viewReports")}
-            onAction={() => {}}
-          />
-        </section>
-      ) : null}
+      <AutomationInsightCard
+        title={t("overview.automation.title")}
+        description={t("overview.automation.description")}
+        severity="info"
+        icon={Store}
+        actionLabel={t("overview.actions.viewReports")}
+        onAction={() => {}}
+      />
 
       <AppCard title={t("overview.shops.title")} description={t("overview.shops.description")} labelled>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">

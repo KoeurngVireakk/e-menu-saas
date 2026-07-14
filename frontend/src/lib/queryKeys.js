@@ -11,6 +11,7 @@ export const queryKeys = {
   accountProfile: ["account", "profile"],
   accountPreferences: ["account", "preferences"],
   accountActivity: ["account", "activity"],
+  onboarding: (shopId = "current") => ["onboarding", shopId || "current"],
   notifications: (filters = {}) => ["notifications", stableFilters(filters)],
   notificationUnreadCount: ["notifications", "unread-count"],
   shops: ["shops"],

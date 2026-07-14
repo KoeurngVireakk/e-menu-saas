@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\KitchenController;
 use App\Http\Controllers\Api\KitchenStationController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\OnboardingController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PrintController;
@@ -74,6 +75,11 @@ Route::middleware(['auth:sanctum', 'throttle:admin-api', 'demo.readonly'])->grou
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 
     Route::get('/system/health', [HealthController::class, 'index']);
+
+    Route::get('/onboarding', [OnboardingController::class, 'show']);
+    Route::patch('/onboarding', [OnboardingController::class, 'update']);
+    Route::post('/onboarding/dismiss', [OnboardingController::class, 'dismiss']);
+    Route::post('/onboarding/resume', [OnboardingController::class, 'resume']);
 
     Route::get('/reports/sales-summary', [ReportController::class, 'salesSummary']);
     Route::get('/reports/summary', [ReportController::class, 'summary']);

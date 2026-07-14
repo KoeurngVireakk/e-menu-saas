@@ -34,6 +34,7 @@ const SettingsPage = lazy(() => import("../pages/admin/settings/SettingsPage"));
 const SystemHealthPage = lazy(() => import("../pages/admin/SystemHealthPage"));
 const ProfilePage = lazy(() => import("../pages/admin/account/ProfilePage"));
 const NotificationsPage = lazy(() => import("../pages/admin/notifications/NotificationsPage"));
+const OnboardingPage = lazy(() => import("../pages/admin/onboarding/OnboardingPage"));
 const MenuPage = lazy(() => import("../pages/public/MenuPage"));
 const CartPage = lazy(() => import("../pages/public/CartPage"));
 const OrderSuccess = lazy(() => import("../pages/public/OrderSuccess"));
@@ -82,6 +83,7 @@ export default function AppRoutes() {
             <Route path="system-health" element={<PermissionRoute feature="systemHealth"><SystemHealthPage /></PermissionRoute>} />
             <Route path="account/profile" element={<ProfilePage />} />
             <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="onboarding" element={<OnboardingPage />} />
           </Route>
         </Route>
         <Route element={<PublicMenuLayout />}>

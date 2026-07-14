@@ -6,6 +6,7 @@ import {
   Building2,
   ChefHat,
   ClipboardList,
+  Compass,
   CreditCard,
   FileText,
   Gauge,
@@ -34,6 +35,7 @@ const groups = [
     labelKey: "nav.groupOverview",
     links: [
       { labelKey: "nav.overview", to: "/admin", feature: "dashboard", icon: Gauge },
+      { labelKey: "nav.onboarding", to: "/admin/onboarding", feature: "dashboard", icon: Compass, ownerOnly: true, hideInDemo: true },
       { labelKey: "nav.shops", to: "/admin/shops", feature: "shops", icon: Store },
       { labelKey: "common.branches", to: "/admin/branches", feature: "branches", icon: Building2 },
     ],
@@ -81,8 +83,9 @@ const groups = [
 export default function Sidebar({ mobileOpen = true, onClose }) {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const isDemo = user?.shops?.some((shop) => shop.is_demo);
   const visibleGroups = groups
-    .map((group) => ({ ...group, links: group.links.filter((link) => canView(user, link.feature)) }))
+    .map((group) => ({ ...group, links: group.links.filter((link) => canView(user, link.feature) && (!link.ownerOnly || ["shop_owner", "super_admin"].includes(user?.role)) && (!link.hideInDemo || !isDemo)) }))
     .filter((group) => group.links.length);
 
   return (

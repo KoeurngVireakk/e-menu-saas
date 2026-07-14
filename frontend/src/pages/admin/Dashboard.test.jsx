@@ -63,6 +63,10 @@ function mockApi({ orders = sampleOrders(), shops = sampleShops() } = {}) {
       });
     }
 
+    if (url === "/onboarding") {
+      return Promise.resolve({ data: { data: sampleOnboarding() } });
+    }
+
     return Promise.reject(new Error(`Unexpected URL ${url}`));
   });
 }
@@ -145,6 +149,7 @@ describe("Dashboard", () => {
           });
         });
       }
+      if (url === "/onboarding") return Promise.resolve({ data: { data: sampleOnboarding() } });
       return Promise.reject(new Error(`Unexpected URL ${url}`));
     });
 
@@ -186,4 +191,20 @@ function sampleOrders() {
       items: [{ product_name: "Latte", quantity: 2 }],
     },
   ];
+}
+
+function sampleOnboarding() {
+  const keys = ["shop_profile", "branch", "category", "product", "table", "table_qr", "payment_instructions", "public_menu_preview", "workspace_ready"];
+  return {
+    shop: sampleShops()[0],
+    current_step: "payment_instructions",
+    next_step: "payment_instructions",
+    completed_steps: keys.slice(0, 6),
+    completed_count: 6,
+    total_steps: 9,
+    progress_percent: 67,
+    is_complete: false,
+    is_dismissed: false,
+    steps: keys.map((key, index) => ({ key, complete: index < 6, action_path: index === 0 ? "/admin/shops" : `/admin/${key}` })),
+  };
 }
