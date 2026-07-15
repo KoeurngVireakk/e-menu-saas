@@ -1,5 +1,5 @@
 export const shadows = {
-  card: "shadow-sm",
-  floating: "shadow-lg shadow-slate-200/60",
+  card: "premium-surface",
+  elevated: "shadow-[var(--menudigi-elevated-shadow)]",
   none: "shadow-none",
 };

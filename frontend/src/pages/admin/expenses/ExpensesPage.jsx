@@ -228,11 +228,11 @@ export default function ExpensesPage() {
         emptyMessage="No expenses yet."
         renderActions={(expense) => (
           <div className="flex flex-wrap gap-2">
-            {allowManage && ["draft", "pending", "rejected"].includes(expense.status) ? <button type="button" onClick={() => openExpense(expense)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Edit</button> : null}
-            {allowApprove && ["draft", "pending", "rejected"].includes(expense.status) ? <button type="button" onClick={() => approveExpense(expense)} className="rounded-md bg-emerald-600 px-3 py-1 text-sm text-white">Approve</button> : null}
-            {allowApprove && ["draft", "pending", "approved"].includes(expense.status) ? <button type="button" onClick={() => rejectExpense(expense)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Reject</button> : null}
-            {allowManage && ["pending", "approved"].includes(expense.status) ? <button type="button" onClick={() => markPaid(expense)} className="rounded-md bg-slate-900 px-3 py-1 text-sm text-white">Mark paid</button> : null}
-            {allowManage && expense.status !== "paid" && expense.status !== "cancelled" ? <button type="button" onClick={() => cancelExpense(expense)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Cancel</button> : null}
+            {allowManage && ["draft", "pending", "rejected"].includes(expense.status) ? <Button type="button" size="sm" variant="secondary" onClick={() => openExpense(expense)}>Edit</Button> : null}
+            {allowApprove && ["draft", "pending", "rejected"].includes(expense.status) ? <Button type="button" size="sm" variant="success" onClick={() => approveExpense(expense)}>Approve</Button> : null}
+            {allowApprove && ["draft", "pending", "approved"].includes(expense.status) ? <Button type="button" size="sm" variant="danger" onClick={() => rejectExpense(expense)}>Reject</Button> : null}
+            {allowManage && ["pending", "approved"].includes(expense.status) ? <Button type="button" size="sm" variant="dark" onClick={() => markPaid(expense)}>Mark paid</Button> : null}
+            {allowManage && expense.status !== "paid" && expense.status !== "cancelled" ? <Button type="button" size="sm" variant="secondary" onClick={() => cancelExpense(expense)}>Cancel</Button> : null}
           </div>
         )}
       />

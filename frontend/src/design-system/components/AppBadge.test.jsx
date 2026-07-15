@@ -14,5 +14,6 @@ describe("AppBadge", () => {
 
     expect(screen.getByText("Saved")).toBeInTheDocument();
     expect(screen.getByText("failed")).toBeInTheDocument();
+    expect(screen.getByText("failed").querySelector("[aria-hidden='true']")).toBeInTheDocument();
   });
 });

@@ -156,8 +156,8 @@ export default function DailyClosingPage() {
               emptyMessage="No closing records yet."
               renderActions={(closing) => (
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => setSelectedClosing(closing)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Preview</button>
-                  <button type="button" onClick={() => { setSelectedClosing(closing); window.setTimeout(() => window.print(), 0); }} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Print</button>
+                  <Button type="button" size="sm" variant="secondary" onClick={() => setSelectedClosing(closing)}>Preview</Button>
+                  <Button type="button" size="sm" variant="secondary" onClick={() => { setSelectedClosing(closing); window.setTimeout(() => window.print(), 0); }}>Print</Button>
                 </div>
               )}
             />

@@ -221,10 +221,10 @@ export default function ShiftsPage() {
           emptyMessage="No shifts yet."
           renderActions={(shift) => (
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => loadReport(shift)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Report</button>
-              {shift.status === "open" && allowMovement ? <button type="button" onClick={() => setMovementShift(shift)} className="rounded-md border border-slate-300 px-3 py-1 text-sm">Movement</button> : null}
-              {shift.status === "open" && allowClose ? <button type="button" onClick={() => setCloseShift(shift)} className="rounded-md bg-slate-900 px-3 py-1 text-sm text-white">Close</button> : null}
-              {shift.status === "open" && allowManage ? <button type="button" onClick={() => cancelShift(shift)} className="rounded-md bg-rose-600 px-3 py-1 text-sm text-white">Cancel</button> : null}
+              <Button type="button" size="sm" variant="secondary" onClick={() => loadReport(shift)}>Report</Button>
+              {shift.status === "open" && allowMovement ? <Button type="button" size="sm" variant="secondary" onClick={() => setMovementShift(shift)}>Movement</Button> : null}
+              {shift.status === "open" && allowClose ? <Button type="button" size="sm" variant="dark" onClick={() => setCloseShift(shift)}>Close</Button> : null}
+              {shift.status === "open" && allowManage ? <Button type="button" size="sm" variant="danger" onClick={() => cancelShift(shift)}>Cancel</Button> : null}
             </div>
           )}
         />

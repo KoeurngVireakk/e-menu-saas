@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { EmptyState, ErrorState, LoadingState } from "./ui";
 
-export default function DataTable({ columns, rows = [], renderActions, loading = false, error = "", emptyMessage = "No records found." }) {
+export default function DataTable({ columns, rows = [], renderActions, loading = false, error = "", emptyMessage = "No records found.", ariaLabel = "Data table" }) {
   const tableRef = useRef(null);
   const instanceRef = useRef(null);
 
@@ -47,7 +47,7 @@ export default function DataTable({ columns, rows = [], renderActions, loading =
   }
 
   if (error) {
-    return <ErrorState message={error} />;
+    return <ErrorState title="Unable to load table data" message={error} />;
   }
 
   if (rows.length === 0) {
@@ -55,8 +55,8 @@ export default function DataTable({ columns, rows = [], renderActions, loading =
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white p-3 text-left shadow-sm">
-      <table ref={tableRef} className="display w-full text-sm">
+    <div className="premium-surface max-w-full overflow-x-auto overscroll-x-contain rounded-3xl border bg-white p-3 text-left" tabIndex="0" role="region" aria-label={`${ariaLabel} scrollable region`}>
+      <table ref={tableRef} className="display w-full text-sm" aria-label={ariaLabel}>
         <thead>
           <tr>
             {columns.map((column) => (

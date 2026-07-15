@@ -250,7 +250,6 @@ export default function ShopsPage() {
                     title="Delete shop?"
                     text="This removes the shop profile and can affect customer QR menu access. This action cannot be undone."
                     onConfirm={() => remove(shop)}
-                    className="inline-flex h-9 items-center justify-center gap-2 rounded-2xl bg-rose-600 px-3 text-sm font-bold text-white shadow-lg shadow-rose-600/20 transition hover:-translate-y-0.5 hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
                   >
                     <Trash2 className="h-4 w-4" aria-hidden="true" />
                     Delete

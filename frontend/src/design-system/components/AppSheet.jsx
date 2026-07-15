@@ -1,6 +1,8 @@
-import { useEffect, useId, useRef } from "react";
+import { useId, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "../../components/ui/utils";
+import useDialogA11y from "../hooks/useDialogA11y";
 
 export default function AppSheet({
   open,
@@ -13,31 +15,14 @@ export default function AppSheet({
   size = "md",
   bodyClassName = "",
   closeLabel = "Close panel",
+  loading = false,
+  dismissible = true,
 }) {
   const panelRef = useRef(null);
   const titleId = useId();
   const descriptionId = useId();
 
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const previouslyFocused = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
-    const focusTimer = window.setTimeout(() => panelRef.current?.focus(), 0);
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") onClose?.();
-    };
-
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.clearTimeout(focusTimer);
-      window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-      previouslyFocused?.focus?.();
-    };
-  }, [open, onClose]);
+  useDialogA11y({ open, dialogRef: panelRef, onClose, closeDisabled: loading || !dismissible });
 
   if (!open) return null;
 
@@ -48,11 +33,11 @@ export default function AppSheet({
     xl: "max-w-4xl",
   };
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-slate-950/45 backdrop-blur-[4px]"
+      className="fixed inset-0 z-50 bg-[var(--menudigi-overlay)] backdrop-blur-[4px]"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose?.();
+        if (event.target === event.currentTarget && dismissible && !loading) onClose?.();
       }}
     >
       <aside
@@ -62,6 +47,7 @@ export default function AppSheet({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
+        aria-busy={loading || undefined}
         tabIndex={-1}
       >
         <header className="premium-divider flex items-start justify-between gap-4 border-b px-5 pb-4 pt-[max(1rem,env(safe-area-inset-top))]">
@@ -72,7 +58,8 @@ export default function AppSheet({
           <button
             type="button"
             aria-label={closeLabel}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            disabled={loading || !dismissible}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={onClose}
           >
             <X className="h-5 w-5" aria-hidden="true" />
@@ -85,6 +72,7 @@ export default function AppSheet({
           </footer>
         ) : null}
       </aside>
-    </div>
+    </div>,
+    document.body,
   );
 }

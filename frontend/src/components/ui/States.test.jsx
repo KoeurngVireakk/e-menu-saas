@@ -16,6 +16,8 @@ describe("UI states", () => {
     render(<ErrorState message="Orders failed." onRetry={retry} />);
 
     expect(screen.getByText("Orders failed.")).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("Unable to load this content");
+    expect(screen.queryByText("Something went wrong")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
   });
 

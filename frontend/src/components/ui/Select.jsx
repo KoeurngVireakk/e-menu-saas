@@ -1,5 +1,7 @@
 import { useId } from "react";
 import { cn } from "./utils";
+import FormMessages from "../../design-system/forms/FormMessages";
+import { controlClass, labelClass } from "../../design-system/forms/styles";
 
 export default function Select({ label, description, options = [], error, className = "", children, id, ...props }) {
   const generatedId = useId();
@@ -13,11 +15,7 @@ export default function Select({ label, description, options = [], error, classN
       id={selectId}
       aria-describedby={describedBy}
       aria-invalid={error ? true : props["aria-invalid"]}
-      className={cn(
-        "khmer-text min-h-12 w-full rounded-2xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-950 shadow-sm shadow-slate-900/[0.02] outline-none transition hover:border-slate-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 disabled:shadow-none",
-        error && "border-rose-300 focus:border-rose-500 focus:ring-rose-100",
-        className,
-      )}
+      className={cn(controlClass, className)}
     >
       {children || options.map(([value, text]) => <option key={value || "empty"} value={value}>{text}</option>)}
     </select>
@@ -27,10 +25,12 @@ export default function Select({ label, description, options = [], error, classN
 
   return (
     <div>
-      <label htmlFor={selectId} className="khmer-label block text-sm font-bold text-slate-700">{label}</label>
+      <div className="flex items-baseline gap-1">
+        <label htmlFor={selectId} className={cn("block", labelClass)}>{label}</label>
+        {props.required ? <span className="text-rose-600" aria-hidden="true">*</span> : null}
+      </div>
       <div className="mt-2">{select}</div>
-      {description ? <span id={descriptionId} className="mt-2 block text-xs font-medium leading-5 text-slate-500">{description}</span> : null}
-      {error ? <span id={errorId} className="mt-2 block text-xs font-bold leading-5 text-rose-600" role="alert">{error}</span> : null}
+      <div className="mt-2 grid gap-1"><FormMessages description={description} descriptionId={descriptionId} error={error} errorId={errorId} /></div>
     </div>
   );
 }

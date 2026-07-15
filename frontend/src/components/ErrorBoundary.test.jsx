@@ -24,7 +24,7 @@ describe("ErrorBoundary", () => {
       </ErrorBoundary>,
     );
 
-    expect(screen.getByRole("heading", { name: /something went wrong/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /MenuDIGI could not load this screen/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /reload page/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /go back/i })).toBeInTheDocument();
     expect(screen.queryByText(/render failed/i)).not.toBeInTheDocument();

@@ -1,12 +1,5 @@
-export default function PageHeader({ eyebrow, title, description, actions }) {
-  return (
-    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        {eyebrow ? <p className="khmer-label text-xs font-bold uppercase tracking-wide text-orange-600">{eyebrow}</p> : null}
-        <h1 className="khmer-heading mt-1 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">{title}</h1>
-        {description ? <p className="khmer-text mt-2 max-w-2xl text-sm text-slate-500">{description}</p> : null}
-      </div>
-      {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
-    </div>
-  );
+import AppPageHeader from "../../design-system/components/AppPageHeader";
+
+export default function PageHeader({ actions, ...props }) {
+  return <div className="mb-6"><AppPageHeader {...props} secondaryActions={actions} /></div>;
 }

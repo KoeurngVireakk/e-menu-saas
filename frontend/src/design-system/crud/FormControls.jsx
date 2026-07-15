@@ -1,6 +1,7 @@
-import { cloneElement, useId } from "react";
-
-const controlClass = "min-h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-300 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 aria-invalid:border-rose-300 aria-invalid:focus:border-rose-500 aria-invalid:focus:ring-rose-100";
+import { cloneElement, useId, useState } from "react";
+import { cn } from "../../components/ui/utils";
+import FormMessages from "../forms/FormMessages";
+import { controlClass, labelClass } from "../forms/styles";
 
 export function Field({ label, children, description, error, required = false }) {
   const fieldId = useId();
@@ -14,17 +15,17 @@ export function Field({ label, children, description, error, required = false })
 
   return (
     <div className="grid gap-1.5">
-      <label htmlFor={children.props.id || fieldId} className="khmer-label text-sm font-bold leading-6 text-slate-700">
-        {label}{required ? <span className="text-rose-600" aria-hidden="true"> *</span> : null}
-      </label>
+      <div className="flex items-baseline gap-1">
+        <label htmlFor={children.props.id || fieldId} className={labelClass}>{label}</label>
+        {required ? <span className="text-rose-600" aria-hidden="true">*</span> : null}
+      </div>
       {cloneElement(children, {
         id: children.props.id || fieldId,
         required: children.props.required ?? required,
         "aria-describedby": describedBy,
         "aria-invalid": error ? true : children.props["aria-invalid"],
       })}
-      {description ? <span id={descriptionId} className="khmer-text text-xs font-medium leading-5 text-slate-500">{description}</span> : null}
-      {error ? <span id={errorId} className="khmer-text text-xs font-bold leading-5 text-rose-600" role="alert">{error}</span> : null}
+      <FormMessages description={description} descriptionId={descriptionId} error={error} errorId={errorId} />
     </div>
   );
 }
@@ -37,7 +38,7 @@ export function TextInput({ value, onChange, type = "text", required = false, pl
       required={required}
       placeholder={placeholder}
       onChange={(event) => onChange(event.target.value)}
-      className={`${controlClass} h-10 ${className}`}
+      className={cn(controlClass, className)}
       {...props}
     />
   );
@@ -51,7 +52,7 @@ export function TextArea({ value, onChange, required = false, placeholder = "", 
       rows={rows}
       placeholder={placeholder}
       onChange={(event) => onChange(event.target.value)}
-      className={`${controlClass} py-2 ${className}`}
+      className={cn(controlClass, "min-h-32 resize-y", className)}
       {...props}
     />
   );
@@ -64,7 +65,7 @@ export function SelectInput({ value, onChange, options, required = false, disabl
       required={required}
       disabled={disabled}
       onChange={(event) => onChange(event.target.value)}
-      className={`${controlClass} h-10 ${className}`}
+      className={cn(controlClass, className)}
       {...props}
     >
       {options.map(([optionValue, label]) => <option key={optionValue || "empty"} value={optionValue}>{label}</option>)}
@@ -73,30 +74,55 @@ export function SelectInput({ value, onChange, options, required = false, disabl
 }
 
 export function FileInput({ onChange, accept = "image/*", className = "", ...props }) {
+  const [selectedName, setSelectedName] = useState("");
+  const statusId = useId();
+
   return (
-    <input
-      type="file"
-      accept={accept}
-      onChange={(event) => onChange(event.target.files?.[0] || null)}
-      className={`rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-3 text-sm font-medium leading-6 text-slate-600 outline-none transition file:mr-3 file:rounded-xl file:border-0 file:bg-blue-600 file:px-3 file:py-1.5 file:text-sm file:font-bold file:text-white hover:border-blue-200 hover:bg-blue-50/40 focus:border-blue-300 focus:ring-2 focus:ring-blue-100 ${className}`}
-      {...props}
-    />
+    <div className="grid gap-2">
+      <input
+        {...props}
+        type="file"
+        accept={accept}
+        aria-describedby={[props["aria-describedby"], statusId].filter(Boolean).join(" ")}
+        onChange={(event) => {
+          const file = event.target.files?.[0] || null;
+          setSelectedName(file?.name || "");
+          onChange?.(file);
+        }}
+        className={cn("khmer-text min-h-11 w-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-3 py-2.5 text-sm font-medium leading-6 text-slate-600 outline-none transition file:mr-3 file:rounded-xl file:border-0 file:bg-blue-600 file:px-3 file:py-1.5 file:text-sm file:font-bold file:text-white hover:border-blue-300 hover:bg-blue-50/40 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400", className)}
+      />
+      <span id={statusId} className="khmer-text text-xs font-semibold leading-5 text-slate-500" aria-live="polite">
+        {selectedName ? `Selected file: ${selectedName}` : "No file selected."}
+      </span>
+    </div>
   );
 }
 
-export function ToggleField({ label, checked, onChange, description }) {
+export function ToggleField({ label, checked, onChange, description, disabled = false, id }) {
+  const generatedId = useId();
+  const inputId = id || generatedId;
+  const descriptionId = description ? `${inputId}-description` : undefined;
+
   return (
-    <label className="flex items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-blue-200 hover:bg-blue-50/30">
-      <span>
-        <span className="block text-sm font-bold text-slate-800">{label}</span>
-        {description ? <span className="mt-1 block text-xs leading-5 text-slate-500">{description}</span> : null}
+    <label htmlFor={inputId} className="flex min-h-11 items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-3 transition hover:border-blue-200 hover:bg-blue-50/30 has-disabled:cursor-not-allowed has-disabled:bg-slate-100 has-disabled:opacity-70">
+      <span className="min-w-0">
+        <span className="khmer-label block text-sm font-bold leading-6 text-slate-800">{label}</span>
+        {description ? <span id={descriptionId} className="khmer-text mt-1 block text-xs leading-5 text-slate-500">{description}</span> : null}
       </span>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-        className="mt-1 h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-      />
+      <span className="relative mt-0.5 shrink-0">
+        <input
+          id={inputId}
+          type="checkbox"
+          checked={checked}
+          disabled={disabled}
+          aria-label={label}
+          aria-describedby={descriptionId}
+          onChange={(event) => onChange(event.target.checked)}
+          className="peer sr-only"
+        />
+        <span className="block h-7 w-12 rounded-full bg-slate-300 transition peer-checked:bg-blue-600 peer-focus-visible:ring-4 peer-focus-visible:ring-blue-100 peer-disabled:bg-slate-200 motion-reduce:transition-none" aria-hidden="true" />
+        <span className="absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-5 motion-reduce:transition-none" aria-hidden="true" />
+      </span>
     </label>
   );
 }

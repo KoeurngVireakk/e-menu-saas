@@ -2,6 +2,7 @@ import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { useId } from "react";
 import { Link } from "react-router-dom";
 import AppCard from "./AppCard";
+import AppBadge from "./AppBadge";
 import { cn } from "../../components/ui/utils";
 
 const toneStyles = {
@@ -52,7 +53,8 @@ export default function AppMetricCard({
 
   return (
     <AppCard
-      className="premium-interactive h-full"
+      variant="interactive"
+      className="h-full"
       bodyClassName="flex min-h-40 flex-col p-4"
       aria-labelledby={ariaLabel ? undefined : titleId}
       aria-describedby={descriptionId}
@@ -64,7 +66,7 @@ export default function AppMetricCard({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <p id={titleId} className="khmer-label text-xs font-black text-slate-500">{title}</p>
-                {status ? <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-black leading-5", styles.status)}>{status}</span> : null}
+                {status ? <AppBadge tone={tone === "default" ? "information" : tone} className={cn("px-2 py-0.5 text-[11px]", styles.status)}>{status}</AppBadge> : null}
               </div>
               <p className="mt-3 wrap-break-word text-2xl font-black leading-tight tracking-normal tabular-nums text-slate-950 sm:text-3xl">{value ?? "—"}</p>
             </div>
@@ -99,7 +101,7 @@ export default function AppMetricCard({
 
 function MetricSkeleton() {
   return (
-    <div className="h-full animate-pulse" role="status" aria-label="Loading metric">
+    <div className="h-full animate-pulse motion-reduce:animate-none" role="status" aria-label="Loading metric">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="h-3 w-24 rounded-full bg-slate-200" />

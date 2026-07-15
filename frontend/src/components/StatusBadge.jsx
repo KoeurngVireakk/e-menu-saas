@@ -1,29 +1,5 @@
-import Badge from "./ui/Badge";
+import AppStatusBadge from "../design-system/components/AppStatusBadge";
 
-const tone = {
-  active: "green",
-  paid: "green",
-  ready: "green",
-  completed: "green",
-  pending: "amber",
-  preparing: "blue",
-  accepted: "indigo",
-  inactive: "slate",
-  unpaid: "slate",
-  failed: "red",
-  cancelled: "red",
-  rejected: "red",
-  suspended: "red",
-};
-
-const liveStates = new Set(["pending", "preparing", "accepted", "active"]);
-
-export default function StatusBadge({ value }) {
-  const normalized = value || "unknown";
-
-  return (
-    <Badge tone={tone[normalized] || "slate"} pulse={liveStates.has(normalized)}>
-      {normalized}
-    </Badge>
-  );
+export default function StatusBadge(props) {
+  return <AppStatusBadge {...props} />;
 }

@@ -1,9 +1,10 @@
-import { useEffect, useId, useRef } from "react";
+import { useId, useRef } from "react";
 import { createPortal } from "react-dom";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
 import { cn } from "../../components/ui/utils";
 import AppButton from "../components/AppButton";
+import useDialogA11y from "../hooks/useDialogA11y";
 
 export default function CrudFormModal({
   open,
@@ -24,33 +25,15 @@ export default function CrudFormModal({
   const titleId = useId();
   const descriptionId = useId();
   const dialogRef = useRef(null);
+  const reduceMotion = useReducedMotion();
 
-  useEffect(() => {
-    if (!open) return undefined;
-
-    const previouslyFocused = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
-    const focusTimer = window.setTimeout(() => dialogRef.current?.focus(), 0);
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape" && !loading) onClose?.();
-    };
-
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.clearTimeout(focusTimer);
-      window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-      previouslyFocused?.focus?.();
-    };
-  }, [loading, open, onClose]);
+  useDialogA11y({ open, dialogRef, onClose, closeDisabled: loading });
 
   if (!open) return null;
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 grid place-items-center overflow-hidden bg-slate-950/50 px-[max(0.5rem,env(safe-area-inset-left))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-[4px] sm:p-6"
+      className="fixed inset-0 z-50 grid place-items-end overflow-hidden bg-[var(--menudigi-overlay)] px-[max(0.5rem,env(safe-area-inset-left))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur-[4px] sm:place-items-center sm:p-6"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !loading) onClose?.();
       }}
@@ -63,11 +46,12 @@ export default function CrudFormModal({
         aria-describedby={description ? descriptionId : undefined}
         aria-busy={loading || undefined}
         tabIndex={-1}
-        initial={{ opacity: 0, y: 16, scale: 0.98 }}
+        initial={reduceMotion ? false : { opacity: 0, y: 16, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.18, ease: "easeOut" }}
+        transition={{ duration: reduceMotion ? 0 : 0.18, ease: "easeOut" }}
+        data-ui-motion
         className={cn(
-          "premium-surface flex max-h-[calc(100dvh-1rem)] w-full min-w-0 flex-col overflow-hidden rounded-3xl border border-white/80 bg-white shadow-2xl shadow-slate-950/20 outline-none",
+          "premium-surface flex max-h-[calc(100dvh-1rem)] w-full min-w-0 flex-col overflow-hidden rounded-t-3xl border border-white/80 bg-white shadow-[var(--menudigi-elevated-shadow)] outline-none sm:rounded-3xl",
           "sm:max-h-[calc(100dvh-3rem)]",
           maxWidth,
         )}
@@ -82,7 +66,7 @@ export default function CrudFormModal({
             type="button"
             aria-label={closeLabel}
             disabled={loading}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={onClose}
           >
             <X className="h-5 w-5" aria-hidden="true" />

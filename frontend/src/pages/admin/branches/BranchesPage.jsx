@@ -175,7 +175,6 @@ export default function BranchesPage() {
                     title="Delete branch?"
                     text={`This will delete ${branch.name}. Make sure no active operations depend on it.`}
                     onConfirm={() => remove(branch)}
-                    className="inline-flex h-9 items-center gap-2 rounded-xl bg-rose-600 px-3 text-sm font-bold text-white transition hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                   >
                     <Trash2 className="h-4 w-4" aria-hidden="true" />
                     Delete

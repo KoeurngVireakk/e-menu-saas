@@ -2,7 +2,7 @@ export { default as Badge } from "./Badge";
 export { default as Button } from "./Button";
 export { default as Card } from "./Card";
 export { default as Drawer } from "./Drawer";
-export { EmptyState, ErrorState, LoadingState } from "./States";
+export { EmptyState, ErrorState, ForbiddenState, LoadingState, NoResultsState, OfflineState, SuccessState } from "./States";
 export { default as Input } from "./Input";
 export { default as Modal } from "./Modal";
 export { default as PageHeader } from "./PageHeader";

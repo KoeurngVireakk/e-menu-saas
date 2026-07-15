@@ -10,6 +10,7 @@ export default function AppCard({
   bodyClassName = "",
   ariaLabel,
   labelled = false,
+  variant = "default",
   ...props
 }) {
   const generatedId = useId();
@@ -17,9 +18,17 @@ export default function AppCard({
   const descriptionId = description ? `${generatedId}-description` : undefined;
   const shouldLabelPanel = labelled && titleId;
 
+  const variants = {
+    default: "premium-surface border bg-white",
+    interactive: "premium-surface premium-interactive border bg-white",
+    bordered: "border border-slate-200 bg-white shadow-none",
+    elevated: "border border-white/80 bg-white shadow-[var(--menudigi-elevated-shadow)]",
+    compact: "border border-slate-200 bg-white shadow-none",
+  };
+
   return (
     <section
-      className={cn("premium-surface min-w-0 rounded-3xl border bg-white", className)}
+      className={cn("min-w-0 rounded-3xl", variants[variant] || variants.default, className)}
       aria-labelledby={shouldLabelPanel ? titleId : undefined}
       aria-describedby={shouldLabelPanel ? descriptionId : undefined}
       aria-label={!title ? ariaLabel : undefined}
@@ -34,7 +43,7 @@ export default function AppCard({
           {action ? <div className="flex min-w-0 shrink-0 flex-wrap gap-2">{action}</div> : null}
         </header>
       ) : null}
-      <div className={cn("min-w-0 p-4 md:p-6", bodyClassName)}>{children}</div>
+      <div className={cn("min-w-0", variant === "compact" ? "p-4" : "p-4 md:p-6", bodyClassName)}>{children}</div>
     </section>
   );
 }

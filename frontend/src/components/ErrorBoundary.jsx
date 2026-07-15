@@ -31,7 +31,7 @@ export default class ErrorBoundary extends Component {
         <div className="mx-auto flex min-h-[70vh] max-w-xl items-center">
           <Card className="w-full border-rose-200 p-6">
             <p className="text-xs font-bold uppercase tracking-wide text-rose-600">Application error</p>
-            <h1 className="mt-2 text-2xl font-bold text-slate-950">Something went wrong</h1>
+            <h1 className="mt-2 text-2xl font-bold text-slate-950">MenuDIGI could not load this screen</h1>
             <p className="mt-2 text-sm leading-6 text-slate-600">
               The page could not be displayed. Reload the page or return to a stable area and try again.
             </p>

@@ -1,83 +1,40 @@
-import { motion } from "framer-motion";
-import { AlertTriangle, Ban, CheckCircle2, Inbox, SearchX, WifiOff } from "lucide-react";
-import Button from "./Button";
-import Card from "./Card";
+import { Ban, CheckCircle2, Inbox, SearchX, WifiOff } from "lucide-react";
+import AppCard from "../../design-system/components/AppCard";
+import AppSkeleton from "../../design-system/components/AppSkeleton";
+import AppState from "../../design-system/components/AppState";
 
 export function EmptyState({ title = "No records found", message = "There is nothing to show yet.", action, icon: Icon = Inbox, checklist = [] }) {
-  return (
-    <Card className="p-8 text-center">
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2, ease: "easeOut" }}>
-      <div className="mx-auto grid h-14 w-14 place-items-center rounded-3xl border border-blue-100 bg-blue-50 text-sm font-black text-blue-600 shadow-inner shadow-white">
-        <Icon className="h-6 w-6" aria-hidden="true" />
-      </div>
-      <h3 className="khmer-heading mt-5 text-lg font-black text-slate-950">{title}</h3>
-      <p className="khmer-text mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">{message}</p>
-      {checklist.length ? (
-        <ul className="khmer-text mx-auto mt-4 grid max-w-md gap-2 text-left text-sm font-semibold leading-6 text-slate-600">
-          {checklist.map((item) => <li key={item} className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">{item}</li>)}
-        </ul>
-      ) : null}
-      {action ? <div className="mt-5">{action}</div> : null}
-      </motion.div>
-    </Card>
-  );
+  return <AppState kind="empty" icon={Icon} title={title} message={message} action={action} checklist={checklist} />;
 }
 
 export function LoadingState({ message = "Loading..." }) {
   return (
-    <Card className="p-6" role="status" aria-live="polite">
-      <div className="animate-pulse space-y-3">
-        <div className="h-4 w-32 rounded-full bg-slate-200" />
-        <div className="h-10 rounded-2xl bg-slate-100" />
-        <div className="h-10 rounded-2xl bg-slate-100" />
-      </div>
+    <AppCard aria-live="polite">
+      <AppSkeleton variant="table" rows={2} label={message} />
       <p className="khmer-text mt-4 text-sm font-semibold text-slate-500">{message}</p>
       <p className="khmer-text mt-1 text-xs font-semibold leading-5 text-slate-400">Keeping this workspace ready while fresh data loads.</p>
-    </Card>
+    </AppCard>
   );
 }
 
-export function ErrorState({ message = "Unable to load data.", onRetry }) {
-  return (
-    <Card className="border-rose-200 bg-rose-50/40 p-6">
-      <div className="flex items-start gap-3">
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-rose-100 text-rose-700">
-          <AlertTriangle className="h-5 w-5" aria-hidden="true" />
-        </div>
-        <div>
-          <h3 className="khmer-heading font-black text-rose-700">Something went wrong</h3>
-          <p className="khmer-text mt-2 text-sm leading-6 text-rose-600">{message}</p>
-          <p className="khmer-text mt-1 text-xs font-semibold leading-5 text-rose-500">Check your connection, then retry. Saved work is not changed by this message.</p>
-          {onRetry ? <Button type="button" variant="danger" size="sm" className="mt-4" onClick={onRetry}>Retry</Button> : null}
-        </div>
-      </div>
-    </Card>
-  );
+export function ErrorState({ title = "Unable to load this content", message = "The latest data could not be retrieved.", details = "Check your connection, then retry. Saved work is not changed by this message.", onRetry }) {
+  return <AppState kind="error" title={title} message={message} details={details} actionLabel={onRetry ? "Retry" : undefined} onAction={onRetry} />;
 }
 
 export function NoResultsState({ title = "No matching results", message = "Try a different search term or clear filters.", action, checklist = [] }) {
-  return <EmptyState icon={SearchX} title={title} message={message} action={action} checklist={checklist} />;
+  return <AppState kind="no-results" icon={SearchX} title={title} message={message} action={action} checklist={checklist} />;
 }
 
 export function OfflineState({ title = "You are offline", message = "Reconnect to continue loading live restaurant data.", action, checklist = [] }) {
-  return <EmptyState icon={WifiOff} title={title} message={message} action={action} checklist={checklist} />;
+  return <AppState kind="offline" icon={WifiOff} title={title} message={message} action={action} checklist={checklist} />;
 }
 
 export function ForbiddenState({ title = "Access unavailable", message = "Your account does not have permission to view this workspace area.", action, checklist = [] }) {
-  return <EmptyState icon={Ban} title={title} message={message} action={action} checklist={checklist} />;
+  return <AppState kind="permission" icon={Ban} title={title} message={message} action={action} checklist={checklist} />;
 }
 
 export function SuccessState({ title = "All set", message = "The action completed successfully.", action }) {
-  return (
-    <Card className="border-emerald-200 bg-emerald-50/40 p-8 text-center">
-      <div className="mx-auto grid h-14 w-14 place-items-center rounded-3xl bg-emerald-100 text-emerald-700">
-        <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
-      </div>
-      <h3 className="khmer-heading mt-5 text-lg font-black text-emerald-900">{title}</h3>
-      <p className="khmer-text mx-auto mt-2 max-w-md text-sm leading-6 text-emerald-700">{message}</p>
-      {action ? <div className="mt-5">{action}</div> : null}
-    </Card>
-  );
+  return <AppState kind="success" icon={CheckCircle2} title={title} message={message} action={action} />;
 }
 
 export function AppLoadingState(props) {

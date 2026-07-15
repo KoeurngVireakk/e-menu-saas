@@ -1,9 +1,9 @@
-export default function AppSkeleton({ variant = "card", rows = 3 }) {
-  const block = "animate-pulse rounded-3xl bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100 bg-[length:200%_100%]";
+export default function AppSkeleton({ variant = "card", rows = 3, label }) {
+  const block = "animate-pulse rounded-3xl bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100 bg-[length:200%_100%] motion-reduce:animate-none";
 
   if (variant === "page") {
     return (
-      <div className="animate-pulse space-y-5">
+      <div className="animate-pulse space-y-5 motion-reduce:animate-none" role="status" aria-label={label || "Loading page"}>
         <div className="h-8 w-64 rounded-xl bg-slate-200" />
         <div className="grid gap-4 sm:grid-cols-3">
           {[0, 1, 2].map((item) => <div key={item} className={`h-28 ${block}`} />)}
@@ -15,7 +15,7 @@ export default function AppSkeleton({ variant = "card", rows = 3 }) {
 
   if (variant === "table") {
     return (
-      <div className="animate-pulse space-y-3">
+      <div className="animate-pulse space-y-3 motion-reduce:animate-none" role="status" aria-label={label || "Loading table"}>
         {Array.from({ length: rows }).map((_, index) => <div key={index} className={`h-12 ${block}`} />)}
       </div>
     );
@@ -23,11 +23,11 @@ export default function AppSkeleton({ variant = "card", rows = 3 }) {
 
   if (variant === "product-grid") {
     return (
-      <div className="grid animate-pulse gap-3">
+      <div className="grid animate-pulse gap-3 motion-reduce:animate-none" role="status" aria-label={label || "Loading products"}>
         {Array.from({ length: rows }).map((_, index) => <div key={index} className={`h-32 ${block}`} />)}
       </div>
     );
   }
 
-  return <div className={`h-32 ${block}`} />;
+  return <div className={`h-32 ${block}`} role="status" aria-label={label || "Loading content"} />;
 }

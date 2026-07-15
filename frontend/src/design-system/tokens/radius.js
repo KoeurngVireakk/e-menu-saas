@@ -1,6 +1,7 @@
 export const radius = {
-  sm: "rounded-md",
-  md: "rounded-xl",
-  lg: "rounded-2xl",
+  control: "rounded-2xl",
+  compact: "rounded-xl",
+  card: "rounded-3xl",
+  overlay: "rounded-3xl",
   full: "rounded-full",
 };

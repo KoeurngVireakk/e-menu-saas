@@ -207,7 +207,6 @@ export default function TablesPage() {
                     title="Delete table?"
                     text={`This will delete ${table.table_name} and its QR reference.`}
                     onConfirm={() => remove(table)}
-                    className="inline-flex h-9 items-center gap-2 rounded-xl bg-rose-600 px-3 text-sm font-bold text-white transition hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                   >
                     <Trash2 className="h-4 w-4" aria-hidden="true" />
                     Delete
@@ -263,7 +262,7 @@ export default function TablesPage() {
                 title="Regenerate QR?"
                 text="Regeneration is a future placeholder. Current QR links remain stable."
                 onConfirm={() => toastSuccess("QR regeneration is prepared for a future module.")}
-                className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-slate-50"
+                variant="secondary"
               >
                 Regenerate
               </ConfirmButton>
@@ -276,28 +275,9 @@ export default function TablesPage() {
 }
 
 function SelectFilter({ ariaLabel, value, onChange, options }) {
-  return (
-    <select
-      aria-label={ariaLabel}
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 shadow-sm outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
-    >
-      {options.map(([optionValue, label]) => <option key={optionValue || "empty"} value={optionValue}>{label}</option>)}
-    </select>
-  );
+  return <SelectInput aria-label={ariaLabel} value={value} onChange={onChange} options={options} className="w-auto min-w-36" />;
 }
 
 function IconAction({ label, icon, onClick, children }) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-    >
-      {icon}
-      {children}
-    </button>
-  );
+  return <AppButton type="button" variant="secondary" size="sm" aria-label={label} iconLeft={icon} onClick={onClick}>{children}</AppButton>;
 }

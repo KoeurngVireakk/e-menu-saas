@@ -1,26 +1,27 @@
 import { cn } from "../../components/ui/utils";
 
-const statusTones = {
-  active: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  inactive: "border-slate-200 bg-slate-100 text-slate-600",
-  pending: "border-amber-200 bg-amber-50 text-amber-700",
-  accepted: "border-blue-200 bg-blue-50 text-blue-700",
-  preparing: "border-indigo-200 bg-indigo-50 text-indigo-700",
-  ready: "border-cyan-200 bg-cyan-50 text-cyan-700",
-  completed: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  cancelled: "border-rose-200 bg-rose-50 text-rose-700",
-  paid: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  unpaid: "border-slate-200 bg-slate-100 text-slate-600",
-  failed: "border-rose-200 bg-rose-50 text-rose-700",
-  success: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  warning: "border-amber-200 bg-amber-50 text-amber-700",
-  danger: "border-rose-200 bg-rose-50 text-rose-700",
-  info: "border-sky-200 bg-sky-50 text-sky-700",
+const toneStyles = {
+  success: "border-[var(--menudigi-success-border)] bg-[var(--menudigi-success-soft)] text-[var(--menudigi-success)]",
+  warning: "border-[var(--menudigi-warning-border)] bg-[var(--menudigi-warning-soft)] text-[var(--menudigi-warning)]",
+  danger: "border-[var(--menudigi-danger-border)] bg-[var(--menudigi-danger-soft)] text-[var(--menudigi-danger)]",
+  information: "border-[var(--menudigi-info-border)] bg-[var(--menudigi-info-soft)] text-[var(--menudigi-info)]",
+  neutral: "border-slate-200 bg-slate-100 text-slate-600",
 };
 
-export default function AppBadge({ children, status = "info", className = "" }) {
+const statusTones = {
+  active: "success", available: "success", completed: "success", paid: "success", ready: "success", success: "success",
+  pending: "warning", preparing: "warning", attention: "warning", warning: "warning",
+  cancelled: "danger", danger: "danger", failed: "danger", overdue: "danger", rejected: "danger", suspended: "danger",
+  accepted: "information", info: "information", information: "information", new: "information", processing: "information", selected: "information",
+  disabled: "neutral", inactive: "neutral", neutral: "neutral", unknown: "neutral", unpaid: "neutral",
+};
+
+export default function AppBadge({ children, status = "information", tone, indicator = false, pulse = false, className = "" }) {
+  const semanticTone = tone || statusTones[String(status).toLowerCase()] || "neutral";
+
   return (
-    <span className={cn("khmer-text inline-flex items-center rounded-full border px-3 py-1 text-xs font-black shadow-sm shadow-slate-900/5", statusTones[status] || statusTones.info, className)}>
+    <span className={cn("khmer-text inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-black leading-5", toneStyles[semanticTone], className)}>
+      {indicator ? <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full bg-current", pulse && "animate-pulse motion-reduce:animate-none")} aria-hidden="true" /> : null}
       {children || String(status).replaceAll("_", " ")}
     </span>
   );

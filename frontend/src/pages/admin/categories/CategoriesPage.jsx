@@ -185,7 +185,6 @@ export default function CategoriesPage() {
                     title="Delete category?"
                     text={`This will delete ${category.name}. Products assigned to it may need review.`}
                     onConfirm={() => remove(category)}
-                    className="inline-flex h-9 items-center gap-2 rounded-xl bg-rose-600 px-3 text-sm font-bold text-white transition hover:bg-rose-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                   >
                     <Trash2 className="h-4 w-4" aria-hidden="true" />
                     Delete
