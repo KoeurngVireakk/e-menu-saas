@@ -7,6 +7,7 @@ use App\Models\Branch;
 use App\Models\DiningTable;
 use App\Models\Shop;
 use App\Services\PublicMenuCacheService;
+use App\Services\PlanEntitlementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -15,6 +16,7 @@ class DiningTableController extends Controller
 {
     public function __construct(
         private readonly PublicMenuCacheService $publicMenuCache,
+        private readonly PlanEntitlementService $entitlements,
     ) {
     }
 
@@ -33,6 +35,7 @@ class DiningTableController extends Controller
         abort_unless($request->user()->canManageTables(), 403);
 
         $validated = $this->validateTable($request, $branch);
+        $this->entitlements->assertCanCreate($branch->shop, 'tables');
         $validated['shop_id'] = $branch->shop_id;
         $validated['branch_id'] = $branch->id;
         $validated['qr_token'] = Str::random(48);

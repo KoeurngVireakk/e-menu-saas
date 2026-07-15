@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Shop;
+use App\Services\PlanEntitlementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class ShopController extends Controller
 {
+    public function __construct(private readonly PlanEntitlementService $entitlements) {}
+
     public function index(Request $request)
     {
         return $this->success('Shops loaded', [
@@ -39,6 +42,7 @@ class ShopController extends Controller
         $this->storeUploads($request, $validated);
 
         $shop = Shop::create($validated);
+        $this->entitlements->subscriptionFor($shop);
 
         $this->audit($request, 'shop.created', $shop->id, 'shop', $shop->id, [
             'name' => $shop->name,

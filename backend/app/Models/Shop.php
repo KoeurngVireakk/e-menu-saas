@@ -146,4 +146,9 @@ class Shop extends Model
     {
         return $this->hasOne(RestaurantOnboardingState::class);
     }
+
+    public function subscription(): HasOne
+    {
+        return $this->hasOne(ShopSubscription::class);
+    }
 }

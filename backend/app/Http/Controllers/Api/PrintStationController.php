@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\PrintStation;
 use App\Models\Shop;
+use App\Services\PlanEntitlementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class PrintStationController extends Controller
 {
+    public function __construct(private readonly PlanEntitlementService $entitlements) {}
+
     public function index(Request $request, Shop $shop)
     {
         $this->authorizeShopAccess($request, $shop);
@@ -36,6 +39,7 @@ class PrintStationController extends Controller
         abort_unless($request->user()->canManagePrintStations(), 403);
 
         $validated = $this->validated($request, $shop);
+        $this->entitlements->assertCanCreate($shop, 'print_stations');
         $this->authorizeStationBranch($request, $shop, $validated['branch_id'] ?? null);
 
         $station = DB::transaction(function () use ($request, $shop, $validated) {

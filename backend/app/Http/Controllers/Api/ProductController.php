@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\Shop;
 use App\Services\PublicMenuCacheService;
+use App\Services\PlanEntitlementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -15,6 +16,7 @@ class ProductController extends Controller
 {
     public function __construct(
         private readonly PublicMenuCacheService $publicMenuCache,
+        private readonly PlanEntitlementService $entitlements,
     ) {
     }
 
@@ -40,6 +42,7 @@ class ProductController extends Controller
         abort_unless($request->user()->canManageCatalog(), 403);
 
         $validated = $this->validateProduct($request, $shop);
+        $this->entitlements->assertCanCreate($shop, 'products');
         $this->authorizeScopedWrite($request, $shop, $validated['branch_id'] ?? null);
         $this->validateCategoryBranch($validated);
         $options = $validated['options'] ?? [];

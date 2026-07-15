@@ -13,6 +13,7 @@ use App\Models\Payment;
 use App\Models\Shop;
 use App\Services\CashLedgerService;
 use App\Services\Reports\AnalyticsReportService;
+use App\Services\PlanEntitlementService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ class ReportController extends Controller
     public function __construct(
         private readonly CashLedgerService $ledger,
         private readonly AnalyticsReportService $analytics,
+        private readonly PlanEntitlementService $entitlements,
     )
     {
     }
@@ -67,6 +69,7 @@ class ReportController extends Controller
     public function branchPerformance(Request $request)
     {
         $filters = $this->analyticsFilters($request);
+        $this->entitlements->assertFeatureForShops($filters['shop_ids'], 'advanced_reports');
 
         return $this->success('Branch performance loaded', [
             'branch_performance' => $this->analytics->branchPerformance($request->user(), $filters),
@@ -76,6 +79,7 @@ class ReportController extends Controller
     public function hourlyActivity(Request $request)
     {
         $filters = $this->analyticsFilters($request);
+        $this->entitlements->assertFeatureForShops($filters['shop_ids'], 'advanced_reports');
 
         return $this->success('Hourly activity loaded', [
             'hourly_activity' => $this->analytics->hourlyActivity($request->user(), $filters),
@@ -85,6 +89,7 @@ class ReportController extends Controller
     public function analyticsOverview(Request $request)
     {
         $filters = $this->analyticsFilters($request);
+        $this->entitlements->assertFeatureForShops($filters['shop_ids'], 'advanced_reports');
 
         return $this->success('Analytics overview loaded', [
             'reports' => $this->analytics->all($request->user(), $filters),
@@ -104,6 +109,7 @@ class ReportController extends Controller
     {
         $filters = $this->analyticsFilters($request);
         abort_unless($request->user()->canExportReports(), 403);
+        $this->entitlements->assertFeatureForShops($filters['shop_ids'], 'data_export');
         $summary = $this->analytics->summary($request->user(), $filters);
         $products = $this->analytics->topProducts($request->user(), $filters);
         $rows = [

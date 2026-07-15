@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Shop;
 use App\Services\PublicMenuCacheService;
+use App\Services\PlanEntitlementService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -13,6 +14,7 @@ class BranchController extends Controller
 {
     public function __construct(
         private readonly PublicMenuCacheService $publicMenuCache,
+        private readonly PlanEntitlementService $entitlements,
     ) {
     }
 
@@ -38,7 +40,9 @@ class BranchController extends Controller
         $this->authorizeShop($request, $shop);
         abort_unless($request->user()->canManageBranches(), 403);
 
-        $branch = $shop->branches()->create($this->validateBranch($request));
+        $validated = $this->validateBranch($request);
+        $this->entitlements->assertCanCreate($shop, 'branches');
+        $branch = $shop->branches()->create($validated);
 
         $this->audit($request, 'branch.created', $shop->id, 'branch', $branch->id, [
             'name' => $branch->name,

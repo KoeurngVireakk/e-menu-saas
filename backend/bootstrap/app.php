@@ -3,6 +3,7 @@
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\LogSlowApiRequests;
 use App\Http\Middleware\ProtectDemoWorkspace;
+use App\Exceptions\PlanGovernanceException;
 use Illuminate\Foundation\Application;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -50,6 +51,22 @@ return Application::configure(basePath: dirname(__DIR__))
                 'message' => 'Validation failed',
                 'errors' => $exception->errors(),
             ], 422);
+        });
+
+        $exceptions->render(function (PlanGovernanceException $exception, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage(),
+                'code' => $exception->errorCode,
+                'errors' => [
+                    $exception->details['resource'] ?? $exception->details['feature'] ?? 'plan' => [$exception->getMessage()],
+                ],
+                'data' => $exception->details,
+            ], $exception->status);
         });
 
         $exceptions->render(function (AuthenticationException $exception, Request $request) {

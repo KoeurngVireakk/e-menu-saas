@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OnboardingController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PlanController;
 use App\Http\Controllers\Api\PrintController;
 use App\Http\Controllers\Api\PrintStationController;
 use App\Http\Controllers\Api\ProductController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ShiftController;
 use App\Http\Controllers\Api\ShopController;
+use App\Http\Controllers\Api\ShopSubscriptionController;
 use App\Http\Controllers\Api\ShopSettingsController;
 use App\Http\Controllers\Api\ShopStaffController;
 use App\Http\Controllers\Api\TranslationController;
@@ -75,6 +77,9 @@ Route::middleware(['auth:sanctum', 'throttle:admin-api', 'demo.readonly'])->grou
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 
     Route::get('/system/health', [HealthController::class, 'index']);
+    Route::get('/plans', [PlanController::class, 'index']);
+    Route::get('/shops/{shop}/subscription', [ShopSubscriptionController::class, 'show']);
+    Route::put('/shops/{shop}/subscription', [ShopSubscriptionController::class, 'update']);
 
     Route::get('/onboarding', [OnboardingController::class, 'show']);
     Route::patch('/onboarding', [OnboardingController::class, 'update']);

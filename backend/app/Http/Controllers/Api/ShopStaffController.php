@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Shop;
 use App\Models\ShopStaff;
 use App\Models\User;
+use App\Services\PlanEntitlementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -13,6 +14,8 @@ use Illuminate\Validation\Rule;
 
 class ShopStaffController extends Controller
 {
+    public function __construct(private readonly PlanEntitlementService $entitlements) {}
+
     public function index(Request $request, Shop $shop)
     {
         $this->authorizeStaffView($request, $shop, null, false);
@@ -37,6 +40,12 @@ class ShopStaffController extends Controller
 
         $validated = $this->validateStaff($request, $shop);
         $user = User::where('email', $validated['email'])->first();
+        $existingAssignment = $user && ShopStaff::where('shop_id', $shop->id)->where('user_id', $user->id)->exists();
+
+        if (! $existingAssignment) {
+            $this->entitlements->assertCanCreate($shop, 'staff_members');
+        }
+
         $temporaryPassword = null;
 
         if ($user) {
